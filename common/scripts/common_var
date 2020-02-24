@@ -19,6 +19,7 @@ DIR_NODE_BLUELOG="${DIR_NODE}/Bluelog"
 DIR_SERVER="${DIR_MON}/server"
 DIR_SERVER_LOGS="${DIR_SERVER}/logs"
 DIR_SERVER_SCRIPTS="${DIR_SERVER}/scripts"
+DIR_SERVER_WEBUI="${DIR_SERVER_SCRIPTS}/www/html"
 
 # system directories
 DIR_SYSTEMD_SERVICE="/etc/systemd/system"
