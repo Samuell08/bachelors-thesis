@@ -1,0 +1,263 @@
+#!/bin/bash
+
+# import node variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  node_udev [OPTION]...
+
+Options:
+
+    -a, --append RULE [ARGUMENT...]
+      udev rule name to be appended to must be specified
+      as first argument (different rules might require
+      different arguments)
+      arguments will be appended to the end of specified
+      udev rule
+
+    -m, --mod RULE
+      open specified rule in vim for editing
+
+    -r, --remove RULE
+      remove specified rule
+
+    --help
+      print help page
+
+Udev rules:
+
+      persistent-net MAC NAME
+        USB WiFi interface MAC address and name to be set are
+        both required in this exact order
+
+Both -a and -m will ask to create specified rule if that rule
+doesnt exist yet
+
+Examples:
+
+  node_udev -a persistent-net ff:ff:ff:ff:ff:ff examplewlan0
+  node_udev -r persistent-net -m persistent-net
+
+EOF
+}
+
+function print_help() {
+cat <<EOF
+
+NODE MANAGE UDEV RULES
+
+This command is used to manage supported udev rules. Supported udev
+rules are defined in node_var.
+
+udev rules directory: ${DIR_UDEV_RULES}
+
+List of supported udev rules:
+
+  persistent-net (${UDEV_PERSISTENT_NET})
+
+EOF
+print_usage
+}
+
+function append() {
+  # first  argument - udev rule to be appended
+  # second argument - MAC address of interface
+  # third  argument - name of the interface to be set
+  # return 0 - udev rule successfully appended
+  # return 1 - udev rule NOT appended
+
+  echo ""
+  echo "checking if file ${DIR_UDEV_RULES}/${1} exists..."
+  # check if rule file already exists
+  if [ -f "${DIR_UDEV_RULES}/${1}" ];
+  then
+    echo "file ${DIR_UDEV_RULES}/${1} exists!"
+    # append
+    echo "SUBSYSTEM==\"net\", ACTION==\"add\", ATTR{address}==\"${2}\", NAME=\"${3}\"" >> ${DIR_UDEV_RULES}/${1}
+    echo "udev rule appended!"
+    return 0
+  else
+    echo "file ${DIR_UDEV_RULES}/${1} does not exist!"
+    # ask to create rule
+    read -p "do you want to create it? (y/n) " i_create
+    if [ "$i_create" == "y" ] || [ "$i_create" == "Y" ];
+    then  
+      # creating new rule and append
+      echo "SUBSYSTEM==\"net\", ACTION==\"add\", ATTR{address}==\"${2}\", NAME=\"${3}\"" >> ${DIR_UDEV_RULES}/${1}
+      return 0
+    elif [ "$i_create" == "n" ] || [ "$i_create" == "N" ];
+    then
+      # not creating new rule - exit
+      echo "file ${DIR_UDEV_RULES}/${1} not created!"
+      return 1
+    else
+      # invalid input - exit
+      echo "ERROR: invalid input - expecting y/Y/n/N"
+      echo "file ${DIR_UDEV_RULES}/${1} not created!"
+      return 1
+    fi
+  fi
+}
+
+function modify() {
+  # first argument - name of udev rule
+  # return 0 - file successfully opened
+  # return 1 - file NOT opened
+
+  echo ""
+  echo "checking if file ${DIR_UDEV_RULES}/${1} exists..."
+  # check if rule file already exists
+  if [ -f "${DIR_UDEV_RULES}/${1}" ];
+  then
+    echo "file ${DIR_UDEV_RULES}/${1} exists!"
+    vim "${DIR_UDEV_RULES}/${1}"
+    return 0
+  else
+    echo "file ${DIR_UDEV_RULES}/${1} doesnt not exist!"
+    # ask to create rule
+    read -p "do you want to create it? (y/n) " i_create
+    if [ "$i_create" == "y" ] || [ "$i_create" == "Y" ];
+    then  
+      # creating new rule
+      vim "${DIR_UDEV_RULES}/${1}"
+      return 0
+    elif [ "$i_create" == "n" ] || [ "$i_create" == "N" ];
+    then
+      # not creating new rule - exit
+      echo "file ${DIR_UDEV_RULES}/${1} not created!"
+      return 1
+    else
+      # invalid input - exit
+      echo "ERROR: invalid input - expecting y/Y/n/N"
+      echo "file ${DIR_UDEV_RULES}/${1} not created!"
+      return 1
+    fi
+  fi
+}
+
+function remove() {
+  # first argument - name of udev rule
+  # return 0 - file successfully removed
+  # return 1 - file NOT removed
+
+  echo ""
+  echo "checking if file ${DIR_UDEV_RULES}/${1} exists..."
+  # check if rule file already exists
+  if [ -f "${DIR_UDEV_RULES}/${1}" ];
+  then
+    echo "file ${DIR_UDEV_RULES}/${1} exists!"
+    read -p "delete? (y/n) " i_delete
+    if [ "$i_delete" == "y" ] || [ "$i_delete" == "Y" ];
+    then
+      # Y
+      echo "removing file ${DIR_UDEV_RULES}/${1}..."
+      rm ${DIR_UDEV_RULES}/${1}
+      return 0
+    elif [ "$i_delete" == "n" ] || [ "$i_delete" == "N" ];
+    then
+      # not deleting rule - exit
+      echo "file ${DIR_UDEV_RULES}/${1} NOT deleted!"
+      return 1
+    else
+      # invalid input - exit
+      echo "ERROR: invalid input - expecting y/Y/n/N"
+      echo "file ${DIR_UDEV_RULES}/${1} NOT deleted!"
+      return 1
+    fi
+  else
+    echo "file ${DIR_UDEV_RULES}/${1} doesnt not exist!"
+    return 1
+  fi
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    --help)
+      print_help
+      exit 0
+      ;;
+
+    -a|--append)
+      # parse arguments
+      # 2 - rule name
+      # 3 - MAC address
+      # 4 - name to be set
+      case $2 in
+        persistent-net)
+          if [[ -z "$3" ]] || [[ "$3" == -* ]] || [[ -z "$4" ]] || [[ "$4" == -* ]];
+          then
+            echo ""
+            echo "ERROR: not enough aguments for option $1"
+            print_usage
+	    break
+          else
+            append $UDEV_PERSISTENT_NET $3 $4
+          fi
+	  shift 2
+	  ;;
+
+        # more aguments (udev rules) can be added
+        *)
+          echo "ERROR: invalid argument for option $1"
+	  break
+          ;;
+      esac
+      shift
+      ;;
+
+    -m|--mod)
+      # parse option
+      case $2 in
+        persistent-net)
+          modify $UDEV_PERSISTENT_NET
+	  ;;
+
+        # more aguments (udev rules) can be added
+	*)
+          echo "ERROR: invalid argument for option $1"
+	  print_usage
+	  break
+          ;;
+      esac
+      shift
+      ;;
+    
+    -r|--remove)
+      # parse option
+      case $2 in
+        persistent-net)
+          remove $UDEV_PERSISTENT_NET
+	  ;;
+
+        # more aguments (udev rules) can be added
+	*)
+          echo "ERROR: invalid argument for option $1"
+	  print_usage
+	  break
+          ;;
+      esac
+      shift
+      ;;
+
+    *)
+      echo "ERROR: option $1 unknown!"
+      print_usage
+      break
+      ;;
+  esac
+  shift
+done

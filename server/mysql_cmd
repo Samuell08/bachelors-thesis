@@ -1,0 +1,41 @@
+# replace SELECT * with SELECT COUNT(*) to get number of rows from query
+
+# everything last 300 seconds
+SELECT * FROM Clients WHERE
+last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 300 SECOND));
+
+# every global MAC
+SELECT * FROM Clients WHERE
+station_MAC LIKE '_0:__:__:__:__:__' OR
+station_MAC LIKE '_4:__:__:__:__:__' OR
+station_MAC LIKE '_8:__:__:__:__:__' OR
+station_MAC LIKE '_C:__:__:__:__:__';
+
+# global MAC within last 10 minutes
+SELECT * FROM Clients WHERE
+(last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 10 MINUTE))) AND
+(station_MAC LIKE '_0:__:__:__:__:__' OR
+ station_MAC LIKE '_4:__:__:__:__:__' OR
+ station_MAC LIKE '_8:__:__:__:__:__' OR
+ station_MAC LIKE '_C:__:__:__:__:__');
+
+# local MAC with probe request containing at least 1 SSID within last 10 minutes 
+SELECT * FROM Clients WHERE
+(LENGTH(probed_ESSIDs) > 18) AND
+(last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 10 MINUTE))) AND NOT
+(station_MAC LIKE '_0:__:__:__:__:__' OR
+ station_MAC LIKE '_4:__:__:__:__:__' OR
+ station_MAC LIKE '_8:__:__:__:__:__' OR
+ station_MAC LIKE '_C:__:__:__:__:__');
+
+# local MAC with probe request containing at least 1 SSID but not containing listed SSIDs withing last 10 minutes
+SELECT * FROM Clients WHERE
+(LENGTH(probed_ESSIDs) > 18) AND
+(last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 10 MINUTE))) AND NOT
+(station_MAC LIKE '_0:__:__:__:__:__' OR
+ station_MAC LIKE '_4:__:__:__:__:__' OR
+ station_MAC LIKE '_8:__:__:__:__:__' OR
+ station_MAC LIKE '_C:__:__:__:__:__') AND NOT
+(probed_ESSIDs LIKE '%eduroam%' OR
+ probed_ESSIDs LIKE '%vutbrno%' OR
+ probed_ESSIDs LIKE '%fekthost%');

@@ -1,0 +1,161 @@
+#!/bin/bash
+
+# import node variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# local variables
+now="0"
+intf_airodump=""
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  node_dump [OPTION]...
+
+Options:
+
+    -n, --now
+      disables the default sleep before starting monitoring (sleep
+      duration is set to ${DUMP_SLEEP}, which is defined in node_var)
+
+    -w, --wlan [interface]...
+      specify one or more wlan interface(s)
+    
+    -b, --bt [interface]...
+      specify exactly one bluetooth interface (if no interface
+      is specified Bluelog will look for default interface)
+    
+    --help
+      print help page
+
+Now option affects ONLY interfaces specified AFTER this option
+All specified interfaces MUST exist
+Multiple wlan interfaces MUST be enclosed in apostrophes (')
+
+Examples:
+
+  node_dump -b hci0
+  node_dump -n -w usbwlan0
+  node_dump -w usbwlan0 -n -b hci0
+  node_dump -w 'usbwlan0 usbwlan1 usbwlan2'
+
+EOF
+}
+
+function print_help() {
+cat <<EOF
+  
+NODE START MONITORING
+
+This command is used to start monitoring and dumping log files with
+desired bluetooth/wlan interface(s). Wlan interfaces will be put into
+monitor mode prior to calling airodump-ng. Only one Bluetooth interface
+can be specified and it will use Bluelog for logging.
+
+Interfaces will be setup in order in which they are written in command
+options.
+
+By default this script will sleep for $DUMP_SLEEP (defined in node_var)
+before starting monitoring.
+
+Processes spawned by this script will be run in background with output
+redirected to /dev/null. Only logs that they create will be preserved.
+
+log location: $DIR_NODE_LOGS
+Bluelog location: $DIR_NODE_BLUELOG
+
+Location cannot be changed because scripts on remote devices might be
+depending on it!
+
+EOF
+  print_usage
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    --help)
+      print_help
+      exit 0
+      ;;
+
+    -n|--now)
+      now="1";
+      ;;
+
+    -w|--wlan)
+      # check if argument -w empty
+      if [[ -z "$2" ]] || [[ "$2" == -* ]];
+      then
+        echo "ERROR: invalid argument $2 for option $1"
+	print_usage
+	break
+      fi
+
+      if [[ "$now" == "0" ]];
+      then
+        echo "Sleeping for ${DUMP_SLEEP}..."
+        sleep "$DUMP_SLEEP" 
+      fi
+     
+      # change wlan interface(s) into monitoring mode
+      # and create string in airodump-ng format
+      for i in $2
+      do
+        echo "Changing interface $i into monitoring mode!"
+        sudo ip link set "$i" down
+        sudo iw "$i" set monitor control
+        sudo ip link set "$i" up
+	# append interface, to string
+        intf_airodump="${intf_airodump}${i},"
+      done
+      # remove last character (,) from string
+      intf_airodump="${intf_airodump::-1}"
+
+      echo "Starting airodump-ng with interface(s) $2!"
+      sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}" -o csv "$intf_airodump" &>/dev/null &
+     
+      shift
+      ;;
+
+    -b|--bt)
+      # check if argument -b empty
+      if [[ -z "$2" ]] || [[ "$2" == -* ]];
+      then
+        echo "ERROR: invalid argument $2 for option $1"
+	print_usage
+	break
+      fi
+      
+      if [[ "$now" == "0" ]];
+      then
+        echo "Sleeping for ${DUMP_SLEEP}..."
+        sleep "$DUMP_SLEEP" 
+      fi
+      
+      echo "Killing Bluelog process if there is one!"
+      "${DIR_NODE_BLUELOG}/bluelog" -k
+      echo "Starting Bluelog with interface $2!"
+      "${DIR_NODE_BLUELOG}/bluelog" -o "${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log" -i $2 -nmft &>/dev/null &
+      shift
+      ;;
+
+    *)
+      echo "ERROR: option $1 uknown!"
+      print_usage
+      break
+      ;;
+  esac
+  shift
+done

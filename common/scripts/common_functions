@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# import global variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# functions
+function timestamp() {
+  echo $(date +"%F %T")
+}
+
+function log_server_import() {
+  # first  argument - success/fail
+  # second argument - bt/wlan
+  # third  argument - source hostname (database name)
+  # fourth argument - log source
+
+  # local variables
+  LOG_DELIM=$'\t'
+
+  echo "$(timestamp)${LOG_DELIM}${1}${LOG_DELIM}${2}${LOG_DELIM}${3}${LOG_DELIM}${4}" \
+  >> "${DIR_SERVER_LOGS}/${LOG_SERVER_IMPORT}.log"
+}
+
+

@@ -1,0 +1,415 @@
+#!/bin/bash
+
+# import global variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# local variables
+IMPORT_PERIOD=""
+IMPORT_SOURCE=""
+IMPORT_ADDRESS=""
+IMPORT_BT=""
+IMPORT_WLAN=""
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  server_auto [OPTION]...
+
+Options:
+
+    -p, --pair IP_ADDRESS [IP_ADDRESS...]
+      Copy public ssh key to remote monitoring device(s) with specified IP
+      address to allow passwordless interaction through ssh (including scp).
+      Prompt to generate new key is always present. When skipped, old key will
+      be copied to remote device(s).
+
+    -s,--sec | -m,--min | -h, --hour INTEGER
+      Time between periodic server_import calls in seconds | minutes | hours.
+      These options can be combined for precise timing. 
+      
+    -d,--device HOSTNAME
+      Hostname of monitoring device from which log files will be imported to
+      mysql database (stored on this device).
+      Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
+      hostname needs to be specified (eg. node_1)
+
+    -a,--address IP_ADDRESS
+      In case of importing logs from remote monitoring device, IP address of
+      that device needs to be specified.
+      Command scp will be used to copy log files from remote monitoring device.
+
+    -b,--bt
+      Import Bluelog log file.
+
+    -w,--wlan LOG_NUMBER
+      Import airodump-ng log file with specified number.
+
+    -r,--remove HOSTNAME
+      Remove automatic import service for specified device hostname.
+      Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
+      hostname needs to be specified (eg. node_1)
+    
+    --help
+      Print help page.
+
+Examples:
+
+  server_auto -p 192.168.0.31
+  server_auto -p '192.168.0.31 192.168.0.32 192.168.0.33'
+  server_auto -s 30 -d node_2 -b
+  server_auto -h 1 -m 15 -d node_1 -a 192.168.0.31 -b -w 03
+  server_auto -r node_1
+
+EOF
+}
+
+function print_help() {
+cat <<EOF
+
+SERVER AUTOMATICALLY IMPORT DATA FROM MONITORING LOGS INTO DATABASE
+
+This command is used to automatically import data from monitoring logs into
+mysql database with specified time period. It will create .service and .timer
+file in systemd directory. This created .timer service will handle periodic
+execution of .service file with specified period. Actual import will be handled
+by server_import call from .service file. (for more information try 
+server_import --help) 
+
+For this script to function correctly with remote monitoring device, it must
+have a copy of public ssh key of this device. This pairing can be achieved
+by -p option of this script.
+
+server scripts directory:  ${DIR_SERVER_SCRIPTS}
+server log directory:      ${DIR_SERVER_LOGS}
+systemd directory:         ${DIR_SYSTEMD_SERVICE}
+
+name prefix of automatic import services:  ${SERVICE_SERVER_AUTO}
+name of log file for server imports:       ${LOG_SERVER_IMPORT}
+
+Location cannot be altered because scripts on this or remote device
+might be depending on it!
+
+EOF
+print_usage
+}
+
+function ssh_pair() {
+  # first argument - IP adress (1 or more) of remote device
+  # return 0 - function finished
+  # return 1 - missing ssh key
+  # return 2 - user not 'pi'
+
+  # local variables
+  ID_RSA="id_rsa"
+  CALLER="$(whoami)"
+
+  # user calling this script MUST be pi
+  if [[ ! "${CALLER}" == "pi" ]];
+  then
+    echo "ERROR: user calling this script is '${CALLER}', MUST be 'pi'!"
+    echo "try running the command without 'sudo' or with 'sudo -u pi'"
+    return 2
+  fi
+
+  echo "==========================="
+  echo "Starting SSH key generation"
+  echo "==========================="
+
+  # check if id_rsa already generated
+  if [[ -f  "${DIR_SSH}/${ID_RSA}" ]];
+  then
+    echo "WARNING: ssh key already exists!"
+    # check if .pub key also exists
+    if [[ ! -f "${DIR_SSH}/${ID_RSA}.pub" ]];
+    then
+      echo "WARNING: existing ssh key is missing .pub key!"
+      echo "WARNING: removing existing ssh key!"
+      rm "${DIR_SSH}/${ID_RSA}"
+    fi
+  fi
+    
+  while :
+  do
+    read -p "do you want to generate new ssh key? (y/n) " i_gen
+    case $i_gen in
+      y|Y|yes|YES)
+        # generate ssh key
+	sudo -u pi ssh-keygen -t RSA -f "${DIR_SSH}/${ID_RSA}" -N ""
+        break;
+        ;;
+
+      n|N|no|NO)
+        echo "ssh key generation cancelled!"
+        break;
+        ;;
+
+      *)
+        echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+        ;;
+
+    esac
+  done
+  
+  echo "================================"
+  echo "Copying SSH key to remote device"
+  echo "================================"
+  
+  # check if ssh key is generated correctly
+  if [[ -f  "${DIR_SSH}/${ID_RSA}" ]] && [[ -f "${DIR_SSH}/${ID_RSA}.pub" ]];
+  then
+    # copy ssh key to remote device(s)
+    for i in $1
+    do
+      echo "copying ssh key to remote device with address: '${i}'..."
+      sudo -u pi ssh-copy-id pi@${i}
+    done
+  else
+    echo "ERROR: missing ssh key!"
+    return 1
+  fi
+
+  return 0
+}
+
+function write_service {
+  # return 0 - function finished
+  # return 1 - replace cancelled
+  # return 2 - missing option
+
+  # local variables
+  MYSQL_SECRET=""
+  IMPORT_STRING=""
+  
+  # check options
+  if [[ -z "$IMPORT_PERIOD" ]];
+  then
+    echo "ERROR: missing import period option! (-s, -m or -h)"
+    return 2
+  fi
+
+  if [[ -z "$IMPORT_SOURCE" ]];
+  then
+    echo "ERROR: missing source device hostname option! (-d)"
+    return 2
+  fi
+
+  if [[ -z "$IMPORT_BT" ]] && [[ -z "$IMPORT_WLAN" ]];
+  then
+    echo "ERROR: missing log type option! (-w and/or -b)"
+    return 2
+  fi
+
+  # build import string
+  if [[ "$IMPORT_BT" == "1" ]];
+  then
+    IMPORT_STRING="-b ${IMPORT_SOURCE} ${IMPORT_ADDRESS}"
+  fi
+
+  if [[ ! -z "$IMPORT_WLAN" ]];
+  then
+    IMPORT_STRING="${IMPORT_STRING}-w ${IMPORT_SOURCE} ${IMPORT_WLAN} ${IMPORT_ADDRESS}"
+  fi
+
+  # mysql password prompt
+  read -s -p "enter mysql password: " MYSQL_SECRET
+  echo ""
+
+  # check if service file already exists
+  echo "checking if service ${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE} already exists..."
+  if [ -f "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service" ] && \
+     [ -f "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.timer" ];
+  then
+    echo "service already exists!"
+    while :
+    do
+      read -p "do you want to replace it? (y/n) " i_replace
+      case $i_replace in
+        y|Y|yes|YES)
+          echo "replacing..."
+          break
+          ;;
+        n|N|no|NO)
+          echo "service ${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE} unchanged!"
+          return 1
+          ;;
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+      esac
+    done
+  fi
+
+  # write server_auto.service
+  echo "creating file '${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service'..."
+  cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service"
+[Unit]
+Description=Monitoring server automatic import of logs to database service
+Requires=networking.service
+
+[Service]
+Type=forking
+ExecStart=${DIR_SERVER_SCRIPTS}/server_import -a ${MYSQL_SECRET} ${IMPORT_STRING}
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  
+  # write server_auto.timer
+  echo "creating file '${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.timer'..."
+  cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.timer"
+[Unit]
+Description=Monitoring server automatic import of logs to database service timer
+
+[Timer]
+OnActiveSec=30s
+OnUnitActiveSec=${IMPORT_PERIOD}
+
+[Install]
+WantedBy=timers.target
+EOF
+
+  # reload systemd daemon to register new service
+  echo "reloading systemd daemon..."
+  systemctl daemon-reload
+
+  return 0
+}
+
+function remove_service() {
+  # first argument - name of the service
+
+  # check if service exists
+  echo "checking if service ${1} exists..."
+  if [ -f "${DIR_SYSTEMD_SERVICE}/${1}.service" ] || \
+     [ -f "${DIR_SYSTEMD_SERVICE}/${1}.timer" ];
+  then
+    echo "service ${1} will be removed!"
+    echo "stopping service ${1}..."
+    systemctl stop "${1}.timer"
+    echo "disabling service ${1}..."
+    systemctl disable "${1}.timer"
+    echo "removing service ${1}..."
+    rm "${DIR_SYSTEMD_SERVICE}/${1}"*
+  else
+    echo "service ${1} does not exist!"
+  fi
+  return 0
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi  
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    --help)
+      print_help
+      exit 0
+      ;;
+   
+    # period between server_import calls
+    -s|--sec)  IMPORT_PERIOD="${IMPORT_PERIOD}${2}s ";   shift 2 ;;
+    
+    -m|--min)  IMPORT_PERIOD="${IMPORT_PERIOD}${2}m ";   shift 2 ;;
+    
+    -h|--hour) IMPORT_PERIOD="${IMPORT_PERIOD}${2}h ";   shift 2 ;;
+
+    -w|--wlan)
+      # arguments
+      # $2 - log number (aircrack-ng-##.csv)
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+
+      IMPORT_WLAN="$2"
+      shift 2
+      ;;
+    
+    -b|--bt)
+
+      IMPORT_BT="1"
+      shift
+      ;;
+     
+    -d|--device)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###)
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+
+      IMPORT_SOURCE="$2"
+      shift 2
+      ;;
+    
+    -a|--address)
+      # arguments
+      # $2 - IP address of remote monitoring device
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+
+      IMPORT_ADDRESS="$2 "
+      shift 2
+      ;;
+
+    -r|--remove)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###)
+      
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: missing argument for option ${1}!"
+        print_usage
+        exit 1
+      fi
+
+      remove_service ${SERVICE_SERVER_AUTO}_${2}    
+      exit 0
+      ;;
+
+    -p|--pair)
+      # arguments
+      # $2 - IP address(1 or more) of remote device
+
+      ssh_pair $2
+      exit 0
+      ;;
+    
+    *)
+      echo "ERROR: option $1 unknown!"
+      print_usage
+      break
+      ;;
+  esac
+  
+done
+
+  # function call
+  write_service
+
+  exit 0

@@ -1,0 +1,132 @@
+#!/bin/bash
+
+# import node variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  server_service [OPTION]...
+
+Options:
+
+    -d, --device HOSTNAME ARGUMENT
+      Manage timer service of specified device (hostname).
+      Argument hostname will be prefixed with 'rpi_mon_', therefore ONLY last
+      bit of hostname needs to be specified (eg. node_1)
+
+    -w, --watch
+      Shows time elapsed from last and time left to next call of every systemd
+      service timers using watch command. 
+    
+    --help
+      Print help page.
+
+Arguments:
+
+  start
+    Start automatic database import service timer until shutdown/stop.
+  
+  stop
+    Stop automatic database import service timer until start/reboot (if enabled).
+  
+  enable
+    Enable automatic database import service timer start after boot
+    (still can be controlled by start/stop for current session).
+  
+  disable
+    Disable automatic database import service timer after startup
+    (still can be controlled by start/stop for current session).
+  
+  status
+    Show status of given systemd service timer.
+
+Examples:
+
+  server_service -w
+  server_service -d node_2 enable
+
+EOF
+}
+
+function print_help() { 
+cat << EOF
+
+SERVER MANAGE SYSTEMD SERVICES
+
+This command is used to control automatic database import service timers.
+It can start/stop automatic database import through systemd service timer,
+enable/disable automatic start of this service timer at system boot or
+show current status of specified service timer. Timer will wait for 30
+seconds before first import.
+
+For more information about automatic database import use server_auto --help
+
+systemd directory:  ${DIR_SYSTEMD_SERVICE}
+
+name of automatic database import timer service:  ${SERVICE_SERVER_AUTO}_###.timer
+name of automatic database import service:        ${SERVICE_SERVER_AUTO}_###.service
+
+Location cannot be altered because scripts on this or remote device
+might be depending on it!
+
+EOF
+print_usage
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    --help)
+      print_help
+      exit 0    
+      ;;
+
+    -d|--device)
+      # check if argument -d empty
+      if [[ -z "$2" ]] || [[ "$2" == -* ]] || [[ -z "$3" ]] || [[ "$3" == -* ]];
+      then
+        echo "ERROR: missing argument for option $1"
+	print_usage
+	break
+      fi
+
+      case $3 in
+        start|stop|enable|disable|status)
+          echo "systemctl ${SERVICE_SERVER_AUTO}_${2}.timer: $3"
+	  systemctl "$3" "${SERVICE_SERVER_AUTO}_${2}.timer"
+          ;;
+
+        *)
+          echo "ERROR: argument unknown or missing!"
+	  print_usage
+	  break
+	  ;;
+      esac
+      shift 3
+      ;;
+
+    -w|--watch)
+      watch -n 1 systemctl list-timers
+      shift
+      ;;
+
+    *)
+      echo "ERROR: option $1 unknown!"
+      print_usage
+      break
+      ;;
+  esac
+done
+

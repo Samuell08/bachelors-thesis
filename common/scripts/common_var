@@ -1,0 +1,58 @@
+#!/bin/bash
+
+########################################################### directory
+# general directories
+DIR_MON="/home/pi/monitoring"
+
+# common directiories
+DIR_COMMON="${DIR_MON}/common"
+DIR_COMMON_LOGS="${DIR_COMMON}/logs"
+DIR_COMMON_SCRIPTS="${DIR_COMMON}/scripts"
+
+# node directiories
+DIR_NODE="${DIR_MON}/node"
+DIR_NODE_LOGS="${DIR_NODE}/logs"
+DIR_NODE_SCRIPTS="${DIR_NODE}/scripts"
+DIR_NODE_BLUELOG="${DIR_NODE}/Bluelog"
+
+# server directiories
+DIR_SERVER="${DIR_MON}/server"
+DIR_SERVER_LOGS="${DIR_SERVER}/logs"
+DIR_SERVER_SCRIPTS="${DIR_SERVER}/scripts"
+
+# system directories
+DIR_SYSTEMD_SERVICE="/etc/systemd/system"
+DIR_UDEV_RULES="/etc/udev/rules.d"
+DIR_SSH="/home/pi/.ssh"
+
+# http interface directories
+DIR_MYSQL="/var/lib/mysql"
+DIR_APACHE="/etc/apache2"
+DIR_PHP="/etc/php"
+DIR_HTML="/var/www/html"
+
+########################################################### log
+# names of log files dumped in logs directory
+LOG_NODE_AIRODUMP="airodump-ng" # -##.csv
+LOG_NODE_BLUELOG="bluelog" # .log
+LOG_SERVER_IMPORT="server_import" # .log
+
+########################################################### systemd
+# names of systemd services
+SERVICE_NODE_WLAN="node_wlan.service"
+SERVICE_NODE_BT="node_bt.service"
+SERVICE_SERVER_AUTO="server_auto" # _### .service; .timer
+
+########################################################### udev
+# names of udev rules
+UDEV_PERSISTENT_NET="70-persistent-net.rules"
+
+########################################################### script behavior
+# ammount of time to sleep before node_dump script
+# starts monitoring (can be disabled by -n option)
+DUMP_SLEEP="60s"
+
+########################################################### database
+# file storing format of monitoring database tables
+SERVER_DB_FORMAT="server_db_format"
+SERVER_DB_MON_USER="mon"

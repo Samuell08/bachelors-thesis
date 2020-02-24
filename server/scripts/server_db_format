@@ -1,0 +1,35 @@
+CREATE TABLE AccessPoints(
+BSSID CHAR(17) PRIMARY KEY,
+first_time_seen TIMESTAMP,
+last_time_seen TIMESTAMP,
+channel TINYINT,
+speed SMALLINT,
+privacy VARCHAR(20),
+cipher VARCHAR(20),
+authentication VARCHAR(20),
+power TINYINT,
+beacons INT,
+IV INT,
+LAN_IP VARCHAR(15),
+ID_length TINYINT,
+ESSID VARCHAR(127),
+passphrase VARCHAR(127)
+);
+
+CREATE TABLE Clients(
+station_MAC CHAR(17) PRIMARY KEY,
+first_time_seen TIMESTAMP,
+last_time_seen TIMESTAMP,
+power TINYINT,
+packets INT,
+probed_ESSIDs VARCHAR(1023)
+);
+
+CREATE TABLE Bluetooth(
+last_time_seen TIMESTAMP,
+BD_ADDR CHAR(17) PRIMARY KEY,
+class VARCHAR(127),
+class_detail VARCHAR(127),
+OUI VARCHAR(127),
+device_name VARCHAR(127)
+);

@@ -1,0 +1,460 @@
+#!/bin/bash
+
+# import global variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# import global funtions
+source /home/pi/monitoring/common/scripts/common_functions
+
+# local variables
+MYSQL_SECRET=""
+LOG_SOURCE=""
+SOURCE_HOSTNAME=""
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  server_import [OPTION]...
+
+Options:
+
+    -w, --wlan HOSTNAME LOG_NUMBER [IP_ADDRESS]
+      Import airodump-ng log with specified number from device with specified
+      hostname and optionally IP address.
+      Argument hostname will be prefixed with 'rpi_mon_', therefore ONLY last
+      bit of hostname needs to be specified (eg. node_1)
+
+    -b, --bt HOSTNAME [IP_ADDRESS]
+      Import Bluelog log from device with specified hostname and optionally
+      IP address.
+      Argument hostname will be prefixed with 'rpi_mon_', therefore ONLY last
+      bit of hostname needs to be specified (eg. node_1)
+
+    --help
+      Print help page.
+
+Examples:
+
+  server_import -w node_1 01
+  server_import -b 192.168.0.31 -w node_2 03 192.168.0.31
+
+EOF
+}
+
+function print_help() {
+cat <<EOF
+
+SERVER IMPORT DATA FROM MONITORING LOGS INTO DATABASE
+
+This command is used to import data from monitoring logs into mysql database.
+It can import logs from both local and remote monitoring devices. Suitable
+database must exist prior to calling this script (try server_db --help).
+
+server log directory:  ${DIR_SERVER_LOGS}
+
+name of log file for server imports:  ${LOG_SERVER_IMPORT}
+
+Location cannot be altered because scripts on this or remote device
+might be depending on it!
+
+EOF
+print_usage
+}
+
+function import_wlan() {
+  # first  argument - hostname ending (rpi_mon_###) (database name)
+  # second argument - log number (aircrack-ng-##.csv)
+  # third  argument - IP address of source (optional)
+  # return 0 - function finished
+  # return 1 - copy command failed
+  # return 2 - mysqlimport failed
+
+  echo "==============================="
+  echo "Starting database import (wlan)"
+  echo "==============================="
+
+  # local variables
+  ROW_APS=2
+  ROW_CLIENTS=0
+  ROW_TOTAL=0
+  ROW_START=0
+  ROW_END=0
+  SED_STRING=""
+  CP_LOG_FROM=""
+  CP_LOG_TO=""
+  LOG_FILE=""
+  SOURCE_HOSTNAME="rpi_mon_${1}"
+
+  # check if mysql password passed as -a argument
+  if [[ "${MYSQL_SECRET}" == "" ]];
+  then
+    # mysql password prompt
+    read -s -p "enter mysql password: " MYSQL_SECRET
+    echo ""
+  fi
+  
+  ##
+  # copy to local mysql dir
+  LOG_FILE="${DIR_MYSQL}/${LOG_NODE_AIRODUMP}-${2}"
+
+  if [ "$3" == "" ];
+  then
+    # local copy
+    CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${2}.csv"
+    CP_LOG_TO="${LOG_FILE}.csv"
+    LOG_SOURCE="${CP_LOG_FROM}"
+    echo "copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    cp "${CP_LOG_FROM}" "${CP_LOG_TO}"
+  else
+    # remote copy
+    CP_LOG_FROM="pi@${3}:${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${2}.csv"
+    CP_LOG_TO="/tmp/${LOG_NODE_AIRODUMP}-${2}.csv"
+    LOG_SOURCE="${CP_LOG_FROM}"
+    echo "copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
+    sudo -u pi scp "${CP_LOG_FROM}" "${CP_LOG_TO}"
+    CP_LOG_FROM="${CP_LOG_TO}"
+    CP_LOG_TO="${LOG_FILE}.csv"
+    echo "moving temporary log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    mv "${CP_LOG_FROM}" "${CP_LOG_TO}"
+  fi
+
+  # check for failed copy command
+  if [[ ! -f "${CP_LOG_TO}" ]];
+  then
+    echo "ERROR: copy command failed!"
+    return 1
+  fi
+     
+  echo "parsing local copy of log file..."
+  # remove carriage returns
+  sed -i 's/\r$//g' ${LOG_FILE}.csv
+  # remove unwanted delimiters
+  sed -i '/|~|/d' ${LOG_FILE}.csv
+  
+  # determine data ranges
+  ROW_CLIENTS=$(sed -n '/Station MAC/=' ${LOG_FILE}.csv)
+  ROW_TOTAL=$(grep "" -c ${LOG_FILE}.csv)
+
+  ##
+  # extract AccessPoints csv
+  ROW_START=$ROW_APS
+  ROW_END=$((ROW_CLIENTS-2))
+  SED_STRING="${ROW_START},${ROW_END}p;$((ROW_END+1))q"
+  echo "extracting AccessPoints (row ${ROW_START} to ${ROW_END}; total $((ROW_END-ROW_START)))..."
+  sed -n $SED_STRING ${LOG_FILE}.csv > ${LOG_FILE}-AccessPoints.csv
+      
+  # parse AccessPoints into custom csv
+  echo "parsing extracted AccessPoints log file into csv..."
+  awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15}' \
+  ${LOG_FILE}-AccessPoints.csv > ${DIR_MYSQL}/AccessPoints.csv
+  
+  ##    
+  # extract Clients csv
+  ROW_START=$ROW_CLIENTS
+  ROW_END=$((ROW_TOTAL-1))
+  SED_STRING="${ROW_START},${ROW_END}p;$((ROW_END+1))q"
+  echo "extracting Clients (row ${ROW_START} to ${ROW_END}; total $((ROW_END-ROW_START)))..."
+  sed -n $SED_STRING ${LOG_FILE}.csv > ${LOG_FILE}-Clients.csv
+      
+  # parse Clients into custom csv
+  echo "parsing extracted Clients log file into csv..."
+  awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6}' \
+  ${LOG_FILE}-Clients.csv > ${DIR_MYSQL}/Clients.csv
+  
+  ##    
+  # database querry
+  echo "importing extracted data into database 'rpi_mon_${1}'..."
+  mysqlimport -u root -p${MYSQL_SECRET} \
+  --verbose \
+  --low-priority \
+  --replace \
+  --fields-terminated-by='|~|' \
+  --lines-terminated-by='\n' \
+  --ignore-lines=1 \
+  ${SOURCE_HOSTNAME} \
+  ${DIR_MYSQL}/AccessPoints.csv
+      
+  # check exit code of mysqlimport (AccessPoints)
+  if [ $? = "0" ];
+  then
+    echo "mysql: import of AccessPoints finished successfully!"
+  else
+    echo "error mysql: import of AccessPoints failed!"
+    return 2
+  fi
+
+  mysqlimport -u root -p${MYSQL_SECRET} \
+  --verbose \
+  --low-priority \
+  --replace \
+  --fields-terminated-by='|~|' \
+  --lines-terminated-by='\n' \
+  --ignore-lines=1 \
+  ${SOURCE_HOSTNAME} \
+  ${DIR_MYSQL}/Clients.csv
+      
+  # check exit code of mysqlimport (Clients)
+  if [ $? = "0" ];
+  then
+    echo "mysql: import of Clients finished successfully!"
+  else
+    echo "error mysql: import of Clients failed!"
+    return 2
+  fi
+      
+  return 0
+}
+
+function import_bt() {
+  # first  argument - hostname ending (rpi_mon_###)
+  # second argument - IP address of remote monitoring device (optional)
+
+  echo "============================="
+  echo "Starting database import (bt)"
+  echo "============================="
+  
+  #local variables
+  LOG_FILE=""
+  CP_LOG_TO=""
+  CP_LOG_FROM=""
+  SOURCE_HOSTNAME="rpi_mon_${1}"
+
+  # check if mysql password passed as -a argument
+  if [[ "${MYSQL_SECRET}" == "" ]];
+  then
+    # mysql password prompt
+    read -s -p "enter mysql password: " MYSQL_SECRET
+    echo ""
+  fi
+
+  # copy to local mysql dir
+  LOG_FILE="${DIR_MYSQL}/${LOG_NODE_BLUELOG}"
+      
+  if [ "$2" == "" ];
+  then
+    # local copy
+    CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log"
+    CP_LOG_TO="${LOG_FILE}.log"
+    LOG_SOURCE="${CP_LOG_FROM}"
+    echo "copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    cp "${CP_LOG_FROM}" "${CP_LOG_TO}"
+  else
+    # remote copy
+    CP_LOG_FROM="pi@${2}:${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log"
+    CP_LOG_TO="/tmp/${LOG_NODE_BLUELOG}.log"
+    LOG_SOURCE="${CP_LOG_FROM}"
+    echo "copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
+    sudo -u pi scp "${CP_LOG_FROM}" "${CP_LOG_TO}"
+    CP_LOG_FROM="${CP_LOG_TO}"
+    CP_LOG_TO="${LOG_FILE}.log"
+    echo "moving temporary log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    mv "${CP_LOG_FROM}" "${CP_LOG_TO}"
+  fi
+      
+  
+  # check for failed copy command
+  if [[ ! -f "${CP_LOG_TO}" ]];
+  then
+    echo "ERROR: copy command failed!"
+    return 1
+  fi
+
+  echo "parsing local copy of log file into csv..."
+  # remove Scan start/stop lines
+  sed -i '/Scan /d' ${LOG_FILE}.log
+  # remove unwanted delimiters
+  sed -i '/|~|/d' ${LOG_FILE}.log
+  # change csv delimiters and extract first 6 columns
+  awk -F',' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6}' \
+  ${LOG_FILE}.log > ${DIR_MYSQL}/Bluetooth.csv
+
+  # database querry
+  echo "importing formated data into database 'rpi_mon_${1}'..."
+  mysqlimport -u root -p${MYSQL_SECRET} \
+  --verbose \
+  --low-priority \
+  --replace \
+  --fields-terminated-by='|~|' \
+  --lines-terminated-by='\n' \
+  ${SOURCE_HOSTNAME} \
+  ${DIR_MYSQL}/Bluetooth.csv
+      
+  # check exit code of mysqlimport (Bluetooth)
+  if [ $? = "0" ];
+  then
+    echo "mysql: import of Bluetooth finished successfully!"
+  else
+    echo "error mysql: import of Bluetooth failed!"
+    return 2
+  fi
+
+  return 0
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi  
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    --help)
+      print_help
+      exit 0
+      ;;
+
+    -a|--auto)
+      # arguments
+      # $2 - mysql password
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+
+      MYSQL_SECRET="${2}"
+
+      shift 2
+      ;;
+    
+    -w|--wlan)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###)
+      # $3 - log number (aircrack-ng-##.csv)
+      # $4 - [IP address of remote monitoring device] (optional)
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+      
+      # check if argument $3 empty
+      if [[ -z "$3" ]] || [[ "$3" = -* ]];
+      then
+        echo "ERROR: invalid argument '${3}' for option ${1}!"
+        print_usage
+        break
+      fi
+      
+      # check optional argument $4
+      if [[ -z "$4" ]] || [[ "$4" = -* ]];
+      then
+        import_wlan $2 $3
+      else
+        import_wlan $2 $3 $4
+      fi
+
+      RET_VAL=$?
+      
+      # import_wlan return:
+      # 0 - successfully finished
+      # 1 - copy command failed
+      # 2 - mysqlimport failed
+      echo "[$(timestamp)] writing database import log entry to '${DIR_SERVER_LOGS}/${LOG_SERVER_IMPORT}.log'..."
+      case $RET_VAL in
+        0)
+          log_server_import "successful" "wlan" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          # remove runtime files
+          echo "removing runtime files..."
+          rm ${LOG_FILE}*
+          rm ${DIR_MYSQL}/AccessPoints.csv
+	  rm ${DIR_MYSQL}/Clients.csv
+	  ;;
+        1)
+	  log_server_import "failed copy" "wlan" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          ;;
+        2)
+	  log_server_import "failed import" "wlan" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          # remove runtime files
+          echo "removing runtime files..."
+          rm ${LOG_FILE}*
+          rm ${DIR_MYSQL}/AccessPoints.csv
+	  rm ${DIR_MYSQL}/Clients.csv
+          ;;
+        esac
+
+      if [[ -z "$4" ]] || [[ "$4" = -* ]];
+      then
+        shift 3
+      else
+        shift 4
+      fi
+      ;;
+    
+    -b|--bt)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###)
+      # $3 - [IP address of remote monitoring device] (optional)
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+      
+      if [[ -z "$3" ]] || [[ "$3" = -* ]];
+      then
+        import_bt $2
+      else
+        import_bt $2 $3
+      fi
+      
+      RET_VAL=$?
+      
+      # import_bt return:
+      # 0 - successfully finished
+      # 1 - copy command failed
+      # 2 - mysqlimport failed
+      echo "[$(timestamp)] writing database import log entry to '${DIR_SERVER_LOGS}/${LOG_SERVER_IMPORT}.log'..."
+      case $RET_VAL in
+        0)
+          log_server_import "successful" "bt" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          # remove runtime files
+          echo "removing runtime files..."
+          rm ${LOG_FILE}*
+          rm ${DIR_MYSQL}/Bluetooth.csv
+	  ;;
+        1)
+	  log_server_import "failed copy" "bt" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          ;;
+        2)
+	  log_server_import "failed import" "bt" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          # remove runtime files
+          echo "removing runtime files..."
+          rm ${LOG_FILE}*
+	  rm ${DIR_MYSQL}/Bluetooth.csv
+          ;;
+        esac
+
+      if [[ -z "$3" ]] || [[ "$3" = -* ]];
+      then
+        shift 2
+      else
+        shift 3
+      fi
+      ;;
+    
+    *)
+      echo "ERROR: option $1 unknown!"
+      print_usage
+      break
+      ;;
+  esac
+  
+done
+

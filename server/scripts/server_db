@@ -1,0 +1,238 @@
+#!/bin/bash
+
+# import global variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# import global functions
+source /home/pi/monitoring/common/scripts/common_var
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  server_db [OPTION]...
+
+Options:
+
+    -c, --create HOSTNAME
+      Create database with tables for logs from specified device (hostname).
+      Name of the database will be the same as specified hostname.
+      Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
+      hostname needs to be specified (eg. node_1)
+
+    -d, --drop HOSTNAME
+      Drop (remove) database for specified device (hostname).
+      Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
+      hostname needs to be specified (eg. node_1)
+
+    --help
+      Print help page.
+
+Examples:
+
+  server_db -c node_1
+  server_db -d node_2
+
+EOF
+}
+
+function print_help() {
+cat <<EOF
+
+SERVER DATABASE MANAGEMENT
+
+This command is used to manage MySQL databases. It can be used to create or
+drop (remove) database for any device (hostname). Every database must have
+unique name, same as the hostname of the device from which it will import
+monitoring logs. Format of database tables is stored in a separate file.
+
+MySQL password prompt is necessary to create or drop any database.
+
+name of database tables format file:  ${SERVER_DB_FORMAT}
+
+location of format file:  ${DIR_SERVER_SCRIPTS}
+
+Location cannot be altered because scripts on this or remote device
+might be depending on it!
+
+EOF
+print_usage
+}
+
+function create_db() {
+  # first  argument - hostname ending (rpi_mon_###) (database name)
+  # return 0 - function finished
+  # return 1 - database already exists
+  # return 2 - mysql query failed
+
+  # local variables
+  HOSTNAME="rpi_mon_${1}"
+  
+  # mysql password prompt
+  read -s -p "enter root MySQL password: " i_root_usr_pass
+  echo ""
+
+  # check if DB already exists
+  if [ -d "${DIR_MYSQL}/${HOSTNAME}" ];
+  then
+    echo "ERROR: database '${HOSTNAME}' already exists!"
+    return 1
+  fi
+
+  # query: create DB
+  mysql -u root -p"${i_root_usr_pass}" <<EOF
+CREATE DATABASE ${HOSTNAME};
+EOF
+
+  # check exit code of mysql query
+  if [ $? -eq 0 ];
+  then
+    echo "mysql: database '${HOSTNAME}' created successfully!"
+  else
+    echo "error mysql: query CREATE DATABASE '${HOSTNAME}' failed!"
+    return 2
+  fi
+  
+  # query: create tables
+  mysql -u root -p"${i_root_usr_pass}" << EOF
+USE ${HOSTNAME};
+
+$(cat "${DIR_SERVER_SCRIPTS}/${SERVER_DB_FORMAT}")
+EOF
+
+  # check exit code of mysql query
+  if [ $? -eq 0 ];
+  then
+    echo "mysql: tables created successfully!"
+  else
+    # if CREATE TABLE failed: delete created db
+    echo "error mysql: query CREATE TABLE failed (database '${HOSTNAME}' will be removed)!"
+    mysql -u root <<EOF
+DROP DATABASE ${HOSTNAME};
+EOF
+    return 2
+  fi
+ 
+  # query: grant access to table for user 'mon'
+  mysql -u root -p"${i_root_usr_pass}" << EOF
+GRANT ALL PRIVILEGES ON ${HOSTNAME} . * TO '${SERVER_DB_MON_USER}'@'localhost';
+EOF
+
+  # check exit code of mysql query
+  if [ $? -eq 0 ];
+  then
+    echo "MySQL: access to newly created database '${HOSTNAME}' for user '${SERVER_DB_MON_USER}' granted successfully!"
+    echo "reloading MySQL privileges..."
+    mysql -u root -p"${i_root_usr_pass}" <<EOF
+FLUSH PRIVILEGES;
+EOF
+  else
+    # if GRANT PRIVILEGES failed: delete created db
+    echo "ERROR MySQL: query to grant privileges to database '${HOSTNAME}' for user '${SERVER_DB_MON_USER}' failed (database '${HOSTNAME}' will be removed)!"
+    mysql -u root <<EOF
+DROP DATABASE ${HOSTNAME};
+EOF
+    return 2
+  fi
+
+  return 0
+}
+
+function drop_db {
+  # first  argument - hostname ending (rpi_mon_###) (database name)
+  # return 0 - function finished
+  # return 1 - database does not exist
+  # return 2 - mysql query failed
+
+  # local variables
+  HOSTNAME="rpi_mon_${1}"
+
+  # mysql password prompt
+  read -s -p "enter root MySQL password: " i_root_usr_pass
+  echo ""
+  
+  # check if DB exists
+  if [ ! -d "${DIR_MYSQL}/${HOSTNAME}" ];
+  then
+    echo "ERROR: database '${HOSTNAME}' does not exist!"
+    return 1
+  fi
+
+  # query
+  mysql -u root -p"${i_root_usr_pass}" <<EOF
+DROP DATABASE ${HOSTNAME};
+EOF
+
+  # check exit code of mysql query
+  if [ $? -eq 0 ];
+  then
+    echo "mysql: database '${HOSTNAME}' dropped successfully!"
+  else
+    echo "error mysql: query DROP DATABASE '${HOSTNAME}' failed!"
+    return 2
+  fi
+
+  return 0
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi  
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    --help)
+      print_help
+      exit 0
+      ;;
+    
+    -c|--create)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###) 
+
+      # check if argument -c empty
+      if [[ -z "$2"  ]] || [[ "$2" == -*  ]];
+      then
+        echo "ERROR: invalid argument $2 for option $1"
+        print_usage
+        break
+      fi
+
+      create_db $2
+
+      shift 2
+      ;;
+
+    -d|--drop)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###)
+
+      # check if argument -d empty
+      if [[ -z "$2"  ]] || [[ "$2" == -*  ]];
+      then
+        echo "ERROR: invalid argument $2 for option $1"
+        print_usage
+        break
+      fi
+
+      drop_db $2
+
+      shift 2
+      ;;
+    
+    *)
+      echo "ERROR: option $1 unknown!"
+      print_usage
+      break
+      ;;
+  esac
+  
+done
+

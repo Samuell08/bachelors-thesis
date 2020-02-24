@@ -1,0 +1,834 @@
+#!/bin/bash
+
+# local variables
+YES_ALL="0"
+HAVE_USB="0"
+
+DIR_MON="/home/pi/monitoring"
+DIR_COMMON="${DIR_MON}/common"
+DIR_COMMON_SCRIPTS="${DIR_COMMON}/scripts"
+DIR_NODE="${DIR_MON}/node"
+DIR_NODE_SCRIPTS="${DIR_NODE}/scripts"
+DIR_NODE_BLUELOG="${DIR_NODE}/Bluelog"
+DIR_SERVER="${DIR_MON}/server"
+DIR_SERVER_SCRIPTS="${DIR_SERVER}/scripts"
+DIR_BLUELOG_OUI="/etc/bluelog"
+DIR_APACHE="/etc/apache2"
+DIR_PHP="/etc/php"
+DIR_HTML="/var/www/html"
+PI_HOSTNAME="/etc/hostname"
+BLUELOG_OUI="oui.txt"
+SERVER_DB_MON_USER="mon";
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  node_setup [OPTION]...
+
+Options:
+
+    -c, --common [USB_NAME] [-y]
+      setup Raspberry Pi only with common stuff
+
+    -n, --node [USB_NAME] [-y]
+      setup Raspberry Pi as monitoring node
+
+    -s, --server [USB_NAME] [-y]
+      setup Raspberry Pi as monitoring server
+
+    -a, --all [USB_NAME] [-y]
+      setup Raspberry Pi as both monitoring node and server
+
+    --help
+      print help page
+ 
+When argument USB_NAME is not specified copying of direcotry tree from USB
+will be skipped
+Option -y will disable user prompts (all will be answered 'yes') and will
+skip password and hostname setup (to avoid any user prompt)
+
+Examples:
+
+  node_setup -c
+  node_setup -n USB_NAME
+  node_setup -a USB_NAME -y
+
+EOF
+}
+
+function print_help() {
+cat <<EOF
+
+NODE SETUP MONITORING ENVIRONMENT
+
+This command is used to setup everything needed for monitoring node and server.
+To copy directory tree from USB drive name of the USB drive needs to be specified
+as argument.
+
+Common setup:
+  > set password
+  > set hostname
+  > update package-lists
+  > upgrade packages (only if package-lists updated)
+  > install Vim
+  > copy directory tree from USB (only if USB name specified in argument)
+
+Node setup:
+  > install aircrack-ng
+  > install Bluelog
+  > generate Bluelog OUI file
+  
+Server setup:
+  > install Apache
+  > install PHP
+  > install MySQL (MariaDB)
+  > create MySQL user '${SERVER_DB_MON_USER}'
+
+expected directory tree on USB: /media/pi/<USB name>/pi/monitoring/...
+local monitoring directory:     ${DIR_MON}
+hostname location:              ${PI_HOSTNAME}
+
+Location cannot be altered because scripts on this or remote devices
+might be depending on it!
+
+EOF
+print_usage
+}
+
+function setup_common(){
+# return 0 - successfully completed
+
+  echo "======================"
+  echo "Starting common setup!"
+  echo "======================"
+
+  # local function variables
+  goto_upgrade="0";
+  new_hostname="raspberrypi";
+
+  ######################################################### password
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "skipping password setup..."
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to set new password? (y/n) " i_passwd
+      case $i_passwd in
+        y|Y|yes|YES)
+          passwd
+          break
+          ;;
+
+        n|N|no|NO)
+          echo "password unchanged!"
+          break
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+          
+      esac
+    done
+  fi
+
+  ######################################################### hostname
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "skipping hostname setup..."
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to change hostname? (y/n) " i_hostname
+      case $i_hostname in
+        y|Y|yes|YES)
+          read -p "enter new hostname (only a-Z, 0-9 and \"-\", case insensitive): " new_hostname
+	  echo "WARNING: hostname will be changed after reboot!"
+          echo "$new_hostname" > $PI_HOSTNAME 
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "hostname unchanged!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+          
+      esac
+    done
+  fi
+  
+  ######################################################### timezone
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    timedatectl set-timezone Europe/Prague
+    echo "timezone set to Prague!"
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to change timezone to Prague? (y/n) " i_timezone
+      case $i_timezone in
+        y|Y|yes|YES)
+          timedatectl set-timezone Europe/Prague
+          echo "timezone set to Prague!"
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "timezone unchanged!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+          
+      esac
+    done
+  fi
+
+  ######################################################### update
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "updating package lists..."
+    apt-get update -y
+    echo "package lists updated!"
+    goto_upgrade="1";
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to update package lists? (y/n) " i_update
+      case $i_update in
+        y|Y|yes|YES)
+          apt-get update
+          echo "package lists updated!"
+          goto_upgrade="1";
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "package lists not updated!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+
+      esac
+    done
+  fi
+
+  ######################################################### upgrade (only if updated)
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "upgrading packages..."
+    apt-get upgrade -y
+    echo "packages upgraded!"
+  else
+    if [ "$goto_upgrade" == "1" ];
+    then
+      while :
+      do
+        read -p "do you want to upgrade packages? (y/n) " i_upgrade
+        case $i_upgrade in
+          y|Y|yes|YES)
+            apt-get upgrade
+            echo "packages upgraded!"
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "packages not upgraded!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    else
+      echo "skipping package upgrade..."
+    fi
+  fi
+
+  ######################################################### vim
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "installing Vim..."
+    apt-get install vim -y
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to install Vim? (y/n) " i_vim
+      case $i_vim in
+        y|Y|yes|YES)
+          apt-get install vim
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "Vim installation declined!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+
+      esac
+    done
+  fi
+
+  ######################################################### copy dir tree from usb
+  echo "---"
+  if [[ "$HAVE_USB" == "1" ]];
+  then
+    if [[ "$YES_ALL" == "1" ]];
+    then
+      echo "copying files from '$DIR_USB_SETUP' to '/home/pi'..."
+      cp -r $DIR_USB_SETUP /home/pi
+      echo "changing owner of directory: $DIR_MON to user 'pi'..."
+      chown pi:pi $DIR_MON -R
+      echo "making scripts in directory: $DIR_NODE_SCRIPTS executable..."
+      chmod +x ${DIR_NODE_SCRIPTS}/*
+      echo "making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
+      chmod +x ${DIR_SERVER_SCRIPTS}/*
+      echo "making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
+      chmod +x ${DIR_COMMON_SCRIPTS}/*
+    else
+      # user prompt
+      while :
+      do
+        read -p "do you want to copy directory tree and scripts from USB drive '${USB_NAME}'? (y/n) " i_copydir
+        case $i_copydir in
+          y|Y|yes|YES)
+            echo "copying files from $DIR_USB_SETUP to /home/pi"
+            cp -r $DIR_USB_SETUP /home/pi
+            echo "changing owner of directory: $DIR_MON to user 'pi'..."
+            chown pi:pi $DIR_MON -R
+            echo "making scripts in directory: $DIR_NODE_SCRIPTS executable..."
+            chmod +x ${DIR_NODE_SCRIPTS}/*
+            echo "making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
+            chmod +x ${DIR_SERVER_SCRIPTS}/*
+            echo "making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
+            chmod +x ${DIR_COMMON_SCRIPTS}/*
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "direcotry tree and scripts not copied!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+  else
+    echo "skipping directory tree copy from USB..."
+  fi
+
+  #########################################################
+
+  return 0
+
+}
+
+function setup_node() {
+# return 0 - successfully completed
+
+  echo "===================="
+  echo "Starting node setup!"
+  echo "===================="
+  
+  ######################################################### aircrack-ng
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "installing aircrack-ng..."
+    apt-get install aircrack-ng -y
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to install aircrack-ng? (y/n) " i_aircrack
+      case $i_aircrack in
+        y|Y|yes|YES)
+          apt-get install aircrack-ng
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "aircrack-ng installation declined!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+
+      esac
+    done
+  fi
+
+  ######################################################### bluelog
+  echo "---"
+  # check if $DIR_NODE dir exists
+  if [[ -d "$DIR_NODE" ]];
+  then
+    if [[ "$YES_ALL" == "1" ]];
+    then
+      echo "installing Bluelog..."
+      apt-get install libbluetooth-dev -y
+      cd $DIR_NODE
+      git clone https://github.com/MS3FGX/Bluelog.git
+      cd ${DIR_NODE}/Bluelog
+      echo "patching bluelog.c to change log timestamp to mariaDB friendly format..."
+      sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
+      sed -i 's/\[%s\]/%s/g' ./bluelog.c
+      make
+    else
+      # user prompt
+      while :
+      do
+        read -p "do you want to install Bluelog? (y/n) " i_bluelog
+        case $i_bluelog in
+          y|Y|yes|YES)
+            apt-get install libbluetooth-dev
+            cd $DIR_NODE
+            git clone https://github.com/MS3FGX/Bluelog.git
+            cd ${DIR_NODE}/Bluelog
+            # patch
+            echo "patching bluelog.c to change log timestamp to mariaDB friendly format..."
+            sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
+            sed -i 's/\[%s\]/%s/g' ./bluelog.c
+	    make
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "Bluelog installation declined!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+  else
+    echo "directory $DIR_NODE does not exist: skipping Bluelog installation!"
+  fi
+
+  ######################################################### OUI file
+  echo "---"
+  #check if ${DIR_NODE_BLUELOG} exists
+  if [[ -d "${DIR_NODE_BLUELOG}" ]];
+  then
+
+    if [[ "$YES_ALL" == "1" ]];
+    then
+      # check if oui.tmp exists
+      if [[ -f "/tmp/${BLUELOG_OUI}" ]];
+      then
+        echo "removing existing OUI tmp file..."
+        rm /tmp/${BLUELOG_OUI}
+      fi
+     
+      # create dir /etc/bluelog if it does not exist
+      mkdir -p ${DIR_BLUELOG_OUI}
+      cd ${DIR_BLUELOG_OUI}
+      echo "starting bluelog gen_oui script..."
+      ${DIR_NODE_BLUELOG}/scripts/gen_oui.sh check
+    else
+      # user prompt
+      while :
+      do
+        read -p "do you want to generate OUI file for Bluelog? (y/n) " i_bluelog_oui
+        case $i_bluelog_oui in
+          y|Y|yes|YES)
+            chmod +x ${DIR_NODE_BLUELOG}/scripts/gen_oui.sh
+            # create dir /etc/bluelog if it does not exist
+            mkdir -p ${DIR_BLUELOG_OUI}
+            cd ${DIR_BLUELOG_OUI}
+            echo "starting bluelog gen_oui script..."
+            ${DIR_NODE_BLUELOG}/scripts/gen_oui.sh force
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "Bluelog OUI file generation declined!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+    
+  else
+    echo "WARNING: Bluelog not installed: skipping OUI file generation!"
+  fi
+
+  #########################################################
+
+  return 0
+}
+
+function setup_server() {
+# return 0 - successfully completed
+
+  echo "======================"
+  echo "Starting server setup!"
+  echo "======================"
+  
+  ######################################################### Apache
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "installing Apache (web server)..."
+    apt-get install apache2 -y
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to install Apache (web server)? (y/n) " i_apache
+      case $i_apache in
+        y|Y|yes|YES)
+          echo "installing Apache..."
+          apt-get install apache2
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "Apache (web server) installation declined!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+
+      esac
+    done
+  fi
+
+  ######################################################### PHP (only if Apache installed)
+  echo "---"
+  if [ -d "${DIR_APACHE}" ];
+  then
+
+    if [[ "$YES_ALL" == "1" ]];
+    then
+      echo "installing PHP with recommended modules..."
+      apt install php7.3 php7.3-mbstring php7.3-mysql php7.3-curl php7.3-gd php7.3-zip -y
+    else
+      while :
+      do
+        read -p "do you want to install PHP? (y/n) " i_php
+        case $i_php in
+          y|Y|yes|YES)
+            echo "installing PHP with recommended modules..."
+            apt install php7.3 php7.3-mbstring php7.3-mysql php7.3-curl php7.3-gd php7.3-zip
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "PHP installation declined!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+
+  else
+    echo "WARNING: Apache not installed: skipping PHP installation!"
+  fi
+
+  ######################################################### index.php (only if Apache & PHP installed)
+  echo "---"
+  if [ -d "${DIR_PHP}" ];
+  then
+
+    if [[ "$YES_ALL" == "1" ]];
+    then
+      echo "Removing old web interface from Apache server..."
+      rm ${DIR_HTML}/*
+      echo "Copying monitoring web interface to Apache server..."
+      cp ${DIR_SERVER_SCRIPTS}/index.php ${DIR_HTML}/index.php
+    else
+      while :
+      do
+        read -p "do you want to copy web interface to Apache server? (y/n) " i_index
+        case $i_index in
+          y|Y|yes|YES)
+            echo "Removing old web interface from Apache server..."
+            rm ${DIR_HTML}/*
+            echo "Copying monitoring web interface to Apache server..."
+            cp ${DIR_SERVER_SCRIPTS}/index.php ${DIR_HTML}/index.php
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "Copying of web interface to Apache server declined!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+
+  else
+    echo "WARNING: Apache and/or PHP not installed: skipping copying of web interface to Apache server!"
+  fi
+
+  ######################################################### mysql
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "installing mysql database (MariaDB)..."
+    apt-get install mariadb-server -y
+    echo "installing PHP-mysql connector module"
+    apt-get install php-mysql -y
+    echo "starting mysql secure installation..."
+    mysql_secure_installation
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to install mysql database (MariaDB)? (y/n) " i_mysql
+      case $i_mysql in
+        y|Y|yes|YES)
+          echo "installing mysql database (MariaDB)..."
+          apt-get install mariadb-server
+          echo "installing PHP-mysql connector module"
+          apt-get install php-mysql
+          echo "starting mysql secure installation..."
+          mysql_secure_installation
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "mysql database (MariaDB) installation declined!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+
+      esac
+    done
+  fi
+
+  ######################################################### mysql mon user
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+
+    echo "creating new MySQL user '${SERVER_DB_MON_USER}'..."
+
+    # root password prompt
+    read -s -p "enter root MySQL password (set in previous step): " i_root_usr_pass
+    echo ""
+    
+    # NEW mon password prompt
+    read -s -p "enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
+    echo ""
+    
+    # query
+    mysql -u root -p"${i_root_usr_pass}" <<EOF
+CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}'
+EOF
+    # check exit code of mysql query
+    if [ $? -eq 0 ];
+    then
+      echo "MySQL: user '${SERVER_DB_MON_USER}' created successfully!"
+      echo "reloading MySQL privileges..."
+      mysql -u root -p"${i_root_usr_pass}" <<EOF
+FLUSH PRIVILEGES;
+EOF
+    else
+      echo "ERROR MySQL: query to create user '${SERVER_DB_MON_USER}' failed!"
+    fi
+
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to create new MySQL user '${SERVER_DB_MON_USER}' (y/n) " i_mysql_usr
+      case $i_mysql_usr in
+        y|Y|yes|YES)
+
+          # root password prompt
+          read -s -p "enter root MySQL password (set in previous step): " i_root_usr_pass
+          echo ""
+    
+          # NEW mon password prompt
+          read -s -p "enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
+          echo ""
+    
+          # query
+          mysql -u root -p"${i_root_usr_pass}" <<EOF
+CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}'
+EOF
+          # check exit code of mysql query
+          if [ $? -eq 0 ];
+          then
+            echo "MySQL: user '${SERVER_DB_MON_USER}' created successfully!"
+            echo "reloading MySQL privileges..."
+            mysql -u root -p"${i_root_usr_pass}" <<EOF
+FLUSH PRIVILEGES;
+EOF
+          else
+            echo "ERROR MySQL: query to create user '${SERVER_DB_MON_USER}' failed!"
+          fi
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "MySQL database '${SERVER_DB_MON_USER}' user creation declined!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+
+      esac
+    done
+  fi
+  #########################################################
+
+  return 0
+}
+
+function parse_args() {
+# return 0 - successfully completed
+# first  argument - 1st arg
+# second argument - 2nd arg
+
+# format:
+#   common_setup {option} [USB_NAME] [-y]
+
+  # parse 1st arg
+  case $1 in
+    "")
+      # setup without USB
+      echo "starting setup without USB!"
+      ;;
+    -y|--yes)
+      # setup without USB, yes to all
+      YES_ALL="1";
+      echo "starting setup without USB!"
+      echo "user prompts disabled!"
+      ;;
+    *)
+      # setup with USB, check 2nd argument
+      HAVE_USB="1";
+      USB_NAME="$1";
+      echo "USB name set to: '${1}'!"
+      DIR_USB_SETUP="/media/pi/${USB_NAME}/pi/monitoring"
+      echo "USB setup directory set to '${DIR_USB_SETUP}'!"
+      ;;
+  esac
+
+  # parse 2nd arg
+  case $2 in
+    "")
+      # 2nd argument empty
+      ;;
+    -y|--yes)
+      # setup with USB, yes to all
+      YES_ALL="1";
+      echo "user prompts disabled!"
+      ;;
+    *)
+      echo "ERROR: second argument $2 unknown!"
+      print_usage
+      exit 1
+      ;;
+  esac
+
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi
+
+
+case $1 in
+  --help)
+    print_help
+    exit 0
+    ;;
+
+  -c|--common)
+    parse_args $2 $3
+    setup_common
+    ;;
+
+  -n|--node)
+    parse_args $2 $3
+    setup_common
+    setup_node
+    ;;
+
+  -s|--server)
+    parse_args $2 $3
+    setup_common
+    setup_server
+    ;;
+
+  -a|--all)
+    parse_args $2 $3
+    setup_common
+    setup_node
+    setup_server
+    ;;
+
+  *)
+    echo "ERROR: option $1 unknown!"
+    print_usage
+    break
+    ;;
+esac
