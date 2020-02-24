@@ -12,6 +12,7 @@ DIR_NODE_SCRIPTS="${DIR_NODE}/scripts"
 DIR_NODE_BLUELOG="${DIR_NODE}/Bluelog"
 DIR_SERVER="${DIR_MON}/server"
 DIR_SERVER_SCRIPTS="${DIR_SERVER}/scripts"
+DIR_SERVER_WEBUI="${DIR_SERVER_SCRIPTS}/www/html"
 DIR_BLUELOG_OUI="/etc/bluelog"
 DIR_APACHE="/etc/apache2"
 DIR_PHP="/etc/php"
@@ -575,7 +576,7 @@ function setup_server() {
     echo "WARNING: Apache not installed: skipping PHP installation!"
   fi
 
-  ######################################################### index.php (only if Apache & PHP installed)
+  ######################################################### www copy (only if Apache & PHP installed)
   echo "---"
   if [ -d "${DIR_PHP}" ];
   then
@@ -585,7 +586,7 @@ function setup_server() {
       echo "Removing old web interface from Apache server..."
       rm ${DIR_HTML}/*
       echo "Copying monitoring web interface to Apache server..."
-      cp ${DIR_SERVER_SCRIPTS}/index.php ${DIR_HTML}/index.php
+      cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
     else
       while :
       do
@@ -595,7 +596,7 @@ function setup_server() {
             echo "Removing old web interface from Apache server..."
             rm ${DIR_HTML}/*
             echo "Copying monitoring web interface to Apache server..."
-            cp ${DIR_SERVER_SCRIPTS}/index.php ${DIR_HTML}/index.php
+            cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
             break;
             ;;
 
