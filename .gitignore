@@ -1,0 +1,5 @@
+# ignore folders
+node/Bluelog
+node/logs
+server/logs
+common/logs
