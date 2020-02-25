@@ -82,6 +82,7 @@ input[type="submit"] {
 
 .t_avail_db {
   padding: 0px 20px 5px 20px;
+  font-style: italic;
 }
 
 .p_incl_ERROR {

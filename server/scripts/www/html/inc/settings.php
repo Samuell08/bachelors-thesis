@@ -36,7 +36,7 @@ if (!$db_conn) {
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
       // table row name
-      echo "<tr><td>" . "<i>" . $db_row["Database (rpi_mon_%)"] . "</i>" . "</td>";
+      echo "<tr><td>" . $db_row["Database (rpi_mon_%)"] . "</td>";
       // table row checkbox
       echo "<td>" . "<input type=\"checkbox\" name=\"db_source[]\" value=\"" . $db_row["Database (rpi_mon_%)"] . "\"";
         // keep checked?
@@ -46,7 +46,7 @@ if (!$db_conn) {
       echo ">" . "</td></tr>";
     }
   } else {
-    echo "0 available databases<br>";
+    echo "<tr><td>" . "0 available databases" . "</td></tr>";
   }
   echo "</table>";
 }
