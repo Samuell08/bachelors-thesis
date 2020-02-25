@@ -1,8 +1,15 @@
 <?php
 // TEXTOUT.php
-// PHP code to be expanded in visual.php
+// PHP code to be called from visual.php
 
-$textoutok="1";
+// get session variables
+session_start();
+$db_server    = $_SESSION["db_server"];
+$db_user      = $_SESSION["db_user"];
+$db_pass      = $_SESSION["db_pass"];
+$db_source    = $_SESSION["db_source"];
+$timeperiod   = $_SESSION["timeperiod"];
+
 
 // check if user selected source DB
 if ($db_source == NULL) {

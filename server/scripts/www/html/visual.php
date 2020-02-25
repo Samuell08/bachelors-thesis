@@ -18,9 +18,27 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
     <!-- CSS style -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:500|Open+Sans:300,700">
     <link rel="stylesheet" type="text/css" href="inc/style.css">
+
+    <!-- JavaScript -->
+    <script>
+
+      function updateTextout(){
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("textout").innerHTML = this.responseText;
+          }
+        };
+        xmlhttp.open("GET", "inc/textout.php", true);
+        xmlhttp.send();
+      }      
+
+      setInterval(function(){updateTextout()}, 1000);
+      
+    </script>
   
   </head>
-  <body>
+  <body onload="updateTextout()">
     <div class="div_main">
     
       <!-- HEADER -->
@@ -59,9 +77,9 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
               }
             ?>
 	  
-            Time Period: <input type="text" name="timeperiod" value="<?php echo $timeperiod?>"><br>
+            Time Period: <input type="text" name="timeperiod" value="<?php echo $timeperiod?>"> minutes <br>
 
-            Refresh Interval: <input type="text" name="refresh" value="<?php echo $refresh?>"><br>
+            Refresh Interval: <input type="text" name="refresh" value="<?php echo $refresh?>"> seconds <br>
 
             Show Data: <input type="checkbox" name="showwlan" value="1" <?php if ($showwlan == "1") { echo "checked";}?>> Wi-Fi
                        <input type="checkbox" name="showbt"   value="1" <?php if ($showbt == "1")   { echo "checked";}?>> Bluetooth
@@ -90,15 +108,9 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
       <!-- TEXT OUTPUT -->
       <div class="div_text">
         <h2>Text output</h2>
-        <div class="div_content">
-          
-          <?php
-            $textoutok="0";
-            include 'inc/textout.php';
-            if(!$textoutok == "1") {
-              echo "<p class=\"p_incl_ERROR\">ERROR: failed to load textout.php - page will not be able to show text output of monitoring</p>";
-            }
-          ?>
+        <div class="div_content" id="textout">
+
+          <?php echo "<p class=\"p_incl_ERROR\">ERROR: this text should not be visible, something went wrong with automatic update of text output</p>";?>
 
         </div>
       </div>

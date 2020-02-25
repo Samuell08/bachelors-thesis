@@ -33,13 +33,13 @@ session_start();
           <input type="submit" value="login">
         </form>
 
-          <?php
-            $loginok="0";
-            include 'inc/login.php';
-            if(!$loginok == "1") {
-              echo "<p class=\"p_incl_ERROR\">FATAL ERROR: failed to load login.php - page is not be able to login to database</p>";
-            }
-          ?>
+        <?php
+          $loginok="0";
+          include 'inc/login.php';
+          if(!$loginok == "1") {
+            echo "<p class=\"p_incl_ERROR\">FATAL ERROR: failed to load login.php - page is not be able to login to database</p>";
+          }
+        ?>
 
       </div>
 

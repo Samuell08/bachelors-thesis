@@ -24,7 +24,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION["db_server"]  = $db_server;
     $_SESSION["db_user"]    = $db_user;
     $_SESSION["db_pass"]    = $db_pass;
-    $_SESSION["db_conn"]    = $db_conn;
     header("Location: visual.php");
   }
 }

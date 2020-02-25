@@ -18,6 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $refresh    = filter_var($_GET["refresh"], FILTER_VALIDATE_INT);
   $showwlan   = $_GET["showwlan"];
   $showbt     = $_GET["showbt"];
+  // store variables in session for TEXTOUTPUT.php
+  $_SESSION["db_source"]  = $db_source;
+  $_SESSION["timeperiod"] = $timeperiod;
 }
 
 // dynamic form content
