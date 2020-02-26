@@ -1,5 +1,13 @@
 <?php
 session_start();
+
+// read server hostname from file
+$f_hostname = fopen('/etc/hostname', 'r');
+$hostname = fgets($f_hostname);
+fclose($f_hostname);
+$hostname = substr($hostname, 8);     // delete rpi-mon-
+$hostname = substr($hostname, 0, -1); // delete trailing white char
+$_SESSION["hostname"] = $hostname;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,7 +29,10 @@ session_start();
     
       <!-- HEADER -->
       <div class="div_h1">
-        <a href="<?php echo $_SERVER['PHP_SELF']?>"><h1>Raspberry Pi - monitoring server visualization interface</h1></a><hr>
+        <a href="<?php echo $_SERVER['PHP_SELF']?>">
+        <h1>Raspberry Pi <?php if (isset($hostname)){ echo "(" . $hostname . ")"; } ?></h1>
+        <h3>monitoring server visualization interface</h3></a>
+        <hr>
       </div>
     
       <!-- LOGIN -->

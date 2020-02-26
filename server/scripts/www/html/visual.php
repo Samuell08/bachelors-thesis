@@ -3,6 +3,8 @@ session_start();
 $db_server  = $_SESSION["db_server"];
 $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
+$hostname   = $_SESSION["hostname"];
+
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 ?>
 <!DOCTYPE html>
@@ -43,7 +45,10 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
     
       <!-- HEADER -->
       <div class="div_h1">
-        <a href="<?php echo $_SERVER['PHP_SELF']?>"><h1>Raspberry Pi - monitoring server visualization interface</h1></a><hr>
+        <a href="<?php echo $_SERVER['PHP_SELF']?>">
+        <h1>Raspberry Pi <?php if (isset($hostname)){ echo "(" . $hostname . ")"; } ?></h1>
+        <h3>monitoring server visualization interface</h3></a>
+        <hr>
       </div>
     
       <!-- INFORMATION -->
