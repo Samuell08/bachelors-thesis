@@ -92,8 +92,8 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
             <br>Refresh Interval<br>
             <table class="form">
             <tr><td><input type="text" name="refresh" value="<?php echo $refresh?>"></td></tr>
-            <tr><td><input type="radio" name="refresh_format" value="second" <?php if ($refresh_format == "second") {echo "checked";} ?>> Second(s) </td></tr>
-            <tr><td><input type="radio" name="refresh_format" value="minute" <?php if ($refresh_format == "minute") {echo "checked";} ?>> Minute(s) </td></tr>
+            <tr><td><input type="radio" name="refresh_format" value="sec" <?php if ($refresh_format == "sec") {echo "checked";} ?>> Second(s) </td></tr>
+            <tr><td><input type="radio" name="refresh_format" value="min" <?php if ($refresh_format == "min") {echo "checked";} ?>> Minute(s) </td></tr>
             </table>
 
             <br>Show Data<br>
@@ -144,13 +144,14 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
           MySQL connection error:       <?php echo mysqli_connect_error()?><br><br>
 
           <i>Settings form:</i><br>
-          DB Source:            <?php echo var_dump($db_source)?><br>
-          DB Password:          <?php echo $db_pass?><br>
-          Time Period:          <?php echo $timeperiod?><br>
-          Time Period Format:   <?php echo $timeperiod_format?><br>
-          Refresh Interval:     <?php echo $refresh?><br>
-          Show Data Wi-Fi:      <?php echo $showwlan?><br>
-          Show Data Bluetooth:  <?php echo $showbt?>
+          DB Source:                <?php echo var_dump($db_source)?><br>
+          DB Password:              <?php echo $db_pass?><br>
+          Time Period:              <?php echo $timeperiod?><br>
+          Time Period Format:       <?php echo $timeperiod_format?><br>
+          Refresh Interval:         <?php echo $refresh?><br>
+          Refresh Interval Format:  <?php echo $refresh_format ?><br>
+          Show Data Wi-Fi:          <?php echo $showwlan?><br>
+          Show Data Bluetooth:      <?php echo $showbt?>
         </div>
       </div>
 

@@ -2,14 +2,13 @@
 // SETTINGS.php
 // PHP code to be expanded in visual.php
 
-$settingsok="1";
+$settingsok = "1";
 
 // form variables
-$db_source="";
-$timeperiod="";
-$refresh="";
-$showwlan="";
-$showbt="";
+$db_source = "";
+$timeperiod = "";
+$showwlan = "";
+$showbt = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -20,6 +19,14 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $refresh_format     = $_GET["refresh_format"];
   $showwlan           = $_GET["showwlan"];
   $showbt             = $_GET["showbt"];
+  
+  // default values
+  if ($timeperiod == "") { $timeperiod = 15; }
+  if ($timeperiod_format == "") { $timeperiod_format = "MINUTE"; }
+  if ($refresh == "") { $refresh = 5; }
+  if ($refresh_format == "") { $refresh_format = "sec"; }
+  if ($showwlan == "") { $showwlan = 1; }
+  
   // store variables in session for TEXTOUTPUT.php
   $_SESSION["db_source"]          = $db_source;
   $_SESSION["timeperiod"]         = $timeperiod;
