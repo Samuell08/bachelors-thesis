@@ -85,6 +85,11 @@ table.form {
   font-style: italic;
 }
 
+table.textout {
+  padding: 0px 20px 5px 20px;
+  font-style: italic;
+}
+
 .p_incl_ERROR {
   color: red;
   font-weight: bold;

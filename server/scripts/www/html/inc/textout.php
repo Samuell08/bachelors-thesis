@@ -11,7 +11,6 @@ $db_source          = $_SESSION["db_source"];
 $timeperiod         = $_SESSION["timeperiod"];
 $timeperiod_format  = $_SESSION["timeperiod_format"];
 
-
 // check if user selected source DB
 if ($db_source == NULL) {
   echo "<p style=\"color:OrangeRed;font-weight:bold\">Source database(s) not selected.</p>";
@@ -40,12 +39,19 @@ if ($db_source == NULL) {
     $mac_glbl += $db_row["COUNT(*)"];
   }
 
-  if ($timeperiod_format == "MINUTE") {
-    echo "Global MAC adresses within last " . $timeperiod . " minute(s): " . $mac_glbl;
-  } elseif ($timeperiod_format == "HOUR") {
-    echo "Global MAC adresses within last " . $timeperiod . " hour(s): " . $mac_glbl;
-  } else {
-    echo "<p class=\"p_incl_ERROR\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>";
+  // text output
+  echo "Wi-Fi<br>";
+  echo "<table class=\"textout\">";
+  switch ($timeperiod_format) {
+    case "MINUTE":
+      echo "<tr><td>" . "Global MAC adresses within last " . $timeperiod . " minute(s):" . "</td><td>" . $mac_glbl . "</td></tr>";
+      break;
+    case "HOUR":
+      echo "<tr><td>" . "Global MAC adresses within last " . $timeperiod . " hour(s):" . "</td><td>" . $mac_glbl . "</td></tr>";
+      break;
+    default:
+      echo "<tr><td>" . "<p class=\"p_incl_ERROR\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>" . "</td></tr>";
   }
+  echo "</table>";
 }
 ?>
