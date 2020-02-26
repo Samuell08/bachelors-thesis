@@ -82,14 +82,28 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
               }
             ?>
 	  
-            Time Period: <input type="text" name="timeperiod" value="<?php echo $timeperiod?>"> minutes <br>
+            <br>Time Period<br>
+            <table class="form">
+            <tr><td><input type="text" name="timeperiod" value="<?php echo $timeperiod?>"></td></tr>
+            <tr><td><input type="radio" name="timeperiod_format" value="MINUTE" <?php if ($timeperiod_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+            <tr><td><input type="radio" name="timeperiod_format" value="HOUR"   <?php if ($timeperiod_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+            </table>
 
-            Refresh Interval: <input type="text" name="refresh" value="<?php echo $refresh?>"> seconds <br>
+            <br>Refresh Interval<br>
+            <table class="form">
+            <tr><td><input type="text" name="refresh" value="<?php echo $refresh?>"></td></tr>
+            <tr><td><input type="radio" name="refresh_format" value="second" <?php if ($refresh_format == "second") {echo "checked";} ?>> Second(s) </td></tr>
+            <tr><td><input type="radio" name="refresh_format" value="minute" <?php if ($refresh_format == "minute") {echo "checked";} ?>> Minute(s) </td></tr>
+            </table>
 
-            Show Data: <input type="checkbox" name="showwlan" value="1" <?php if ($showwlan == "1") { echo "checked";}?>> Wi-Fi
-                       <input type="checkbox" name="showbt"   value="1" <?php if ($showbt == "1")   { echo "checked";}?>> Bluetooth
+            <br>Show Data<br>
+            <table class="form">
+            <tr><td><input type="checkbox" name="showwlan" value="1" <?php if ($showwlan == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
+            <tr><td><input type="checkbox" name="showbt"   value="1" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+            </table>
 	    
-            <br> <input type="submit" value="Submit">
+            <input type="submit" value="Submit">
+
 	        </form>
         </div>
       </div>
@@ -125,15 +139,18 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
         <hr><h2>Debug</h2>
         <div class="div_content">
           This file: <?php echo $_SERVER['PHP_SELF']?><br><br>
+
           MySQL connection information: <?php echo mysqli_get_host_info($db_conn)?><br>
-          MySQL connection error: <?php echo mysqli_connect_error()?><br><br>
+          MySQL connection error:       <?php echo mysqli_connect_error()?><br><br>
+
           <i>Settings form:</i><br>
-          DB Source: <?php echo var_dump($db_source)?><br>
-          DB Password: <?php echo $db_pass?><br>
-          Time Period: <?php echo $timeperiod?><br>
-          Refresh Interval: <?php echo $refresh?><br>
-          Show Data Wi-Fi: <?php echo $showwlan?><br>
-          Show Data Bluetooth: <?php echo $showbt?>
+          DB Source:            <?php echo var_dump($db_source)?><br>
+          DB Password:          <?php echo $db_pass?><br>
+          Time Period:          <?php echo $timeperiod?><br>
+          Time Period Format:   <?php echo $timeperiod_format?><br>
+          Refresh Interval:     <?php echo $refresh?><br>
+          Show Data Wi-Fi:      <?php echo $showwlan?><br>
+          Show Data Bluetooth:  <?php echo $showbt?>
         </div>
       </div>
 

@@ -11,43 +11,47 @@ $refresh="";
 $showwlan="";
 $showbt="";
 
-// receive settings form
+// RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-  $db_source  = $_GET["db_source"];
-  $timeperiod = filter_var($_GET["timeperiod"], FILTER_VALIDATE_INT);
-  $refresh    = filter_var($_GET["refresh"], FILTER_VALIDATE_INT);
-  $showwlan   = $_GET["showwlan"];
-  $showbt     = $_GET["showbt"];
+  $db_source          = $_GET["db_source"];
+  $timeperiod         = filter_var($_GET["timeperiod"], FILTER_VALIDATE_INT);
+  $timeperiod_format  = $_GET["timeperiod_format"];
+  $refresh            = filter_var($_GET["refresh"], FILTER_VALIDATE_INT);
+  $refresh_format     = $_GET["refresh_format"];
+  $showwlan           = $_GET["showwlan"];
+  $showbt             = $_GET["showbt"];
   // store variables in session for TEXTOUTPUT.php
-  $_SESSION["db_source"]  = $db_source;
-  $_SESSION["timeperiod"] = $timeperiod;
+  $_SESSION["db_source"]          = $db_source;
+  $_SESSION["timeperiod"]         = $timeperiod;
+  $_SESSION["timeperiod_format"]  = $timeperiod_format;
 }
 
-// dynamic form content
+// DYNAMIC FORM PART
+// Select Source Database(s)
+echo "<b>Select Source Database(s)</b><br>";
+echo "<table class=\"form\">";
+
 if (!$db_conn) {
-  echo "<p style=\"color:OrangeRed;font-weight:bold\">Database not connected!</p>";
+  echo "<tr><td>" . "<p style=\"color:OrangeRed;font-weight:bold\">Database not connected!</p>" . "</td></tr>";
 } else {
-  // show available DB
-  echo "<b>Select source database(s)</b><br>";
   $db_q = "SHOW DATABASES LIKE 'rpi_mon_%';";
   $db_result = mysqli_query($db_conn, $db_q);
-
-  echo "<table class=\"t_avail_db\">";
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
-      // table row name
-      echo "<tr><td>" . $db_row["Database (rpi_mon_%)"] . "</td>";
       // table row checkbox
-      echo "<td>" . "<input type=\"checkbox\" name=\"db_source[]\" value=\"" . $db_row["Database (rpi_mon_%)"] . "\"";
+      echo "<tr><td>" . "<input type=\"checkbox\" name=\"db_source[]\" value=\"" . $db_row["Database (rpi_mon_%)"] . "\"";
         // keep checked?
         foreach ($db_source as $key => $val) {
           if ($val == $db_row["Database (rpi_mon_%)"]) { echo "checked"; }
         }
-      echo ">" . "</td></tr>";
+      echo ">" . "</td>";
+      // table row name
+      echo "<td>" . $db_row["Database (rpi_mon_%)"] . "</td></tr>";
     }
   } else {
     echo "<tr><td>" . "0 available databases" . "</td></tr>";
   }
-  echo "</table>";
 }
+
+echo "</table>";
 ?>

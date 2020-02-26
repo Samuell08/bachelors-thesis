@@ -80,7 +80,7 @@ input[type="submit"] {
   padding: 0px 20px 5px 20px;
 }
 
-.t_avail_db {
+table.form {
   padding: 0px 20px 5px 20px;
   font-style: italic;
 }
