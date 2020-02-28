@@ -41,7 +41,7 @@ echo "<b>Select Source Database(s)</b><br>";
 echo "<table class=\"form\">";
 
 if (!$db_conn) {
-  echo "<tr><td>" . "<p style=\"color:OrangeRed;font-weight:bold\">Database not connected!</p>" . "</td></tr>";
+  echo "<tr><td>" . "<p class=\"error\">Database not connected!</p>" . "</td></tr>";
 } else {
   $db_q = "SHOW DATABASES LIKE 'rpi_mon_%';";
   $db_result = mysqli_query($db_conn, $db_q);

@@ -18,7 +18,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
   <head>
     
     <meta charset="utf-8">
-    <title>RPi monitoring server</title>
+    <title><?php echo $hostname ?> monitoring server</title>
     
     <!-- CSS style -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:500|Open+Sans:300,700">
@@ -27,7 +27,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
     <!-- JavaScript -->
     <script>
 
-      // ------------------------------------------------------ update functions
+      // update functions
       function updateAll(){
         updateInfo();
         updateTextout();
@@ -55,7 +55,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
         xmlhttp.send();
       }      
 
-      // ---------------------------------------------------------------- timers
+      // timers
       setInterval(function(){updateTextout()}, 1000); // 1 sec
       
     </script>
@@ -77,7 +77,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
         <h2>Information</h2>
         <div class="div_content" id="info">
 
-          <?php echo "<p class=\"p_incl_ERROR\">ERROR: this text should not be visible, something went wrong with automatic update of information</p>";?>
+          <?php echo "<p class=\"error\">ERROR: this text should not be visible, something went wrong with automatic update of information</p>";?>
 
         </div>
       </div>
@@ -93,7 +93,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
               $settingsok="0";
               include 'inc/settings.php';
               if(!$settingsok == "1") {
-                echo "<p class=\"p_incl_ERROR\">ERROR: failed to load settings.php - page will not be able to process Settings form</p>";
+                echo "<p class=\"error\">ERROR: failed to load settings.php - page will not be able to process Settings form</p>";
               }
             ?>
 	  
@@ -132,7 +132,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
             $graphok="0";
             include 'inc/graph.php';
             if(!$graphok == "1") {
-              echo "<p class=\"p_incl_ERROR\">ERROR: failed to load graph.php - page will not be able to show visual output of monitoring</p>";
+              echo "<p class=\"error\">ERROR: failed to load graph.php - page will not be able to show visual output of monitoring</p>";
             }
           ?>
 
@@ -144,12 +144,12 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
         <h2>Text output</h2>
         <div class="div_content" id="textout">
 
-          <?php echo "<p class=\"p_incl_ERROR\">ERROR: this text should not be visible, something went wrong with automatic update of text output</p>";?>
+          <?php echo "<p class=\"error\">ERROR: this text should not be visible, something went wrong with automatic update of text output</p>";?>
 
         </div>
       </div>
       
-      <!-- DEBUG -->
+      <!-- DEBUG
       <div class="div_debug">
         <hr><h2>Debug</h2>
         <div class="div_content">
@@ -169,10 +169,12 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
           Show Data Bluetooth:      <?php echo $showbt?>
         </div>
       </div>
+      -->
 
       <!-- FOOTER -->
       <div class="div_foot">
-        <hr><p>Samuel Petráš (203317) - Bakalárska práca - VUT FEKT - 2020</p>
+        <hr>
+        <p>Samuel Petráš (203317) - Bakalárska práca - VUT FEKT - 2020</p>
       </div>
     </div>
   </body>

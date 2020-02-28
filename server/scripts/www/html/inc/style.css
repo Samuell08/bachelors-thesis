@@ -112,8 +112,13 @@ table.textout {
   font-style: italic;
 }
 
-.p_incl_ERROR {
+p.error {
   color: red;
+  font-weight: bold;
+}
+
+p.warning {
+  color: OrangeRed;
   font-weight: bold;
 }
 

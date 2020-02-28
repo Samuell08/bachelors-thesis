@@ -17,7 +17,7 @@ $_SESSION["hostname"] = $hostname;
   <head>
     
     <meta charset="utf-8">
-    <title>RPi monitoring server</title>
+    <title><?php echo $hostname ?> monitoring server</title>
     
     <!-- CSS style -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:500|Open+Sans:300,700">
@@ -48,7 +48,7 @@ $_SESSION["hostname"] = $hostname;
           $loginok="0";
           include 'inc/login.php';
           if(!$loginok == "1") {
-            echo "<p class=\"p_incl_ERROR\">FATAL ERROR: failed to load login.php - page is not be able to login to database</p>";
+            echo "<p class=\"error\">FATAL ERROR: failed to load login.php - page is not be able to login to database</p>";
           }
         ?>
 
@@ -56,7 +56,8 @@ $_SESSION["hostname"] = $hostname;
 
       <!-- FOOTER -->
       <div class="div_foot">
-        <hr><p>Samuel Petráš (203317) - Bakalárska práca - VUT FEKT - 2020</p>
+        <hr>
+        <p>Samuel Petráš (203317) - Bakalárska práca - VUT FEKT - 2020</p>
       </div>
     </div>
   </body>

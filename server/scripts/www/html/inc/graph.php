@@ -6,7 +6,7 @@ $graphok="1";
 
 // check if user selected source DB
 if ($db_source == NULL) {
-  echo "<p style=\"color:OrangeRed;font-weight:bold\">Source database(s) not selected.</p>";
+  echo "<p class=\"warning\">Source database(s) not selected.</p>";
 } else {
   echo "Graph OK";
 }

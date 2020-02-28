@@ -16,7 +16,7 @@ $showbt             = $_SESSION["showbt"];
 
 // check if user selected source DB
 if ($db_source == NULL) {
-  echo "<p style=\"color:OrangeRed;font-weight:bold\">Source database(s) not selected.</p>";
+  echo "<p class=\"warning\">Source database(s) not selected.</p>";
 } else {
 
   // ---------------------------------------------------------------------- WIFI
@@ -57,7 +57,7 @@ if ($db_source == NULL) {
         echo "<tr><td>" . "Global MAC adresses within last " . $timeperiod . " hour(s):" . "</td><td>" . $mac_glbl . "</td></tr>";
         break;
       default:
-        echo "<tr><td>" . "<p class=\"p_incl_ERROR\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>" . "</td></tr>";
+        echo "<tr><td>" . "<p class=\"error\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>" . "</td></tr>";
     }
     echo "</table>";
   }
@@ -96,7 +96,7 @@ if ($db_source == NULL) {
         echo "<tr><td>" . "Total Bluetooth devices within last " . $timeperiod . " hour(s):" . "</td><td>" . $bt_total . "</td></tr>";
         break;
       default:
-        echo "<tr><td>" . "<p class=\"p_incl_ERROR\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>" . "</td></tr>";
+        echo "<tr><td>" . "<p class=\"error\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>" . "</td></tr>";
     }
     echo "</table>";
   }
@@ -104,7 +104,7 @@ if ($db_source == NULL) {
   // ------------------------------------------------------------------- nothing
   // check if user selected nothing
   if ((!($showwlan == "1")) and (!($showbt == "1"))) {
-    echo "<p style=\"color:OrangeRed;font-weight:bold\">No data selected to show.</p>";
+    echo "<p class=\"warning\">No data selected to show.</p>";
   }
 }
 

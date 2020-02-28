@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   // check DB onnection
   if (!$db_conn) {
-    echo "<p style=\"color:OrangeRed;font-weight:bold\">Database connection failed (password might be incorrect)</p>";
+    echo "<p class=\"warning\">Database connection failed (password might be incorrect)</p>";
   } else {
     // redirect to visual interface if connection successfull
     $_SESSION["db_server"]  = $db_server;
