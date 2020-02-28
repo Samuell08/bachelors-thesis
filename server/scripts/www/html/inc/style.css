@@ -30,10 +30,20 @@ input[type="submit"] {
   cursor: pointer;
 }
 
+button {
+  border: none;
+  background-color: transparent;
+  padding: 0px;
+  font-weight: bold;
+  font-size: 15px;
+  color: dodgerblue;
+  cursor: pointer;
+}
+
 .div_main {
   padding: 5px;
-  min-width: 800px;
-  max-width: 1600px;
+  min-width: 600px;
+  max-width: 1400px;
   margin: auto;
 }
       
@@ -84,6 +94,12 @@ table.info {
   padding: 0px 20px 5px 20px;
   font-style: italic;
   text-align: center;
+  width: 75%;
+  margin: auto;
+}
+
+th.info {
+  font-style: normal;
 }
 
 table.form {

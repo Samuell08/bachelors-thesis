@@ -5,6 +5,9 @@ $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
 $hostname   = $_SESSION["hostname"];
 
+$db_source  = $_SESSION["db_source"];
+$timeperiod = $_SESSION["timeperiod"];
+
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 ?>
 <!DOCTYPE html>
@@ -24,7 +27,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
     <!-- JavaScript -->
     <script>
 
-      // functions
+      // ------------------------------------------------------ update functions
       function updateAll(){
         updateInfo();
         updateTextout();
@@ -52,8 +55,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
         xmlhttp.send();
       }      
 
-      // timers
-      setInterval(function(){updateInfo()}, 60000);   // 1 minute
+      // ---------------------------------------------------------------- timers
       setInterval(function(){updateTextout()}, 1000); // 1 sec
       
     </script>
@@ -75,7 +77,7 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
         <h2>Information</h2>
         <div class="div_content" id="info">
 
-          <?php echo "<p class=\"p_incl_ERROR\">ERROR: this text should not be visible, something went wrong with automatic update of text output</p>";?>
+          <?php echo "<p class=\"p_incl_ERROR\">ERROR: this text should not be visible, something went wrong with automatic update of information</p>";?>
 
         </div>
       </div>
