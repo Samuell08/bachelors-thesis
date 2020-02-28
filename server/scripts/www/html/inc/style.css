@@ -80,6 +80,12 @@ input[type="submit"] {
   padding: 0px 20px 5px 20px;
 }
 
+table.info {
+  padding: 0px 20px 5px 20px;
+  font-style: italic;
+  text-align: center;
+}
+
 table.form {
   padding: 0px 20px 5px 20px;
   font-style: italic;
@@ -99,6 +105,10 @@ table.textout {
 .div_debug {
   padding: 0px 20px 5px 20px;
   margin: 10px;
+}
+
+tr,th,td {
+  border: 0px solid black;
 }
 
 div  {

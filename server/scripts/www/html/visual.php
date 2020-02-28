@@ -24,6 +24,23 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
     <!-- JavaScript -->
     <script>
 
+      // functions
+      function updateAll(){
+        updateInfo();
+        updateTextout();
+      }
+
+      function updateInfo(){
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("info").innerHTML = this.responseText;
+          }
+        };
+        xmlhttp.open("GET", "inc/information.php", true);
+        xmlhttp.send();
+      }      
+      
       function updateTextout(){
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
@@ -35,12 +52,14 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
         xmlhttp.send();
       }      
 
-      setInterval(function(){updateTextout()}, 1000);
+      // timers
+      setInterval(function(){updateInfo()}, 60000);   // 1 minute
+      setInterval(function(){updateTextout()}, 1000); // 1 sec
       
     </script>
   
   </head>
-  <body onload="updateTextout()">
+  <body onload="updateAll()">
     <div class="div_main">
     
       <!-- HEADER -->
@@ -54,15 +73,9 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
       <!-- INFORMATION -->
       <div class="div_info">
         <h2>Information</h2>
-        <div class="div_content">
+        <div class="div_content" id="info">
 
-          <?php
-            $informationok="0";
-            include 'inc/information.php';
-            if(!$informationok == "1") {
-              echo "<p class=\"p_incl_ERROR\">ERROR: failed to load information.php - page will not be able to show information about monitoring server and database</p>";
-            }
-          ?>
+          <?php echo "<p class=\"p_incl_ERROR\">ERROR: this text should not be visible, something went wrong with automatic update of text output</p>";?>
 
         </div>
       </div>

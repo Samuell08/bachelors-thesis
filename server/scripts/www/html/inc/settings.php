@@ -45,6 +45,7 @@ if (!$db_conn) {
 } else {
   $db_q = "SHOW DATABASES LIKE 'rpi_mon_%';";
   $db_result = mysqli_query($db_conn, $db_q);
+  
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
       // table row checkbox
