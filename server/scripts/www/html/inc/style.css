@@ -18,6 +18,7 @@ a {
 input[type="text"], input[type="password"] {
   border: none;
   border-bottom: 1px solid lightgray;
+  border-right: 1px solid lightgray;
 }
 
 input[type="submit"] {
@@ -90,16 +91,31 @@ button {
   padding: 0px 20px 5px 20px;
 }
 
+p.error {
+  color: red;
+  font-weight: bold;
+}
+
+p.warning {
+  color: OrangeRed;
+  font-weight: bold;
+}
+
 table.info {
-  padding: 0px 20px 5px 20px;
+  padding: 0px 20px 15px 20px;
   font-style: italic;
   text-align: center;
   width: 75%;
   margin: auto;
+  border-collapse: collapse;
 }
 
 th.info {
   font-style: normal;
+}
+
+tr.info {
+  border-bottom: 1px solid #ddd;
 }
 
 table.form {
@@ -112,25 +128,17 @@ table.textout {
   font-style: italic;
 }
 
-p.error {
-  color: red;
-  font-weight: bold;
-}
-
-p.warning {
-  color: OrangeRed;
-  font-weight: bold;
-}
-
 /* -------------------------------- debug */
 .div_debug {
   padding: 0px 20px 5px 20px;
   margin: 10px;
 }
 
-tr,th,td {
-  border: 0px solid black;
+/*
+table,tr,th,td {
+  border: 1px solid black;
 }
+*/
 
 div  {
   border: 0px solid black;

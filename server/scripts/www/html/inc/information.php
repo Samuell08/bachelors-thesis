@@ -32,7 +32,7 @@ echo "<form method=\"post\" action=\"inc/db_delete.php\">";
     if (mysqli_num_rows($db_result) > 0) {
 
       // table header
-      echo "<tr>";
+      echo "<tr class=\"info\">";
       echo "<th class=\"info\">" . "Database name" . "</th>";
       echo "<th class=\"info\">" . "Database size (MB)" . "</th>";
       echo "<th class=\"info\">" . "Delete entries older than #" . "</th>";
@@ -43,7 +43,7 @@ echo "<form method=\"post\" action=\"inc/db_delete.php\">";
       while ($db_row = mysqli_fetch_assoc($db_result)) {
 
         // fill 1 row
-        echo "<tr>";
+        echo "<tr class=\"info\">";
         echo "<td>" . $db_row["DB_name"] . "</td>";
         echo "<td>" . $db_row["DB_size_MB"] . "</td>";
         echo "<td>" . "<button type=\"submit\" name=\"db_delete\" value=\"" . $db_row["DB_name"] . "\">" . "Delete Older" . "</button>" . "</td>";
@@ -57,7 +57,7 @@ echo "<form method=\"post\" action=\"inc/db_delete.php\">";
   }
 
   echo "</table>";
-echo "</form>";
+echo "</form><br>";
 
 // update Information div button
 echo "Database size column takes couple of seconds to update, you need to refresh manually!<br>";
