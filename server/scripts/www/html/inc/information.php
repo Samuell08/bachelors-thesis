@@ -60,6 +60,6 @@ echo "<form method=\"post\" action=\"inc/db_delete.php\">";
 echo "</form><br>";
 
 // update Information div button
-echo "Database size column takes couple of seconds to update, you need to refresh manually!<br>";
+echo "Database size column takes couple of seconds to update, you might need to refresh manually!<br>";
 echo "<button onclick=\"updateInfo()\">Refresh</button>";
 ?>
