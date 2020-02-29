@@ -14,9 +14,13 @@ $showwlan           = $_SESSION["showwlan"];
 $showbt             = $_SESSION["showbt"];
 
 
-// check if user selected source DB
+// check if user input is correct
 if ($db_source == NULL) {
   echo "<p class=\"warning\">Source database(s) not selected.</p>";
+} elseif ($timeperiod_format == NULL) {
+  echo "<p class=\"warning\">Time Period format Minute(s)/Hour(s) not selected.</p>";
+} elseif ($timeperiod == NULL) {
+  echo "<p class=\"warning\">Invalid time period.</p>";
 } else {
 
   // ---------------------------------------------------------------------- WIFI
@@ -57,7 +61,7 @@ if ($db_source == NULL) {
         echo "<tr><td>" . "Global MAC adresses within last " . $timeperiod . " hour(s):" . "</td><td>" . $mac_glbl . "</td></tr>";
         break;
       default:
-        echo "<tr><td>" . "<p class=\"error\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>" . "</td></tr>";
+        echo "<tr><td>" . "<p class=\"error\">ERROR: Time Period format received in unknown format!.</p>" . "</td></tr>";
     }
     echo "</table>";
   }
@@ -96,7 +100,7 @@ if ($db_source == NULL) {
         echo "<tr><td>" . "Total Bluetooth devices within last " . $timeperiod . " hour(s):" . "</td><td>" . $bt_total . "</td></tr>";
         break;
       default:
-        echo "<tr><td>" . "<p class=\"error\">ERROR: cannot read Minute(s)/Hour(s) input for Time Period</p>" . "</td></tr>";
+        echo "<tr><td>" . "<p class=\"error\">ERROR: Time Period format received in unknown format!.</p>" . "</td></tr>";
     }
     echo "</table>";
   }
