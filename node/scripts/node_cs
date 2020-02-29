@@ -12,15 +12,17 @@ Usage:
 
 Options:
 
-    -w, --wlan INTERFACE [INTERFACE...]
-      specify one or more wlan interfaces(s)
+    -w, --wlan INTERFACE[ INTERFACE...]
+      Specify one or more wlan interfaces(s).
     
-    -b, --bt [INTERFACE]
-      specify exactly one bluetooth interface (if no interface
-      is specified Bluelog will look for default interface)
+    -b, --bt INTERFACE [AMNESIA]
+      Specify exactly one bluetooth interface.
+      Amnesia mode makes Bluelog forget logged devices older than set
+      ammount of time in minutes (device will be logged again, as if
+      it was seen for the first time).
     
     --help
-      print help page
+      Print help page.
 
 All specified interfaces MUST exist
 Multiple wlan interfaces MUST be enclosed in apostrophes (')
@@ -31,7 +33,7 @@ Examples:
   node_cs -b hci0
   node_cs -b remove
   node_cs -w usbwlan0
-  node_cs -w usbwlan0 -b hci0
+  node_cs -w usbwlan0 -b hci0 15
   node_cs -w 'usbwlan0 usbwlan1 usbwlan2'
 
 EOF
@@ -42,11 +44,12 @@ cat <<EOF
 
 NODE CREATE MONITORING SYSTEMD SERVICE
 
-This command is used to create systemd service for desired wlan or bluetooth
+This command is used to create systemd service for specified wlan or bluetooth
 interface. It will create .service file in systemd directory. This created
 service will handle node_dump script calling at startup or for current
 session which can be controlled by node_service script. Service must be
-enabled/started manually with node_service script after creation.
+enabled/started manually with node_service script after creation. For more
+information try using node_dump --help.
 
 Note that the node_dump script started by this service will sleep for $DUMP_SLEEP
 (defined in node_var) before starting monitoring. This ensures correct
@@ -88,7 +91,16 @@ EOF
 }
 
 function write_service_bt() {
-  
+
+  # amnesia?
+  if [[ "$bt_amnesia" == "" ]];
+  then
+    ExecStart="ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt}";
+  else
+    ExecStart="ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt} ${bt_amnesia}";
+    echo "Bluelog amnesia set to ${bt_amnesia} minutes!"
+  fi
+
   echo "creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_BT}..."
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_BT}"
 [Unit]
@@ -98,7 +110,7 @@ Requires=bluetooth.service
 
 [Service]
 Type=forking
-ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt}
+${ExecStart}
 
 [Install]
 WantedBy=multi-user.target
@@ -171,7 +183,7 @@ function remove_service() {
   
   return 0  
 }
-
+i
 # options parsing
 
 if [[ $# -eq 0 ]];
@@ -193,9 +205,9 @@ do
       # check if argument -w empty
       if [[ -z "$2" ]] || [[ "$2" == -* ]];
       then
-        echo "ERROR: invalid argument $2 for option $1"
-	print_usage
-	break
+        echo "ERROR: invalid argument '${2}' for option '${1}'"
+        print_usage
+        break
       fi
 
       # check if option is remove
@@ -214,12 +226,16 @@ do
       ;;
     
     -b|--bt)
-      # check if argument -b empty
+      # arguments
+      # $2 Bluetooth interface
+      # $3 [amnesia minutes] (optional)
+
+      # check if argument $2 empty
       if [[ -z "$2" ]] || [[ "$2" == -* ]];
       then
-        echo "ERROR: invalid argument $2 for option $1"
-	print_usage
-	break
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
       fi
       
       # check if option is remove
@@ -227,7 +243,18 @@ do
       then
         remove_service $SERVICE_NODE_BT
       else
+
         intf_bt="$2"
+
+        # check optional argument $3
+        if [[ -z "$3" ]] || [[ "$3" == -* ]];
+        then
+          bt_amnesia="";
+        else
+          bt_amnesia="$3";
+          shift
+        fi
+        
         if create_service ${SERVICE_NODE_BT} ;
         then
           write_service_bt

@@ -17,18 +17,20 @@ Usage:
 Options:
 
     -n, --now
-      disables the default sleep before starting monitoring (sleep
-      duration is set to ${DUMP_SLEEP}, which is defined in node_var)
+      Disables the default sleep before starting monitoring (sleep
+      duration is set to ${DUMP_SLEEP}, which is defined in node_var).
 
-    -w, --wlan [interface]...
-      specify one or more wlan interface(s)
+    -w, --wlan INTERFACE[ INTERFACE...]
+      Specify one or more wlan interface(s).
     
-    -b, --bt [interface]...
-      specify exactly one bluetooth interface (if no interface
-      is specified Bluelog will look for default interface)
+    -b, --bt INTERFACE [AMNESIA]
+      Specify exactly one bluetooth interface.
+      Amnesia mode makes Bluelog forget logged devices older than set
+      ammount of time in minutes (device will be logged again, as if
+      it was seen for the first time).
     
     --help
-      print help page
+      Print help page.
 
 Now option affects ONLY interfaces specified AFTER this option
 All specified interfaces MUST exist
@@ -38,7 +40,7 @@ Examples:
 
   node_dump -b hci0
   node_dump -n -w usbwlan0
-  node_dump -w usbwlan0 -n -b hci0
+  node_dump -w usbwlan0 -n -b hci0 15
   node_dump -w 'usbwlan0 usbwlan1 usbwlan2'
 
 EOF
@@ -50,9 +52,10 @@ cat <<EOF
 NODE START MONITORING
 
 This command is used to start monitoring and dumping log files with
-desired bluetooth/wlan interface(s). Wlan interfaces will be put into
+specified bluetooth/wlan interface(s). Wlan interfaces will be put into
 monitor mode prior to calling airodump-ng. Only one Bluetooth interface
-can be specified and it will use Bluelog for logging.
+can be specified and it will use Bluelog for logging. Amnesia mode can
+be used to monitor number of Bluetooth devices present in set time period
 
 Interfaces will be setup in order in which they are written in command
 options.
@@ -99,8 +102,8 @@ do
       if [[ -z "$2" ]] || [[ "$2" == -* ]];
       then
         echo "ERROR: invalid argument $2 for option $1"
-	print_usage
-	break
+        print_usage
+        break
       fi
 
       if [[ "$now" == "0" ]];
@@ -117,7 +120,7 @@ do
         sudo ip link set "$i" down
         sudo iw "$i" set monitor control
         sudo ip link set "$i" up
-	# append interface, to string
+        # append interface, to string
         intf_airodump="${intf_airodump}${i},"
       done
       # remove last character (,) from string
@@ -130,12 +133,16 @@ do
       ;;
 
     -b|--bt)
-      # check if argument -b empty
+      # arguments
+      # $2 - Bluetooth interface
+      # $3 - [amnesia minutes] (optional)
+
+      # check if argument $2 empty
       if [[ -z "$2" ]] || [[ "$2" == -* ]];
       then
-        echo "ERROR: invalid argument $2 for option $1"
-	print_usage
-	break
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
       fi
       
       if [[ "$now" == "0" ]];
@@ -146,8 +153,18 @@ do
       
       echo "Killing Bluelog process if there is one!"
       "${DIR_NODE_BLUELOG}/bluelog" -k
-      echo "Starting Bluelog with interface $2!"
-      "${DIR_NODE_BLUELOG}/bluelog" -o "${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log" -i $2 -nmft &>/dev/null &
+
+      # check optional argument $3
+      if [[ -z "$3" ]] || [[ "$3" == -* ]];
+      then
+        echo "Starting Bluelog with interface ${2}!"
+        "${DIR_NODE_BLUELOG}/bluelog" -o "${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log" -i "$2" -nmft &>/dev/null &
+      else
+        echo "Starting Bluelog with interface ${2} with amnesia mode set to ${3} minutes!"
+        "${DIR_NODE_BLUELOG}/bluelog" -o "${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log" -i "$2" -nmft -a "$3" &>/dev/null &
+        shift
+      fi
+
       shift
       ;;
 
