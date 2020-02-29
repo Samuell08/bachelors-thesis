@@ -27,10 +27,19 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
     <!-- JavaScript -->
     <script>
 
+      function toggle_bt_chk(){
+        if (document.getElementById("bt_chk").checked == true) {
+          document.getElementById("bt_chk_txt").style.display = "block";
+        } else {
+          document.getElementById("bt_chk_txt").style.display = "none";
+        }
+      }
+
       // update functions
       function updateAll(){
         updateInfo();
         updateTextout();
+        toggle_bt_chk();
       }
 
       function updateInfo(){
@@ -114,8 +123,13 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
             <br>Show Data<br>
             <table class="form">
             <tr><td><input type="checkbox" name="showwlan" value="1" <?php if ($showwlan == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-            <tr><td><input type="checkbox" name="showbt"   value="1" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+            <tr><td><input type="checkbox" name="showbt"   value="1" id="bt_chk" onclick="toggle_bt_chk()" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
             </table>
+
+            <p id="bt_chk_txt" style="display:none">
+            When Bluetooth monitoring is running with amnesia mode enabled,
+            Time Period MUST be set to same time to display correct results of Bluetooth monitoring data
+            </p>
 	    
             <input type="submit" value="Submit">
 
