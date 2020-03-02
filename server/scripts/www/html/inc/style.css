@@ -21,16 +21,6 @@ input[type="text"], input[type="password"] {
   border-right: 1px solid lightgray;
 }
 
-input[type="submit"] {
-  border: none;
-  background-color: transparent;
-  padding: 0px;
-  font-weight: bold;
-  font-size: 15px;
-  color: dodgerblue;
-  cursor: pointer;
-}
-
 button {
   border: none;
   background-color: transparent;
@@ -40,6 +30,11 @@ button {
   color: dodgerblue;
   cursor: pointer;
 }
+
+button:active {
+  color: navy;
+}
+
 
 .div_main {
   padding: 5px;

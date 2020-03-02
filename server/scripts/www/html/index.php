@@ -41,7 +41,7 @@ $_SESSION["hostname"] = $hostname;
         Enter password for MySQL database user 'mon'<br><br>
         <form method=post action="<?php echo $_SERVER['PHP_SELF']?>">
           <input type="password" name="db_pass">
-          <input type="submit" value="login">
+          <button type="submit">Login</button>
         </form>
 
         <?php

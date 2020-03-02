@@ -113,12 +113,14 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
             <tr><td><input type="radio" name="timeperiod_format" value="HOUR"   <?php if ($timeperiod_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
             </table>
 
+            <!-- not used
             <br>Refresh Interval<br>
             <table class="form">
             <tr><td><input type="text" name="refresh" value="<?php echo $refresh?>"></td></tr>
             <tr><td><input type="radio" name="refresh_format" value="sec" <?php if ($refresh_format == "sec") {echo "checked";} ?>> Second(s) </td></tr>
             <tr><td><input type="radio" name="refresh_format" value="min" <?php if ($refresh_format == "min") {echo "checked";} ?>> Minute(s) </td></tr>
             </table>
+            -->
 
             <br>Show Data<br>
             <table class="form">
@@ -126,14 +128,15 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
             <tr><td><input type="checkbox" name="showbt"   value="1" id="bt_chk" onclick="toggle_bt_chk()" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
             </table>
 
-            <p id="bt_chk_txt" style="display:none">
-            When Bluetooth monitoring is running with amnesia mode enabled,
-            Time Period MUST be set to same time to display correct results of Bluetooth monitoring data
-            </p>
-	    
-            <input type="submit" value="Submit">
+            <button type="submit">Submit</button>
 
-	        </form>
+          </form>
+
+          <p id="bt_chk_txt" style="display:none">
+          When Bluetooth monitoring is running with amnesia mode enabled,
+          Time Period MUST be set to same time to display correct results of Bluetooth monitoring data
+          </p>
+
         </div>
       </div>
       
