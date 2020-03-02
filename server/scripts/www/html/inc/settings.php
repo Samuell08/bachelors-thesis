@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
 // DYNAMIC FORM PART
 // Select Source Database(s)
-echo "<b>Select Source Database(s)</b><br>";
+echo "Select Source Database(s)<br>";
 echo "<table class=\"form\">";
 
 if (!$db_conn) {

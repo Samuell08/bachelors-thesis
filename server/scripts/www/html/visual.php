@@ -42,11 +42,11 @@ if (file_exists("var/bt_amnesia")) {
     <!-- JavaScript -->
     <script>
 
-      function toggle_bt_chk(){
-        if (document.getElementById("bt_chk").checked == true) {
-          document.getElementById("bt_chk_txt").style.display = "block";
+      function toggle_ib_bt_data(){
+        if (document.getElementById("chckb_bt_data").checked == true) {
+          document.getElementById("ib_bt_data").style.display = "block";
         } else {
-          document.getElementById("bt_chk_txt").style.display = "none";
+          document.getElementById("ib_bt_data").style.display = "none";
         }
       }
 
@@ -54,7 +54,7 @@ if (file_exists("var/bt_amnesia")) {
       function updateAll(){
         updateInfo();
         updateTextout();
-        toggle_bt_chk();
+        toggle_ib_bt_data();
       }
 
       function updateInfo(){
@@ -140,15 +140,14 @@ if (file_exists("var/bt_amnesia")) {
             <br>Show Data<br>
             <table class="form">
             <tr><td><input type="checkbox" name="showwlan" value="1" <?php if ($showwlan == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-            <tr><td><input type="checkbox" name="showbt"   value="1" id="bt_chk" onclick="toggle_bt_chk()" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+            <tr><td><input type="checkbox" name="showbt"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
             </table>
 
             <button type="submit">Submit</button>
 
           </form>
 
-          <p id="bt_chk_txt" class="info_box" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
-
+          <p id="ib_bt_data" class="info_box" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
 
         </div>
       </div>

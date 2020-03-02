@@ -59,7 +59,12 @@ echo "<form method=\"post\" action=\"inc/db_delete.php\">";
   echo "</table>";
 echo "</form><br>";
 
+// last time refreshed
+echo "Last time refreshed: <i>" . date('G:i:s (j.n.Y)') . "</i><br>";
+
 // update Information div button
-echo "Database size column takes couple of seconds to update, you might need to refresh manually!<br>";
 echo "<button onclick=\"updateInfo()\">Refresh</button>";
+
+// infobox
+echo "<p class=\"info_box\">Database size column takes couple of seconds to update after change in size of database.</p>";
 ?>
