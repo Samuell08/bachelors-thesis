@@ -2,7 +2,6 @@
 
 body {
   font-family: 'Open Sans', sans-serif;
-  font-weight: 300;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -94,6 +93,13 @@ p.error {
 p.warning {
   color: OrangeRed;
   font-weight: bold;
+}
+
+p.info_box {
+  color:DarkOrange;
+  background-color:PapayaWhip;
+  border-radius:20px;
+  padding:10px;
 }
 
 table.info {

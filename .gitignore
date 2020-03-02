@@ -3,4 +3,5 @@ node/Bluelog
 node/logs
 server/logs
 common/logs
-commit_info
+server/scripts/www/html/var
+.commit_info

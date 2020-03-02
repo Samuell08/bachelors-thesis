@@ -9,6 +9,21 @@ $db_source  = $_SESSION["db_source"];
 $timeperiod = $_SESSION["timeperiod"];
 
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
+
+// read variables var/...
+if (file_exists("var/bt_amnesia")) {
+  $f_bt_amnesia = fopen("var/bt_amnesia", "r");
+  $var_bt_amnesia = fgets($f_bt_amnesia);
+  fclose($f_bt_amnesia);
+  $p_bt_amnesia= "Bluetooth monitoring is running with amnesia mode <b>enabled</b>. 
+                  Time Period <b>must</b> be set to same time to display correct results
+                  of Bluetooth monitoring data.<br>Amnesia is set to <b>"
+                  . $var_bt_amnesia . " minutes</b>.";
+} else {
+  $p_bt_amnesia= "Bluetooth monitoring is running <b>without</b> amnesia mode enabled. 
+                  Bluetooth monitoring data will show only <b>newly discovered</b> Bluetooth
+                  devices within set Time Period.";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -132,10 +147,8 @@ $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
           </form>
 
-          <p id="bt_chk_txt" style="display:none">
-          When Bluetooth monitoring is running with amnesia mode enabled,
-          Time Period MUST be set to same time to display correct results of Bluetooth monitoring data
-          </p>
+          <p id="bt_chk_txt" class="info_box" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
+
 
         </div>
       </div>

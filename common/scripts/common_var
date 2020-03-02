@@ -31,6 +31,8 @@ DIR_MYSQL="/var/lib/mysql"
 DIR_APACHE="/etc/apache2"
 DIR_PHP="/etc/php"
 DIR_HTML="/var/www/html"
+DIR_HTML_INC="${DIR_HTML}/inc"
+DIR_HTML_VAR="${DIR_HTML}/var"
 
 ########################################################### log
 # names of log files dumped in logs directory
@@ -56,4 +58,9 @@ DUMP_SLEEP="60s"
 ########################################################### database
 # file storing format of monitoring database tables
 SERVER_DB_FORMAT="server_db_format"
+# name of monitoring MySQL user
 SERVER_DB_MON_USER="mon"
+
+########################################################### http interface
+# file storing format of Bluelog amnesia setting
+HTML_VAR_AMNESIA="bt_amnesia"

@@ -95,10 +95,23 @@ function write_service_bt() {
   # amnesia?
   if [[ "$bt_amnesia" == "" ]];
   then
+    
     ExecStart="ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt}";
+    # remove bt_amnesia in HTML var
+    if [[ -f ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA} ]];
+    then
+      echo "removing old entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+      rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
+    fi
+
   else
+    
     ExecStart="ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt} ${bt_amnesia}";
     echo "Bluelog amnesia set to ${bt_amnesia} minutes!"
+    # write bt_amnesia to HTML var
+    echo "writing Bluelog amnesia setting to ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+    echo "${bt_amnesia}" > "${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+
   fi
 
   echo "creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_BT}..."
