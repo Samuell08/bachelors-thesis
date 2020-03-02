@@ -80,7 +80,7 @@ if (file_exists("var/bt_amnesia")) {
       }      
 
       // timers
-      setInterval(function(){updateTextout()}, 1000); // 1 sec
+      setInterval(function(){updateTextout()}, 3000); // 3 sec
       
     </script>
   
