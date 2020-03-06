@@ -13,6 +13,13 @@ $timeperiod_format  = $_SESSION["timeperiod_format"];
 $showwlan           = $_SESSION["showwlan"];
 $showbt             = $_SESSION["showbt"];
 
+// functions
+function is_anagram($string1, $string2) {
+  if (count_chars($string1, 1) == count_chars($string2, 1))
+    return 1;
+  else
+    return 0;
+}
 
 // check if user input is correct
 if ($db_source == NULL) {
@@ -65,13 +72,44 @@ if ($db_source == NULL) {
       $db_row    = mysqli_fetch_assoc($db_result);
       $mac_local += $db_row["COUNT(*)"];
 
+      // local MAC unique probe request fingerprints assoc array
+      $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
+                   (LENGTH(probed_ESSIDs) > 18) AND
+                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))) AND NOT
+                   (station_MAC LIKE '_0:__:__:__:__:__' OR
+                    station_MAC LIKE '_4:__:__:__:__:__' OR
+                    station_MAC LIKE '_8:__:__:__:__:__' OR
+                    station_MAC LIKE '_C:__:__:__:__:__')
+                    GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
+      $db_result = mysqli_query($db_conn_s, $db_q);
+
+      // fill (append to) fingerprints array
+      if (mysqli_num_rows($db_result) > 0) {
+        while ($db_row = mysqli_fetch_assoc($db_result)) {
+          $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+        }
+      } 
+
+    }
+
+    // delete fingerprint anagrams
+    foreach ($fingerprints as $master_key => &$master_value) {
+      foreach ($fingerprints as $search_key => &$search_value) {
+        $anagram = is_anagram($master_value, $search_value);
+        // if anagram (self anagram does not count)
+        if (($anagram == 1) and ($master_key != $search_key)) {
+          // delete anagram from fingerprints array
+          unset($fingerprints[$search_key]);
+        }
+      }
     }
 
     // text output
-    echo "Wi-Fi<br>";
+    echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Global (unique) MAC adresses:" . "</td><td>" . $mac_glbl . "</td></tr>";
-      echo "<tr class=\"textout\"><td>" . "Local (randomized) MAC adresses:" . "</td><td>" . $mac_local . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Number of devices with global (unique) MAC adress:" . "</td><td>" . $mac_glbl . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Estimated number of devices with local MAC adress:" . "</td><td>" . count($fingerprints) . "</td></tr>";
+      echo "<tr class=\"textout_extra\"><td>" . "Number of detected local (randomized) MAC adresses:" . "</td><td>" . $mac_local . "</td></tr>";
     echo "</table>";
   }
 
@@ -99,7 +137,7 @@ if ($db_source == NULL) {
     }
 
     // text output
-    echo "Bluetooth<br>";
+    echo "<b>Bluetooth</b><br>";
     echo "<table class=\"textout\">";
       echo "<tr class=\"textout\"><td>" . "Bluetooth devices:" . "</td><td>" . $bt_total . "</td></tr>";
     echo "</table>";

@@ -25,7 +25,7 @@ $hostname           = $_SESSION["hostname"];
   
   </head>
   <body>
-    <div class="div_main">
+    <div>
     
       <!-- HEADER -->
       <div class="div_h1">
@@ -35,8 +35,8 @@ $hostname           = $_SESSION["hostname"];
         <hr>
       </div>
     
-      <!-- LOGIN -->
-      <div class="div_login">
+      <!-- TEST -->
+      <div>
       
       <?php
 
@@ -53,7 +53,7 @@ $hostname           = $_SESSION["hostname"];
         // local MAC unique probe request fingerprints assoc array
         $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
                      (LENGTH(probed_ESSIDs) > 18) AND
-                     (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . "248" . " " . "HOUR" . "))) AND NOT
+                     (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . "15" . " " . "MINUTE" . "))) AND NOT
                      (station_MAC LIKE '_0:__:__:__:__:__' OR
                       station_MAC LIKE '_4:__:__:__:__:__' OR
                       station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -69,7 +69,7 @@ $hostname           = $_SESSION["hostname"];
           }
         } 
 
-        echo "<table style=\"text-align:left;border-collapse:collapse\">";
+        echo "<table style=\"text-align:left;border-collapse:collapse;width:100%\">";
         foreach ($fingerprints as $master_key => &$master_value) {
           echo "<tr class=\"info\">";
             // print master index & fingerprint
@@ -89,19 +89,19 @@ $hostname           = $_SESSION["hostname"];
         }
         echo "</table>";
 
+        echo "<b>deleted anagrams (" . count($fingerprints) . "):</b><br>";
         print_r($fingerprints);
 
-        
+        // reorder indexes
+        $fingerprints = array_values($fingerprints);
+
+        echo "<br><b>reordered (" . count($fingerprints) . "):</b><br>";
+        print_r($fingerprints);
 
       ?>
 
       </div>
 
-      <!-- FOOTER -->
-      <div class="div_foot">
-        <hr>
-        <p>Samuel Petráš (203317) - Bakalárska práca - VUT FEKT - 2020</p>
-      </div>
     </div>
   </body>
 </html>
