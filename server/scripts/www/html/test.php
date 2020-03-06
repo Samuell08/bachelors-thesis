@@ -53,7 +53,7 @@ $hostname           = $_SESSION["hostname"];
         // local MAC unique probe request fingerprints assoc array
         $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
                      (LENGTH(probed_ESSIDs) > 18) AND
-                     (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . "24" . " " . "HOUR" . "))) AND NOT
+                     (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . "248" . " " . "HOUR" . "))) AND NOT
                      (station_MAC LIKE '_0:__:__:__:__:__' OR
                       station_MAC LIKE '_4:__:__:__:__:__' OR
                       station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -61,6 +61,7 @@ $hostname           = $_SESSION["hostname"];
                       GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
         $db_result = mysqli_query($db_conn_s, $db_q);
 
+        // fill fingerprints array with db query result
         if (mysqli_num_rows($db_result) > 0) {
           while ($db_row = mysqli_fetch_assoc($db_result)) {
             // push rows to array
@@ -69,21 +70,26 @@ $hostname           = $_SESSION["hostname"];
         } 
 
         echo "<table style=\"text-align:left;border-collapse:collapse\">";
-        foreach ($fingerprints as $master_key => $master_value) {
+        foreach ($fingerprints as $master_key => &$master_value) {
           echo "<tr class=\"info\">";
             // print master index & fingerprint
             echo "<td>" . "[" . $master_key . "]" . "</td><td>" . $master_value . "</td>";
             // check all fingerprints for anagrams
-            foreach ($fingerprints as $search_key => $search_value) {
+            foreach ($fingerprints as $search_key => &$search_value) {
               $anagram = is_anagram($master_value, $search_value);
-              // pokial najde anagram, ale nie sam seba
-              if (($anagram == 1) and ($master_key != $search_key))
+              // if anagram (self anagram does not count)
+              if (($anagram == 1) and ($master_key != $search_key)) {
                 // print anagram index & fingerprint
                 echo "<td>" . "anagram of [" . $search_key . "]" . "</td><td>" . $search_value . "</td>";
+                // delete anagram from fingerprints array
+                unset($fingerprints[$search_key]);
+              }
             }
           echo "</tr>";
         }
         echo "</table>";
+
+        print_r($fingerprints);
 
         
 
