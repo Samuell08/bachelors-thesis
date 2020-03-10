@@ -82,8 +82,9 @@ Node setup:
   > generate Bluelog OUI file
   
 Server setup:
-  > install Apache
+  > install Apache web server
   > install PHP
+  > copy web interface to Apache web server
   > install MySQL (MariaDB)
   > create MySQL user '${SERVER_DB_MON_USER}'
 
