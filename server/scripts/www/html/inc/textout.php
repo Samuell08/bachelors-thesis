@@ -33,8 +33,16 @@ if ($db_source == NULL) {
   
   // text output
   echo date('G:i:s (j.n.Y)') . "<br>";
-  echo "Showing device count within last " . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "<br><br>"; 
-  
+  echo "Showing results of last " . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "<br><br>"; 
+  // detailed button
+  // form begin
+  //echo "<button type=\"submit\">";
+    // if detailed == 1 hide details
+    // if detailed == 0 show details
+  //echo "</button>";
+  // form end
+
+
   // ---------------------------------------------------------------------- WIFI
   // check if user selected to show wlan
   if ($showwlan == "1") {
@@ -95,20 +103,25 @@ if ($db_source == NULL) {
     // delete fingerprint anagrams
     foreach ($fingerprints as $master_key => &$master_value) {
       foreach ($fingerprints as $search_key => &$search_value) {
-        $anagram = is_anagram($master_value, $search_value);
-        // if anagram (self anagram does not count)
-        if (($anagram == 1) and ($master_key != $search_key)) {
-          // delete anagram from fingerprints array
-          unset($fingerprints[$search_key]);
+        if ($master_key != $search_key){
+          if(is_anagram($master_value, $search_value)){
+            // delete anagram from fingerprints array
+            unset($fingerprints[$search_key]);
+          }
         }
       }
     }
+
+    $fingerprints_count = count($fingerprints);
+    $est_total_wifi = $mac_glbl + $fingerprints_count;
 
     // text output
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
       echo "<tr class=\"textout\"><td>" . "Number of devices with global (unique) MAC adress:" . "</td><td>" . $mac_glbl . "</td></tr>";
-      echo "<tr class=\"textout\"><td>" . "Estimated number of devices with local MAC adress:" . "</td><td>" . count($fingerprints) . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Estimated number of devices with local MAC adress:" . "</td><td>" . $fingerprints_count . "</td></tr>";
+      echo "<tr class=\"textout\" style=\"border-bottom:3px double black\"><td>" . "Estimated total number of devices within reach:" . "</td><td>" . $est_total_wifi . "</td></tr>";
+      // extra
       echo "<tr class=\"textout_extra\"><td>" . "Number of detected local (randomized) MAC adresses:" . "</td><td>" . $mac_local . "</td></tr>";
     echo "</table>";
   }
@@ -139,7 +152,7 @@ if ($db_source == NULL) {
     // text output
     echo "<b>Bluetooth</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Bluetooth devices:" . "</td><td>" . $bt_total . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Number of devices discovered:" . "</td><td>" . $bt_total . "</td></tr>";
     echo "</table>";
   }
 
