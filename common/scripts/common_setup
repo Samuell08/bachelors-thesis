@@ -672,19 +672,38 @@ function setup_server() {
     read -s -p "enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
     echo ""
     
-    # query
+    # query - create mon user
     mysql -u root -p"${i_root_usr_pass}" <<EOF
-CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}'
+CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}';
 EOF
-    # check exit code of mysql query
+    # check exit code of create user mon mysql query
     if [ $? -eq 0 ];
     then
+      # when success grant FILE privileges
       echo "MySQL: user '${SERVER_DB_MON_USER}' created successfully!"
-      echo "reloading MySQL privileges..."
+      echo "MySQL: granting privileges to user '${SERVER_DB_MON_USER}'"
       mysql -u root -p"${i_root_usr_pass}" <<EOF
+GRANT FILE ON *.* TO '${SERVER_DB_MON_USER}'@'localhost';
+EOF
+      # check exit code of grant FILE privileges query
+      if [ $? -eq 0 ];
+      then
+        # when success flush privileges
+        echo "MySQL: privileges granted successfully!"
+        echo "MySQL: reloading privileges..."
+        mysql -u root -p"${i_root_usr_pass}" <<EOF
 FLUSH PRIVILEGES;
 EOF
+      else
+        # when failed remove mon user
+        echo "ERROR MySQL: query to grant privileges to user '${SERVER_DB_MON_USER}' failed!"
+        echo "MySQL: removing user '${SERVER_DB_MON_USER}'"
+    mysql -u root -p"${i_root_usr_pass}" <<EOF
+DROP USER '${SERVER_DB_MON_USER}'@'localhost';
+EOF
+      fi
     else
+      # when failed to create user
       echo "ERROR MySQL: query to create user '${SERVER_DB_MON_USER}' failed!"
     fi
 
@@ -704,19 +723,38 @@ EOF
           read -s -p "enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
           echo ""
     
-          # query
+          # query - create mon user
           mysql -u root -p"${i_root_usr_pass}" <<EOF
-CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}'
+CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}';
 EOF
-          # check exit code of mysql query
+          # check exit code of create user mon mysql query
           if [ $? -eq 0 ];
           then
+            # when success grant FILE privileges
             echo "MySQL: user '${SERVER_DB_MON_USER}' created successfully!"
-            echo "reloading MySQL privileges..."
+            echo "MySQL: granting privileges to user '${SERVER_DB_MON_USER}'"
             mysql -u root -p"${i_root_usr_pass}" <<EOF
+GRANT FILE ON *.* TO '${SERVER_DB_MON_USER}'@'localhost';
+EOF
+            # check exit code of grant FILE privileges query
+            if [ $? -eq 0 ];
+            then
+              # when success flush privileges
+              echo "MySQL: privileges granted successfully!"
+              echo "MySQL: reloading privileges..."
+              mysql -u root -p"${i_root_usr_pass}" <<EOF
 FLUSH PRIVILEGES;
 EOF
+            else
+              # when failed remove mon user
+              echo "ERROR MySQL: query to grant privileges to user '${SERVER_DB_MON_USER}' failed!"
+              echo "MySQL: removing user '${SERVER_DB_MON_USER}'"
+          mysql -u root -p"${i_root_usr_pass}" <<EOF
+DROP USER '${SERVER_DB_MON_USER}'@'localhost';
+EOF
+            fi
           else
+            # when failed to create user
             echo "ERROR MySQL: query to create user '${SERVER_DB_MON_USER}' failed!"
           fi
           break;

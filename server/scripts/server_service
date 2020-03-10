@@ -98,21 +98,21 @@ do
       if [[ -z "$2" ]] || [[ "$2" == -* ]] || [[ -z "$3" ]] || [[ "$3" == -* ]];
       then
         echo "ERROR: missing argument for option $1"
-	print_usage
-	break
+        print_usage
+        break
       fi
 
       case $3 in
         start|stop|enable|disable|status)
           echo "systemctl ${SERVICE_SERVER_AUTO}_${2}.timer: $3"
-	  systemctl "$3" "${SERVICE_SERVER_AUTO}_${2}.timer"
+          systemctl "$3" "${SERVICE_SERVER_AUTO}_${2}.timer"
           ;;
 
         *)
           echo "ERROR: argument unknown or missing!"
-	  print_usage
-	  break
-	  ;;
+          print_usage
+          break
+          ;;
       esac
       shift 3
       ;;

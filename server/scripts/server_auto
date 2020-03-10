@@ -31,7 +31,7 @@ Options:
       
     -d,--device HOSTNAME
       Hostname of monitoring device from which log files will be imported to
-      mysql database (stored on this device).
+      MySQL database (stored on this device).
       Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
       hostname needs to be specified (eg. node_1)
 
@@ -71,7 +71,7 @@ cat <<EOF
 SERVER AUTOMATICALLY IMPORT DATA FROM MONITORING LOGS INTO DATABASE
 
 This command is used to automatically import data from monitoring logs into
-mysql database with specified time period. It will create .service and .timer
+MySQL database with specified time period. It will create .service and .timer
 file in systemd directory. This created .timer service will handle periodic
 execution of .service file with specified period. Actual import will be handled
 by server_import call from .service file. (for more information try 
@@ -213,7 +213,7 @@ function write_service {
   fi
 
   # mysql password prompt
-  read -s -p "enter mysql password: " MYSQL_SECRET
+  read -s -p "enter MySQL password for user ${SERVER_DB_MON_USER}: " MYSQL_SECRET
   echo ""
 
   # check if service file already exists

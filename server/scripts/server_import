@@ -48,7 +48,7 @@ cat <<EOF
 
 SERVER IMPORT DATA FROM MONITORING LOGS INTO DATABASE
 
-This command is used to import data from monitoring logs into mysql database.
+This command is used to import data from monitoring logs into MySQL database.
 It can import logs from both local and remote monitoring devices. Suitable
 database must exist prior to calling this script (try server_db --help).
 
@@ -91,7 +91,7 @@ function import_wlan() {
   if [[ "${MYSQL_SECRET}" == "" ]];
   then
     # mysql password prompt
-    read -s -p "enter mysql password: " MYSQL_SECRET
+    read -s -p "enter MySQL password for user '${SERVER_DB_MON_USER}': " MYSQL_SECRET
     echo ""
   fi
 
@@ -169,7 +169,7 @@ function import_wlan() {
   ##    
   # database querry
   echo "importing extracted data into database 'rpi_mon_${1}'..."
-  mysqlimport -u root -p${MYSQL_SECRET} \
+  mysqlimport -u ${SERVER_DB_MON_USER} -p${MYSQL_SECRET} \
   --verbose \
   --low-priority \
   --replace \
@@ -182,13 +182,13 @@ function import_wlan() {
   # check exit code of mysqlimport (AccessPoints)
   if [ $? = "0" ];
   then
-    echo "mysql: import of AccessPoints finished successfully!"
+    echo "MySQL: import of AccessPoints finished successfully!"
   else
-    echo "error mysql: import of AccessPoints failed!"
+    echo "ERROR MySQL: import of AccessPoints failed!"
     return 2
   fi
 
-  mysqlimport -u root -p${MYSQL_SECRET} \
+  mysqlimport -u ${SERVER_DB_MON_USER} -p${MYSQL_SECRET} \
   --verbose \
   --low-priority \
   --replace \
@@ -201,9 +201,9 @@ function import_wlan() {
   # check exit code of mysqlimport (Clients)
   if [ $? = "0" ];
   then
-    echo "mysql: import of Clients finished successfully!"
+    echo "MySQL: import of Clients finished successfully!"
   else
-    echo "error mysql: import of Clients failed!"
+    echo "ERROR MySQL: import of Clients failed!"
     return 2
   fi
       
@@ -228,7 +228,7 @@ function import_bt() {
   if [[ "${MYSQL_SECRET}" == "" ]];
   then
     # mysql password prompt
-    read -s -p "enter mysql password: " MYSQL_SECRET
+    read -s -p "enter MySQL password for user '${SERVER_DB_MON_USER}': " MYSQL_SECRET
     echo ""
   fi
 
@@ -277,7 +277,7 @@ function import_bt() {
 
   # database querry
   echo "importing formated data into database 'rpi_mon_${1}'..."
-  mysqlimport -u root -p${MYSQL_SECRET} \
+  mysqlimport -u ${SERVER_DB_MON_USER} -p${MYSQL_SECRET} \
   --verbose \
   --low-priority \
   --replace \
@@ -289,9 +289,9 @@ function import_bt() {
   # check exit code of mysqlimport (Bluetooth)
   if [ $? = "0" ];
   then
-    echo "mysql: import of Bluetooth finished successfully!"
+    echo "MySQL: import of Bluetooth finished successfully!"
   else
-    echo "error mysql: import of Bluetooth failed!"
+    echo "ERROR MySQL: import of Bluetooth failed!"
     return 2
   fi
 
