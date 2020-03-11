@@ -34,14 +34,6 @@ if ($db_source == NULL) {
   // text output
   echo date('G:i:s (j.n.Y)') . "<br>";
   echo "Showing results of last " . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "<br><br>"; 
-  // detailed button
-  // form begin
-  //echo "<button type=\"submit\">";
-    // if detailed == 1 hide details
-    // if detailed == 0 show details
-  //echo "</button>";
-  // form end
-
 
   // ---------------------------------------------------------------------- WIFI
   // check if user selected to show wlan
