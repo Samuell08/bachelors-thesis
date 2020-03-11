@@ -2,16 +2,24 @@
 // TEXTOUT.php
 // PHP code to be called from visual.php
 
-// get session variables
 session_start();
+
+// get session variables
+// database connection
 $db_server          = $_SESSION["db_server"];
 $db_user            = $_SESSION["db_user"];
 $db_pass            = $_SESSION["db_pass"];
 $db_source          = $_SESSION["db_source"];
+// settings
 $timeperiod         = $_SESSION["timeperiod"];
 $timeperiod_format  = $_SESSION["timeperiod_format"];
 $showwlan           = $_SESSION["showwlan"];
 $showbt             = $_SESSION["showbt"];
+// graph arrays
+$graph_wifi_bot     = $_SESSION["graph_wifi_bot"];
+$graph_wifi_top     = $_SESSION["graph_wifi_top"];
+$graph_bt           = $_SESSION["graph_bt"];
+
 
 // functions
 function is_anagram($string1, $string2) {
@@ -28,8 +36,15 @@ if ($db_source == NULL) {
   echo "<p class=\"warning\">Time Period format Minute(s)/Hour(s) not selected.</p>";
 } elseif ($timeperiod == NULL) {
   echo "<p class=\"warning\">Invalid time period.</p>";
+} elseif ((!($showwlan == "1")) and (!($showbt == "1"))) {
+  echo "<p class=\"warning\">No data selected to show.</p>";
 } else {
 
+  // reset variables before queries
+  $mac_glbl   = 0;
+  $mac_local  = 0;
+  $bt_total   = 0;
+  $fingerprints_count = 0;
   
   // text output
   echo date('G:i:s (j.n.Y)') . "<br>";
@@ -39,10 +54,6 @@ if ($db_source == NULL) {
   // check if user selected to show wlan
   if ($showwlan == "1") {
   
-    // variables
-    $mac_glbl=0;
-    $mac_local=0;
-
     // loop every source DB
     foreach ($db_source as $key => $value) {
 
@@ -121,9 +132,6 @@ if ($db_source == NULL) {
   // ----------------------------------------------------------------- Bluetooth
   // check if user selected to show bt
   if ($showbt == "1") {
-  
-    // variables
-    $bt_total=0;
 
     // loop every source DB
     foreach ($db_source as $key => $value) {
@@ -148,11 +156,30 @@ if ($db_source == NULL) {
     echo "</table>";
   }
 
-  // ------------------------------------------------------------------- nothing
-  // check if user selected nothing
-  if ((!($showwlan == "1")) and (!($showbt == "1"))) {
-    echo "<p class=\"warning\">No data selected to show.</p>";
-  }
+  // -------------------------------------------------------------- graph arrays
+  // initialize graph arrays if they are empty
+  if($graph_wifi_bot == NULL){$graph_wifi_bot = array();}
+  if($graph_wifi_top == NULL){$graph_wifi_top = array();}
+  if($graph_bt == NULL){$graph_bt = array();}
+
+  // push new data into graph arrays
+  $current_time = time()*1000;
+  array_push($graph_wifi_bot, array("x" => $current_time, "y" => $mac_glbl));
+  array_push($graph_wifi_top, array("x" => $current_time, "y" => $fingerprints_count));
+  array_push($graph_bt, array("x" => $current_time, "y" => $bt_total));
+
+  // save updated graph arrays to session
+  $_SESSION["graph_wifi_bot"] = $graph_wifi_bot;
+  $_SESSION["graph_wifi_top"] = $graph_wifi_top;
+  $_SESSION["graph_bt"] = $graph_bt;
+
+  //echo "<br><br>debug graph array:<br><br>";
+  //print_r($graph_wifi_bot);
+  //echo "<br><br><br>";
+  //print_r($graph_wifi_top);
+  //echo "<br><br><br>";
+  //print_r($graph_bt);
+
 }
 
 ?>

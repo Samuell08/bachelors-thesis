@@ -5,10 +5,10 @@
 $settingsok = "1";
 
 // form variables
-$db_source = "";
+$db_source  = "";
 $timeperiod = "";
-$showwlan = "";
-$showbt = "";
+$showwlan   = "";
+$showbt     = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -33,6 +33,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["timeperiod_format"]  = $timeperiod_format;
   $_SESSION["showwlan"]           = $showwlan;
   $_SESSION["showbt"]             = $showbt;
+  // reset graph arrays
+  $_SESSION["graph_wifi_bot"]     = NULL;
+  $_SESSION["graph_wifi_top"]     = NULL;
+  $_SESSION["graph_bt"]           = NULL;
 }
 
 // DYNAMIC FORM PART
