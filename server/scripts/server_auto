@@ -27,7 +27,9 @@ Options:
 
     -s,--sec | -m,--min | -h, --hour INTEGER
       Time between periodic server_import calls in seconds | minutes | hours.
+      Airodump-ng updates log file every 5 seconds.
       These options can be combined for precise timing. 
+      
       
     -d,--device HOSTNAME
       Hostname of monitoring device from which log files will be imported to
@@ -73,13 +75,15 @@ SERVER AUTOMATICALLY IMPORT DATA FROM MONITORING LOGS INTO DATABASE
 This command is used to automatically import data from monitoring logs into
 MySQL database with specified time period. It will create .service and .timer
 file in systemd directory. This created .timer service will handle periodic
-execution of .service file with specified period. Actual import will be handled
+execution of .service file with specified period. Import itself will be handled
 by server_import call from .service file. (for more information try 
 server_import --help) 
 
 For this script to function correctly with remote monitoring device, it must
 have a copy of public ssh key of this device. This pairing can be achieved
 by -p option of this script.
+
+Please note that Airodump-ng updates log file every 5 seconds.
 
 server scripts directory:  ${DIR_SERVER_SCRIPTS}
 server log directory:      ${DIR_SERVER_LOGS}
