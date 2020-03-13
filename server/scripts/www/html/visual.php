@@ -32,6 +32,9 @@ if (file_exists("var/bt_amnesia")) {
 $_SESSION["chart_wifi_bot"] = array();
 $_SESSION["chart_wifi_top"] = array();
 $_SESSION["chart_bt"] = array();
+
+// update interval setting
+$_SESSION["updateInterval"] = 30000;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,9 +53,10 @@ $_SESSION["chart_bt"] = array();
     <!-- JavaScript -->
     <script>
 
+      var updateInterval = <?php echo $_SESSION["updateInterval"]; ?>; 
+
       function buildChart() {
  
-        var updateInterval = 5000;
         var colorWifi = "#1b81e5";
         var colorWifiLocal = "#78bcff";
         var colorBluetooth = "#061c33";
@@ -210,7 +214,7 @@ $_SESSION["chart_bt"] = array();
       }      
       
       // timers
-      setInterval(function(){updateTextout();}, 5000); // 5 sec
+      setInterval(function(){updateTextout();}, updateInterval);
       
     </script>
   

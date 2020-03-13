@@ -22,7 +22,6 @@ $chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
 $chart_wifi_top     = $_SESSION["chart_wifi_top"];
 $chart_bt           = $_SESSION["chart_bt"];
 
-
 // functions
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
@@ -50,7 +49,8 @@ if ($db_source == NULL) {
   
   // text output
   echo date('G:i:s (j.n.Y)') . "<br>";
-  echo "Showing results of last " . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "<br><br>"; 
+  echo "Showing results of last " . $timeperiod . " " . strtolower($timeperiod_format) . "(s) ";
+  echo "updated every " . $_SESSION["updateInterval"]/1000 . " seconds" . "<br><br>"; 
 
   // ---------------------------------------------------------------------- WIFI
   // check if user selected to show wlan
