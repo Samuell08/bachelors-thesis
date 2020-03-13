@@ -15,10 +15,10 @@ $timeperiod         = $_SESSION["timeperiod"];
 $timeperiod_format  = $_SESSION["timeperiod_format"];
 $showwlan           = $_SESSION["showwlan"];
 $showbt             = $_SESSION["showbt"];
-// graph arrays
-$graph_wifi_bot     = $_SESSION["graph_wifi_bot"];
-$graph_wifi_top     = $_SESSION["graph_wifi_top"];
-$graph_bt           = $_SESSION["graph_bt"];
+// chart arrays
+$chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
+$chart_wifi_top     = $_SESSION["chart_wifi_top"];
+$chart_bt           = $_SESSION["chart_bt"];
 
 
 // functions
@@ -156,57 +156,59 @@ if ($db_source == NULL) {
     echo "</table>";
   }
 
-  // -------------------------------------------------------------- graph arrays
-  // initialize graph arrays if they are empty
-  //if($graph_wifi_bot == NULL){$graph_wifi_bot = array();}
-  //if($graph_wifi_top == NULL){$graph_wifi_top = array();}
-  //if($graph_bt == NULL){$graph_bt = array();}
+  // -------------------------------------------------------------- chart arrays
+  // initialize chart arrays if they are empty
+  //if($chart_wifi_bot == NULL){$chart_wifi_bot = array();}
+  //if($chart_wifi_top == NULL){$chart_wifi_top = array();}
+  //if($chart_bt == NULL){$chart_bt = array();}
 
   // debug print
   //echo "<br><br>textout local arrays before push:<br><br>";
-  //print_r($graph_wifi_bot);
+  //print_r($chart_wifi_bot);
   //echo "<br><br><br>";
-  //print_r($graph_wifi_top);
+  //print_r($chart_wifi_top);
   //echo "<br><br><br>";
-  //print_r($graph_bt);
+  //print_r($chart_bt);
 
-  // push new data into graph arrays
+  // push new data into chart arrays
   $current_time = time()*1000;
-  array_push($graph_wifi_bot, array("x" => $current_time, "y" => $mac_glbl));
-  array_push($graph_wifi_top, array("x" => $current_time, "y" => $fingerprints_count));
-  array_push($graph_bt, array("x" => $current_time, "y" => $bt_total));
+  array_push($chart_wifi_bot, array("x" => $current_time, "y" => $mac_glbl));
+  array_push($chart_wifi_top, array("x" => $current_time, "y" => $fingerprints_count));
+  array_push($chart_bt, array("x" => $current_time, "y" => $bt_total));
 
   // debug print
   //echo "<br><br>textout local arrays after push:<br><br>";
-  //print_r($graph_wifi_bot);
+  //print_r($chart_wifi_bot);
   //echo "<br><br><br>";
-  //print_r($graph_wifi_top);
+  //print_r($chart_wifi_top);
   //echo "<br><br><br>";
-  //print_r($graph_bt);
+  //print_r($chart_bt);
   
-  // save updated graph arrays to session
-  $_SESSION["graph_wifi_bot"] = $graph_wifi_bot;
-  $_SESSION["graph_wifi_top"] = $graph_wifi_top;
-  $_SESSION["graph_bt"] = $graph_bt;
+  // save updated chart arrays to session
+  $_SESSION["chart_wifi_bot"] = $chart_wifi_bot;
+  $_SESSION["chart_wifi_top"] = $chart_wifi_top;
+  $_SESSION["chart_bt"] = $chart_bt;
 
   // write updated chart arrays to json files
   $json_dir = "../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
   $f_bot = fopen($json_dir . "/chart_wifi_bot", "w");
   $f_top = fopen($json_dir . "/chart_wifi_top", "w");
-  fwrite($f_bot, json_encode($graph_wifi_bot));
-  fwrite($f_top, json_encode($graph_wifi_top));
+  $f_bt  = fopen($json_dir . "/chart_bt", "w");
+  fwrite($f_bot, json_encode($chart_wifi_bot));
+  fwrite($f_top, json_encode($chart_wifi_top));
+  fwrite($f_bt, json_encode($chart_bt));
   fclose($f_bot);
   fclose($f_top);
-
+  fclose($f_bt);
 
   // debug print
   //echo "<br><br>SESSION arrays after textout push and store:<br><br>";
-  //var_dump($_SESSION["graph_wifi_bot"]);
+  //var_dump($_SESSION["chart_wifi_bot"]);
   //echo "<br><br><br>";
-  //var_dump($_SESSION["graph_wifi_top"]);
+  //var_dump($_SESSION["chart_wifi_top"]);
   //echo "<br><br><br>";
-  //var_dump($_SESSION["graph_bt"]);
+  //var_dump($_SESSION["chart_bt"]);
 
 }
 

@@ -25,15 +25,15 @@ if (file_exists("var/bt_amnesia")) {
                   devices within set Time Period.";
 }
 
-// initialize graph arrays
-$_SESSION["graph_wifi_bot"] = array();
-$_SESSION["graph_wifi_top"] = array();
-$_SESSION["graph_bt"] = array();
-// push new data into graph arrays
+// initialize chart arrays
+$_SESSION["chart_wifi_bot"] = array();
+$_SESSION["chart_wifi_top"] = array();
+$_SESSION["chart_bt"] = array();
+// push new data into chart arrays
 $current_time = time()*1000;
-array_push($_SESSION["graph_wifi_bot"], array("x" => $current_time, "y" => 0));
-array_push($_SESSION["graph_wifi_top"], array("x" => $current_time, "y" => 0));
-array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
+array_push($_SESSION["chart_wifi_bot"], array("x" => $current_time, "y" => 0));
+array_push($_SESSION["chart_wifi_top"], array("x" => $current_time, "y" => 0));
+array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,11 +52,10 @@ array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
     <!-- JavaScript -->
     <script>
 
-      // ******************************** GRAPH DEBUG ********************************
-      function buildGraph() {
+      function buildChart() {
  
-        //var dataPoints_wifi_bot = <?php echo json_encode($_SESSION["graph_wifi_bot"]); ?>;
-        //var dataPoints_wifi_top = <?php echo json_encode($_SESSION["graph_wifi_top"]); ?>;
+        //var dataPoints_wifi_bot = <?php echo json_encode($_SESSION["chart_wifi_bot"]); ?>;
+        //var dataPoints_wifi_top = <?php echo json_encode($_SESSION["chart_wifi_top"]); ?>;
         
         // for initial values
         //var d = new Date();
@@ -66,17 +65,28 @@ array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
           theme: "light2",
           zoomEnabled: true,
           title: {
-            text: "Wi-Fi monitoring results"
+            text: "Monitoring results"
           },
+          subtitles: [{
+            text: "updated every 5 sec."
+          }],
           axisX: {
-          title: "Timestamp",
-          valueFormatString: "D.M H:mm"
+            title: "Timestamp",
+            valueFormatString: "D.M H:mm",
+            gridThickness: 1,
+            gridDashType: "dash"
           },
           axisY: {
-            title: "Devices"
+            title: "Wi-Fi devices",
+            gridDashType: "dash"
+          },
+          axisY2: {
+            title: "Bluetooth devices",
+            gridDashType: "dash"
           },
           toolTip: {
-            shared: true
+            shared: true,
+            cornerRadius: 15
           },
           legend: {
             cursor: "pointer",
@@ -86,18 +96,29 @@ array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
             type: "stackedArea",
             name: "Global MAC",
             color: "#1b81e5",
-            toolTipContent: "{x}<hr><span style=\"color:#1b81e5\"><strong>{name}: </strong></span> {y}",
             showInLegend: true,
+            toolTipContent: "{x} <hr> <span style=\"color:#1b81e5\"><b>{name}: </b></span> {y}",
             xValueType: "dateTime",
             xValueFormatString: "D.M H:mm:ss",
             yValueFormatString: "#",
             dataPoints: [{"x":1000,"y":0}]
           },{
             type: "stackedArea",
-            name: "Local MAC fingerprints",
+            name: "Local MAC unique",
             color: "#78bcff",
-            toolTipContent: "<span style=\"color:#78bcff\"><strong>{name}: </strong></span> {y}<br><b>Total estimated:<b> #total",
             showInLegend: true,
+            toolTipContent: "<span style=\"color:#78bcff\"><b>{name}: </b></span> {y} <br> <b>Total estimated: #total</b>",
+            xValueType: "dateTime",
+            yValueFormatString: "#",
+            dataPoints: [{"x":1000,"y":0}]
+          },{
+            type: "line",
+            axisYType: "secondary",
+            name: "Bluetooth",
+            color: "#3b5998",
+            markerType: "square",
+            showInLegend: true,
+            toolTipContent: "<hr> <span style=\"color:#3b5998\"><b>{name}: </b></span> {y}",
             xValueType: "dateTime",
             yValueFormatString: "#",
             dataPoints: [{"x":1000,"y":0}]
@@ -136,20 +157,19 @@ array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
 
           var dps_wifi_bot = readTextFile("json/chart_wifi_bot");
           var dps_wifi_top = readTextFile("json/chart_wifi_top");
+          var dps_bt = readTextFile("json/chart_bt");
 
-          // wifi bot
           chart.options.data[0].dataPoints = JSON.parse(dps_wifi_bot); 
-          // wifi top
           chart.options.data[1].dataPoints = JSON.parse(dps_wifi_top);
+          chart.options.data[2].dataPoints = JSON.parse(dps_bt);
 
           chart.render();
         };
         
-        var updateInterval = 10000;
+        var updateInterval = 5000;
         setInterval(function () { updateChart() }, updateInterval);
 
-        }
-// ******************************** GRAPH DEBUG ********************************
+      }
 
       function toggle_ib_bt_data(){
         if (document.getElementById("chckb_bt_data").checked == true) {
@@ -164,7 +184,7 @@ array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
         updateInfo();
         updateTextout();
         toggle_ib_bt_data();
-        buildGraph();
+        buildChart();
       }
 
       function updateInfo(){
@@ -190,7 +210,7 @@ array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
       }      
       
       // timers
-      setInterval(function(){updateTextout();}, 10000); // 10 sec
+      setInterval(function(){updateTextout();}, 5000); // 5 sec
       
     </script>
   
@@ -262,9 +282,9 @@ array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
         </div>
       </div>
       
-      <!-- GRAPH -->
-      <div class="div_graph">
-        <h2>Graph</h2>
+      <!-- CHART -->
+      <div class="div_chart">
+        <h2>Chart</h2>
         <div id="chartContainer" style="height: 370px; width: 100%;">
           Loading...
         </div>

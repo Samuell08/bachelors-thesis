@@ -1,5 +1,5 @@
 <?php
-// GRAPH.php
+// CHART.php
 // PHP code to be called from visual.php
 
 // get session variables
@@ -23,7 +23,7 @@ if ($db_source == NULL) {
 } elseif ((!($showwlan == "1")) and (!($showbt == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
 } else {
-  echo "graph OK";
+  echo "chart OK";
 }
 
 ?>

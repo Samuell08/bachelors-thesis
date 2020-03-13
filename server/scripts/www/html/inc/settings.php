@@ -33,10 +33,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["timeperiod_format"]  = $timeperiod_format;
   $_SESSION["showwlan"]           = $showwlan;
   $_SESSION["showbt"]             = $showbt;
-  // reset graph arrays
-  //$_SESSION["graph_wifi_bot"]     = NULL;
-  //$_SESSION["graph_wifi_top"]     = NULL;
-  //$_SESSION["graph_bt"]           = NULL;
+  // reset chart arrays
+  //$_SESSION["chart_wifi_bot"]     = NULL;
+  //$_SESSION["chart_wifi_top"]     = NULL;
+  //$_SESSION["chart_bt"]           = NULL;
 }
 
 // DYNAMIC FORM PART
