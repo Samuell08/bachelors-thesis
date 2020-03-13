@@ -196,7 +196,7 @@ function remove_service() {
   
   return 0  
 }
-i
+
 # options parsing
 
 if [[ $# -eq 0 ]];
