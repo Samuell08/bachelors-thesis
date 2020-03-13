@@ -1,5 +1,8 @@
 <?php
 session_start();
+
+$session_id = session_id();
+
 $db_server  = $_SESSION["db_server"];
 $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
@@ -53,13 +56,6 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
     <script>
 
       function buildChart() {
- 
-        //var dataPoints_wifi_bot = <?php echo json_encode($_SESSION["chart_wifi_bot"]); ?>;
-        //var dataPoints_wifi_top = <?php echo json_encode($_SESSION["chart_wifi_top"]); ?>;
-        
-        // for initial values
-        //var d = new Date();
-        //var n = d.getTime();
  
         var chart = new CanvasJS.Chart("chartContainer", {
           theme: "light2",
@@ -130,7 +126,8 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
 
         function readTextFile(file) {
           var rawFile = new XMLHttpRequest();
-          var retVal = "";
+          // when file does not exists yet, return default value
+          var retVal = '[{"x":1000,"y":0}]';
           rawFile.open("GET", file, false);
           rawFile.onreadystatechange = function () {
             if(rawFile.readyState === 4) {
@@ -155,9 +152,11 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
 
         function updateChart() {
 
-          var dps_wifi_bot = readTextFile("json/chart_wifi_bot");
-          var dps_wifi_top = readTextFile("json/chart_wifi_top");
-          var dps_bt = readTextFile("json/chart_bt");
+
+          var session_id = "<?php echo $session_id; ?>";
+          var dps_wifi_bot = readTextFile("json/chart_wifi_bot_" + session_id);
+          var dps_wifi_top = readTextFile("json/chart_wifi_top_" + session_id);
+          var dps_bt = readTextFile("json/chart_bt_" + session_id);
 
           chart.options.data[0].dataPoints = JSON.parse(dps_wifi_bot); 
           chart.options.data[1].dataPoints = JSON.parse(dps_wifi_top);

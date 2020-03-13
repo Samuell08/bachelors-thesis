@@ -4,6 +4,8 @@
 
 session_start();
 
+$session_id = session_id();
+
 // get session variables
 // database connection
 $db_server          = $_SESSION["db_server"];
@@ -192,9 +194,9 @@ if ($db_source == NULL) {
   // write updated chart arrays to json files
   $json_dir = "../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
-  $f_bot = fopen($json_dir . "/chart_wifi_bot", "w");
-  $f_top = fopen($json_dir . "/chart_wifi_top", "w");
-  $f_bt  = fopen($json_dir . "/chart_bt", "w");
+  $f_bot = fopen($json_dir . "/chart_wifi_bot_" . $session_id, "w");
+  $f_top = fopen($json_dir . "/chart_wifi_top_" . $session_id, "w");
+  $f_bt  = fopen($json_dir . "/chart_bt_" . $session_id, "w");
   fwrite($f_bot, json_encode($chart_wifi_bot));
   fwrite($f_top, json_encode($chart_wifi_top));
   fwrite($f_bt, json_encode($chart_bt));
