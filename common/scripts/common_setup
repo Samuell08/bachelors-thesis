@@ -17,9 +17,10 @@ DIR_BLUELOG_OUI="/etc/bluelog"
 DIR_APACHE="/etc/apache2"
 DIR_PHP="/etc/php"
 DIR_HTML="/var/www/html"
+HTML_USER="www-data"
 PI_HOSTNAME="/etc/hostname"
 BLUELOG_OUI="oui.txt"
-SERVER_DB_MON_USER="mon";
+SERVER_DB_MON_USER="mon"
 
 # functions
 function print_usage() {
@@ -740,9 +741,9 @@ EOF
     if [[ "$YES_ALL" == "1" ]];
     then
       echo "Removing old web interface from Apache web server..."
-      rm ${DIR_HTML}/*
+      rm -r ${DIR_HTML}/*
       echo "Copying monitoring web interface to Apache web server..."
-      cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
+      cp -r ${DIR_SERVER_WEBUI}/* ${DIR_HTML}
       echo "Changing owner of ${DIR_HTML} to Apache web server (${HTML_USER})..."
       chown -R ${HTML_USER} ${DIR_HTML}
     else
@@ -752,9 +753,9 @@ EOF
         case $i_www_copy in
           y|Y|yes|YES)
             echo "Removing old web interface from Apache web server..."
-            rm ${DIR_HTML}/*
+            rm -r ${DIR_HTML}/*
             echo "Copying monitoring web interface to Apache web server..."
-            cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
+            cp -r ${DIR_SERVER_WEBUI}/* ${DIR_HTML}
             echo "Changing owner of ${DIR_HTML} to Apache web server (${HTML_USER})..."
             chown -R ${HTML_USER} ${DIR_HTML}
             break;
