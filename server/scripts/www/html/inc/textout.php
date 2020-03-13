@@ -159,33 +159,12 @@ if ($db_source == NULL) {
   }
 
   // -------------------------------------------------------------- chart arrays
-  // initialize chart arrays if they are empty
-  //if($chart_wifi_bot == NULL){$chart_wifi_bot = array();}
-  //if($chart_wifi_top == NULL){$chart_wifi_top = array();}
-  //if($chart_bt == NULL){$chart_bt = array();}
-
-  // debug print
-  //echo "<br><br>textout local arrays before push:<br><br>";
-  //print_r($chart_wifi_bot);
-  //echo "<br><br><br>";
-  //print_r($chart_wifi_top);
-  //echo "<br><br><br>";
-  //print_r($chart_bt);
-
   // push new data into chart arrays
   $current_time = time()*1000;
   array_push($chart_wifi_bot, array("x" => $current_time, "y" => $mac_glbl));
   array_push($chart_wifi_top, array("x" => $current_time, "y" => $fingerprints_count));
   array_push($chart_bt, array("x" => $current_time, "y" => $bt_total));
 
-  // debug print
-  //echo "<br><br>textout local arrays after push:<br><br>";
-  //print_r($chart_wifi_bot);
-  //echo "<br><br><br>";
-  //print_r($chart_wifi_top);
-  //echo "<br><br><br>";
-  //print_r($chart_bt);
-  
   // save updated chart arrays to session
   $_SESSION["chart_wifi_bot"] = $chart_wifi_bot;
   $_SESSION["chart_wifi_top"] = $chart_wifi_top;
@@ -203,15 +182,6 @@ if ($db_source == NULL) {
   fclose($f_bot);
   fclose($f_top);
   fclose($f_bt);
-
-  // debug print
-  //echo "<br><br>SESSION arrays after textout push and store:<br><br>";
-  //var_dump($_SESSION["chart_wifi_bot"]);
-  //echo "<br><br><br>";
-  //var_dump($_SESSION["chart_wifi_top"]);
-  //echo "<br><br><br>";
-  //var_dump($_SESSION["chart_bt"]);
-
 }
 
 ?>

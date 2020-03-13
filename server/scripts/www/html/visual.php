@@ -32,11 +32,6 @@ if (file_exists("var/bt_amnesia")) {
 $_SESSION["chart_wifi_bot"] = array();
 $_SESSION["chart_wifi_top"] = array();
 $_SESSION["chart_bt"] = array();
-// push new data into chart arrays
-$current_time = time()*1000;
-array_push($_SESSION["chart_wifi_bot"], array("x" => $current_time, "y" => 0));
-array_push($_SESSION["chart_wifi_top"], array("x" => $current_time, "y" => 0));
-array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,6 +52,11 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
 
       function buildChart() {
  
+        var updateInterval = 5000;
+        var colorWifi = "#1b81e5";
+        var colorWifiLocal = "#78bcff";
+        var colorBluetooth = "#061c33";
+
         var chart = new CanvasJS.Chart("chartContainer", {
           theme: "light2",
           zoomEnabled: true,
@@ -64,21 +64,28 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
             text: "Monitoring results"
           },
           subtitles: [{
-            text: "updated every 5 sec."
+            text: "updated every " + updateInterval/1000 + " seconds"
           }],
           axisX: {
             title: "Timestamp",
             valueFormatString: "D.M H:mm",
             gridThickness: 1,
-            gridDashType: "dash"
+            gridDashType: "dash",
+            labelAngle: -45
           },
           axisY: {
             title: "Wi-Fi devices",
-            gridDashType: "dash"
+            titleFontColor: colorWifi,
+            labelFontColor: colorWifi,
+            gridDashType: "dash",
+            tickThickness: 0
           },
           axisY2: {
             title: "Bluetooth devices",
-            gridDashType: "dash"
+            titleFontColor: colorBluetooth,
+            labelFontColor: colorBluetooth,
+            gridDashType: "dash",
+            tickThickness: 0
           },
           toolTip: {
             shared: true,
@@ -91,9 +98,9 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
           data: [{
             type: "stackedArea",
             name: "Global MAC",
-            color: "#1b81e5",
+            color: colorWifi,
             showInLegend: true,
-            toolTipContent: "{x} <hr> <span style=\"color:#1b81e5\"><b>{name}: </b></span> {y}",
+            toolTipContent: "{x} <hr> <span style=\"color:" + colorWifi + "\"><b>{name}: </b></span> {y}",
             xValueType: "dateTime",
             xValueFormatString: "D.M H:mm:ss",
             yValueFormatString: "#",
@@ -101,9 +108,9 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
           },{
             type: "stackedArea",
             name: "Local MAC unique",
-            color: "#78bcff",
+            color: colorWifiLocal,
             showInLegend: true,
-            toolTipContent: "<span style=\"color:#78bcff\"><b>{name}: </b></span> {y} <br> <b>Total estimated: #total</b>",
+            toolTipContent: "<span style=\"color:" + colorWifiLocal + "\"><b>{name}: </b></span> {y} <br> <b>Total estimated: #total</b>",
             xValueType: "dateTime",
             yValueFormatString: "#",
             dataPoints: [{"x":1000,"y":0}]
@@ -111,10 +118,10 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
             type: "line",
             axisYType: "secondary",
             name: "Bluetooth",
-            color: "#3b5998",
+            color: colorBluetooth,
             markerType: "square",
             showInLegend: true,
-            toolTipContent: "<hr> <span style=\"color:#3b5998\"><b>{name}: </b></span> {y}",
+            toolTipContent: "<hr> <span style=\"color:" + colorBluetooth + "\"><b>{name}: </b></span> {y}",
             xValueType: "dateTime",
             yValueFormatString: "#",
             dataPoints: [{"x":1000,"y":0}]
@@ -151,23 +158,17 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
         }
 
         function updateChart() {
-
-
           var session_id = "<?php echo $session_id; ?>";
           var dps_wifi_bot = readTextFile("json/chart_wifi_bot_" + session_id);
           var dps_wifi_top = readTextFile("json/chart_wifi_top_" + session_id);
           var dps_bt = readTextFile("json/chart_bt_" + session_id);
-
           chart.options.data[0].dataPoints = JSON.parse(dps_wifi_bot); 
           chart.options.data[1].dataPoints = JSON.parse(dps_wifi_top);
           chart.options.data[2].dataPoints = JSON.parse(dps_bt);
-
           chart.render();
         };
         
-        var updateInterval = 5000;
         setInterval(function () { updateChart() }, updateInterval);
-
       }
 
       function toggle_ib_bt_data(){
@@ -229,9 +230,7 @@ array_push($_SESSION["chart_bt"], array("x" => $current_time, "y" => 0));
       <div class="div_info">
         <h2>Information</h2>
         <div class="div_content" id="info">
-
-          <?php echo "<p class=\"error\">ERROR: this text should not be visible, something went wrong with automatic update of information</p>";?>
-
+          Loading...
         </div>
       </div>
 
