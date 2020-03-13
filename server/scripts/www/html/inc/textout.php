@@ -158,9 +158,17 @@ if ($db_source == NULL) {
 
   // -------------------------------------------------------------- graph arrays
   // initialize graph arrays if they are empty
-  if($graph_wifi_bot == NULL){$graph_wifi_bot = array();}
-  if($graph_wifi_top == NULL){$graph_wifi_top = array();}
-  if($graph_bt == NULL){$graph_bt = array();}
+  //if($graph_wifi_bot == NULL){$graph_wifi_bot = array();}
+  //if($graph_wifi_top == NULL){$graph_wifi_top = array();}
+  //if($graph_bt == NULL){$graph_bt = array();}
+
+  // debug print
+  //echo "<br><br>textout local arrays before push:<br><br>";
+  //print_r($graph_wifi_bot);
+  //echo "<br><br><br>";
+  //print_r($graph_wifi_top);
+  //echo "<br><br><br>";
+  //print_r($graph_bt);
 
   // push new data into graph arrays
   $current_time = time()*1000;
@@ -168,17 +176,37 @@ if ($db_source == NULL) {
   array_push($graph_wifi_top, array("x" => $current_time, "y" => $fingerprints_count));
   array_push($graph_bt, array("x" => $current_time, "y" => $bt_total));
 
-  // save updated graph arrays to session
-  $_SESSION["graph_wifi_bot"] = $graph_wifi_bot;
-  $_SESSION["graph_wifi_top"] = $graph_wifi_top;
-  $_SESSION["graph_bt"] = $graph_bt;
-
-  //echo "<br><br>debug graph array:<br><br>";
+  // debug print
+  //echo "<br><br>textout local arrays after push:<br><br>";
   //print_r($graph_wifi_bot);
   //echo "<br><br><br>";
   //print_r($graph_wifi_top);
   //echo "<br><br><br>";
   //print_r($graph_bt);
+  
+  // save updated graph arrays to session
+  $_SESSION["graph_wifi_bot"] = $graph_wifi_bot;
+  $_SESSION["graph_wifi_top"] = $graph_wifi_top;
+  $_SESSION["graph_bt"] = $graph_bt;
+
+  // write updated chart arrays to json files
+  $json_dir = "../json";
+  if (!file_exists($json_dir)){ mkdir($json_dir); }
+  $f_bot = fopen($json_dir . "/chart_wifi_bot", "w");
+  $f_top = fopen($json_dir . "/chart_wifi_top", "w");
+  fwrite($f_bot, json_encode($graph_wifi_bot));
+  fwrite($f_top, json_encode($graph_wifi_top));
+  fclose($f_bot);
+  fclose($f_top);
+
+
+  // debug print
+  //echo "<br><br>SESSION arrays after textout push and store:<br><br>";
+  //var_dump($_SESSION["graph_wifi_bot"]);
+  //echo "<br><br><br>";
+  //var_dump($_SESSION["graph_wifi_top"]);
+  //echo "<br><br><br>";
+  //var_dump($_SESSION["graph_bt"]);
 
 }
 

@@ -63,4 +63,5 @@ SERVER_DB_MON_USER="mon"
 
 ########################################################### http interface
 # file storing format of Bluelog amnesia setting
+HTML_USER="www-data"
 HTML_VAR_AMNESIA="bt_amnesia"

@@ -24,6 +24,16 @@ if (file_exists("var/bt_amnesia")) {
                   Bluetooth monitoring data will show only <b>newly discovered</b> Bluetooth
                   devices within set Time Period.";
 }
+
+// initialize graph arrays
+$_SESSION["graph_wifi_bot"] = array();
+$_SESSION["graph_wifi_top"] = array();
+$_SESSION["graph_bt"] = array();
+// push new data into graph arrays
+$current_time = time()*1000;
+array_push($_SESSION["graph_wifi_bot"], array("x" => $current_time, "y" => 0));
+array_push($_SESSION["graph_wifi_top"], array("x" => $current_time, "y" => 0));
+array_push($_SESSION["graph_bt"], array("x" => $current_time, "y" => 0));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,6 +52,105 @@ if (file_exists("var/bt_amnesia")) {
     <!-- JavaScript -->
     <script>
 
+      // ******************************** GRAPH DEBUG ********************************
+      function buildGraph() {
+ 
+        //var dataPoints_wifi_bot = <?php echo json_encode($_SESSION["graph_wifi_bot"]); ?>;
+        //var dataPoints_wifi_top = <?php echo json_encode($_SESSION["graph_wifi_top"]); ?>;
+        
+        // for initial values
+        //var d = new Date();
+        //var n = d.getTime();
+ 
+        var chart = new CanvasJS.Chart("chartContainer", {
+          theme: "light2",
+          zoomEnabled: true,
+          title: {
+            text: "Wi-Fi monitoring results"
+          },
+          axisX: {
+          title: "Timestamp",
+          valueFormatString: "D.M H:mm"
+          },
+          axisY: {
+            title: "Devices"
+          },
+          toolTip: {
+            shared: true
+          },
+          legend: {
+            cursor: "pointer",
+            itemclick: toggleDataSeries
+          },
+          data: [{
+            type: "stackedArea",
+            name: "Global MAC",
+            color: "#1b81e5",
+            toolTipContent: "{x}<hr><span style=\"color:#1b81e5\"><strong>{name}: </strong></span> {y}",
+            showInLegend: true,
+            xValueType: "dateTime",
+            xValueFormatString: "D.M H:mm:ss",
+            yValueFormatString: "#",
+            dataPoints: [{"x":1000,"y":0}]
+          },{
+            type: "stackedArea",
+            name: "Local MAC fingerprints",
+            color: "#78bcff",
+            toolTipContent: "<span style=\"color:#78bcff\"><strong>{name}: </strong></span> {y}<br><b>Total estimated:<b> #total",
+            showInLegend: true,
+            xValueType: "dateTime",
+            yValueFormatString: "#",
+            dataPoints: [{"x":1000,"y":0}]
+          }]
+        });
+
+        chart.render();
+        updateChart();
+
+        function readTextFile(file) {
+          var rawFile = new XMLHttpRequest();
+          var retVal = "";
+          rawFile.open("GET", file, false);
+          rawFile.onreadystatechange = function () {
+            if(rawFile.readyState === 4) {
+              if(rawFile.status === 200 || rawFile.status == 0) {
+                var allText = rawFile.responseText;
+                retVal = String(allText);
+              }
+            }
+          }
+          rawFile.send(null);
+          return retVal;
+        }
+
+        function toggleDataSeries(e){
+          if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+            e.dataSeries.visible = false;
+          } else {
+            e.dataSeries.visible = true;
+          }
+          chart.render();
+        }
+
+        function updateChart() {
+
+          var dps_wifi_bot = readTextFile("json/chart_wifi_bot");
+          var dps_wifi_top = readTextFile("json/chart_wifi_top");
+
+          // wifi bot
+          chart.options.data[0].dataPoints = JSON.parse(dps_wifi_bot); 
+          // wifi top
+          chart.options.data[1].dataPoints = JSON.parse(dps_wifi_top);
+
+          chart.render();
+        };
+        
+        var updateInterval = 10000;
+        setInterval(function () { updateChart() }, updateInterval);
+
+        }
+// ******************************** GRAPH DEBUG ********************************
+
       function toggle_ib_bt_data(){
         if (document.getElementById("chckb_bt_data").checked == true) {
           document.getElementById("ib_bt_data").style.display = "block";
@@ -55,6 +164,7 @@ if (file_exists("var/bt_amnesia")) {
         updateInfo();
         updateTextout();
         toggle_ib_bt_data();
+        buildGraph();
       }
 
       function updateInfo(){
@@ -78,9 +188,9 @@ if (file_exists("var/bt_amnesia")) {
         xmlhttp.open("GET", "inc/textout.php", true);
         xmlhttp.send();
       }      
-
+      
       // timers
-      setInterval(function(){updateTextout()}, 3000); // 3 sec
+      setInterval(function(){updateTextout();}, 10000); // 10 sec
       
     </script>
   
@@ -155,26 +265,17 @@ if (file_exists("var/bt_amnesia")) {
       <!-- GRAPH -->
       <div class="div_graph">
         <h2>Graph</h2>
-        <div class="div_content">
-
-          <?php
-            $graphok="0";
-            include 'inc/graph.php';
-            if(!$graphok == "1") {
-              echo "<p class=\"error\">ERROR: failed to load graph.php - page will not be able to show visual output of monitoring</p>";
-            }
-          ?>
-
+        <div id="chartContainer" style="height: 370px; width: 100%;">
+          Loading...
         </div>
+        <script src="inc/canvasjs.min.js"></script>
       </div>
 
       <!-- TEXT OUTPUT -->
       <div class="div_text">
         <h2>Text output</h2>
         <div class="div_content" id="textout">
-
-          <?php echo "<p class=\"error\">ERROR: this text should not be visible, something went wrong with automatic update of text output</p>";?>
-
+          Loading...
         </div>
       </div>
       

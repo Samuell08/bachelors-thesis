@@ -84,9 +84,9 @@ Node setup:
 Server setup:
   > install Apache web server
   > install PHP
-  > copy web interface to Apache web server
   > install MySQL (MariaDB)
   > create MySQL user '${SERVER_DB_MON_USER}'
+  > copy web interface to Apache web server
 
 expected directory tree on USB: /media/pi/<USB name>/pi/monitoring/...
 local monitoring directory:     ${DIR_MON}
@@ -577,47 +577,6 @@ function setup_server() {
     echo "WARNING: Apache not installed: skipping PHP installation!"
   fi
 
-  ######################################################### www copy (only if Apache & PHP installed)
-  echo "---"
-  if [ -d "${DIR_PHP}" ];
-  then
-
-    if [[ "$YES_ALL" == "1" ]];
-    then
-      echo "Removing old web interface from Apache server..."
-      rm ${DIR_HTML}/*
-      echo "Copying monitoring web interface to Apache server..."
-      cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
-    else
-      while :
-      do
-        read -p "do you want to copy web interface to Apache server? (y/n) " i_index
-        case $i_index in
-          y|Y|yes|YES)
-            echo "Removing old web interface from Apache server..."
-            rm ${DIR_HTML}/*
-            echo "Copying monitoring web interface to Apache server..."
-            cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
-            break;
-            ;;
-
-          n|N|no|NO)
-            echo "Copying of web interface to Apache server declined!"
-            break;
-            ;;
-
-          *)
-            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
-            ;;
-
-        esac
-      done
-    fi
-
-  else
-    echo "WARNING: Apache and/or PHP not installed: skipping copying of web interface to Apache server!"
-  fi
-
   ######################################################### mysql
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
@@ -772,6 +731,52 @@ EOF
       esac
     done
   fi
+
+  ######################################################### www copy (only if Apache & PHP installed)
+  echo "---"
+  if [ -d "${DIR_PHP}" ];
+  then
+
+    if [[ "$YES_ALL" == "1" ]];
+    then
+      echo "Removing old web interface from Apache web server..."
+      rm ${DIR_HTML}/*
+      echo "Copying monitoring web interface to Apache web server..."
+      cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
+      echo "Changing owner of ${DIR_HTML} to Apache web server (${HTML_USER})..."
+      chown -R ${HTML_USER} ${DIR_HTML}
+    else
+      while :
+      do
+        read -p "do you want to copy web interface to Apache web server? (y/n) " i_www_copy
+        case $i_www_copy in
+          y|Y|yes|YES)
+            echo "Removing old web interface from Apache web server..."
+            rm ${DIR_HTML}/*
+            echo "Copying monitoring web interface to Apache web server..."
+            cp ${DIR_SERVER_WEBUI}/* ${DIR_HTML} -r
+            echo "Changing owner of ${DIR_HTML} to Apache web server (${HTML_USER})..."
+            chown -R ${HTML_USER} ${DIR_HTML}
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "Copying of web interface to Apache web server declined!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+
+  else
+    echo "WARNING: Apache and/or PHP not installed: skipping copying of web interface to Apache web server!"
+  fi
+
   #########################################################
 
   return 0
