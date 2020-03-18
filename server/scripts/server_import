@@ -176,6 +176,7 @@ function import_wlan() {
   --fields-terminated-by='|~|' \
   --lines-terminated-by='\n' \
   --ignore-lines=1 \
+  --columns=BSSID,first_time_seen,last_time_seen,channel,speed,privacy,cipher,authentication,power,beacons,IV,LAN_IP,ID_length,ESSID,passphrase \
   ${SOURCE_HOSTNAME} \
   ${DIR_MYSQL}/AccessPoints.${RAND}.csv
       
@@ -195,6 +196,7 @@ function import_wlan() {
   --fields-terminated-by='|~|' \
   --lines-terminated-by='\n' \
   --ignore-lines=1 \
+  --columns=station_MAC,first_time_seen,last_time_seen,power,packets,probed_ESSIDs \
   ${SOURCE_HOSTNAME} \
   ${DIR_MYSQL}/Clients.${RAND}.csv
       
@@ -283,6 +285,7 @@ function import_bt() {
   --replace \
   --fields-terminated-by='|~|' \
   --lines-terminated-by='\n' \
+  --columns=last_time_seen,BD_ADDR,class,class_detail,OUI,device_name \
   ${SOURCE_HOSTNAME} \
   ${DIR_MYSQL}/Bluetooth.${RAND}.csv
       
