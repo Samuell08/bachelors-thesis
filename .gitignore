@@ -4,4 +4,5 @@ node/logs
 server/logs
 common/logs
 server/scripts/www/html/var
+server/scripts/www/html/json
 .commit_info
