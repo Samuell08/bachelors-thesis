@@ -63,27 +63,26 @@ if ($db_source == NULL) {
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
       // global MAC within last $timeperiod minutes
-      $db_q      = "SELECT COUNT(*) FROM Clients WHERE 
+      $db_q      = "SELECT station_MAC FROM Clients WHERE 
                    (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))) AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                    station_MAC LIKE '_C:__:__:__:__:__');";
+                    station_MAC LIKE '_C:__:__:__:__:__')
+                    GROUP BY station_MAC;";
       $db_result = mysqli_query($db_conn_s, $db_q);
-      $db_row    = mysqli_fetch_assoc($db_result);
-      $mac_glbl  += $db_row["COUNT(*)"];
+      $mac_glbl  += mysqli_num_rows($db_result);
 
-      // local MAC with at least 1 probed SSID within last $timeperiod minutes
-      $db_q      = "SELECT COUNT(*) FROM Clients WHERE 
-                   (LENGTH(probed_ESSIDs) > 18) AND
+      // local MAC within last $timeperiod minutes
+      $db_q      = "SELECT station_MAC FROM Clients WHERE 
                    (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))) AND NOT
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                    station_MAC LIKE '_C:__:__:__:__:__');";
+                    station_MAC LIKE '_C:__:__:__:__:__')
+                    GROUP BY station_MAC;";
       $db_result = mysqli_query($db_conn_s, $db_q);
-      $db_row    = mysqli_fetch_assoc($db_result);
-      $mac_local += $db_row["COUNT(*)"];
+      $mac_local += mysqli_num_rows($db_result);
 
       // local MAC unique probe request fingerprints assoc array
       $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
@@ -124,7 +123,7 @@ if ($db_source == NULL) {
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
       echo "<tr class=\"textout\"><td>" . "Number of devices with global (unique) MAC adress:" . "</td><td>" . $mac_glbl . "</td></tr>";
-      echo "<tr class=\"textout\"><td>" . "Estimated number of devices with local MAC adress:" . "</td><td>" . $fingerprints_count . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Number of identified local MAC address fingerprints:" . "</td><td>" . $fingerprints_count . "</td></tr>";
       echo "<tr class=\"textout\" style=\"border-bottom:3px double black\"><td>" . "Estimated total number of devices within reach:" . "</td><td>" . $est_total_wifi . "</td></tr>";
       // extra
       echo "<tr class=\"textout_extra\"><td>" . "Number of detected local (randomized) MAC adresses:" . "</td><td>" . $mac_local . "</td></tr>";
@@ -142,13 +141,12 @@ if ($db_source == NULL) {
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
       // Bluetooth within last $timeperiod minutes
-      $db_q      = "SELECT COUNT(*) FROM Bluetooth
-                    WHERE last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))";
+      $db_q      = "SELECT BD_ADDR FROM Bluetooth
+                    WHERE last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))
+                    GROUP BY BD_ADDR;";
 
       $db_result = mysqli_query($db_conn_s, $db_q);
-      $db_row    = mysqli_fetch_assoc($db_result);
-
-      $bt_total  += $db_row["COUNT(*)"];
+      $bt_total  += mysqli_num_rows($db_result);
     }
 
     // text output
