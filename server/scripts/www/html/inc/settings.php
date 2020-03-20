@@ -21,11 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $showbt             = $_GET["showbt"];
   
   // default values
-  //if ($timeperiod == "") { $timeperiod = 15; }
-  //if ($timeperiod_format == "") { $timeperiod_format = "MINUTE"; }
-  //if ($refresh == "") { $refresh = 5; }
-  //if ($refresh_format == "") { $refresh_format = "sec"; }
-  //if ($showwlan == "") { $showwlan = 1; }
+  if ($timeperiod == "") { $timeperiod = 15; }
+  if ($timeperiod_format == "") { $timeperiod_format = "MINUTE"; }
   
   // store variables in session for TEXTOUTPUT.php
   $_SESSION["db_source"]          = $db_source;
@@ -33,10 +30,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["timeperiod_format"]  = $timeperiod_format;
   $_SESSION["showwlan"]           = $showwlan;
   $_SESSION["showbt"]             = $showbt;
-  // reset chart arrays
-  //$_SESSION["chart_wifi_bot"]     = NULL;
-  //$_SESSION["chart_wifi_top"]     = NULL;
-  //$_SESSION["chart_bt"]           = NULL;
 }
 
 // DYNAMIC FORM PART
