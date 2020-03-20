@@ -245,37 +245,45 @@ $_SESSION["updateInterval"] = 30000;
 
           <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
 
-            <?php
-              $settingsok="0";
-              include 'inc/settings.php';
-              if(!$settingsok == "1") {
-                echo "<p class=\"error\">ERROR: failed to load settings.php - page will not be able to process Settings form</p>";
-              }
-            ?>
+            <div class="div_subcontent">
+              <?php
+                $settingsok="0";
+                include 'inc/settings.php';
+                if(!$settingsok == "1") {
+                  echo "<p class=\"error\">ERROR: failed to load settings.php - page will not be able to process Settings form</p>";
+                }
+              ?>
+            </div>
 	  
-            <br>Time Period<br>
-            <table class="form">
-            <tr><td><input type="text" name="timeperiod" value="<?php echo $timeperiod?>"></td></tr>
-            <tr><td><input type="radio" name="timeperiod_format" value="MINUTE" <?php if ($timeperiod_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-            <tr><td><input type="radio" name="timeperiod_format" value="HOUR"   <?php if ($timeperiod_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
-            </table>
+            <div class="div_subcontent">
+              <b>Time Period</b><br>
+              <table class="form">
+              <tr><td><input type="number" name="timeperiod" value="<?php echo $timeperiod?>" min="1" style="width:100px;"></td></tr>
+              <tr><td><input type="radio" name="timeperiod_format" value="MINUTE" <?php if ($timeperiod_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+              <tr><td><input type="radio" name="timeperiod_format" value="HOUR"   <?php if ($timeperiod_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+              </table>
+            </div>
 
             <!-- not used
-            <br>Refresh Interval<br>
-            <table class="form">
-            <tr><td><input type="text" name="refresh" value="<?php echo $refresh?>"></td></tr>
-            <tr><td><input type="radio" name="refresh_format" value="sec" <?php if ($refresh_format == "sec") {echo "checked";} ?>> Second(s) </td></tr>
-            <tr><td><input type="radio" name="refresh_format" value="min" <?php if ($refresh_format == "min") {echo "checked";} ?>> Minute(s) </td></tr>
-            </table>
+            <div class="div_subcontent">
+              <b>Refresh Interval</b><br>
+              <table class="form">
+              <tr><td><input type="number" name="refresh" value="<?php echo $refresh?>" min="1" style="width:100px;"></td></tr>
+              <tr><td><input type="radio" name="refresh_format" value="sec" <?php if ($refresh_format == "sec") {echo "checked";} ?>> Second(s) </td></tr>
+              <tr><td><input type="radio" name="refresh_format" value="min" <?php if ($refresh_format == "min") {echo "checked";} ?>> Minute(s) </td></tr>
+              </table>
+            </div>
             -->
 
-            <br>Show Data<br>
-            <table class="form">
-            <tr><td><input type="checkbox" name="showwlan" value="1" <?php if ($showwlan == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-            <tr><td><input type="checkbox" name="showbt"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
-            </table>
+            <div class="div_subcontent">
+              <b>Show Data</b><br>
+              <table class="form">
+              <tr><td><input type="checkbox" name="showwlan" value="1" <?php if ($showwlan == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
+              <tr><td><input type="checkbox" name="showbt"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($showbt == "1")   { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+              </table>
+            </div>
 
-            <button type="submit">Submit</button>
+            <br><button type="submit">Submit</button>
 
           </form>
 

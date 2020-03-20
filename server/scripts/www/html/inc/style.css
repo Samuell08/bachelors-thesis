@@ -14,10 +14,11 @@ a {
   text-decoration: inherit;
 }
 
-input[type="text"], input[type="password"] {
-  border: none;
-  border-bottom: 1px solid lightgray;
-  border-right: 1px solid lightgray;
+input[type="text"], input[type="password"], input[type="number"] {
+  border: 1px solid #d8d8d8;
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  padding: 5px;
 }
 
 button {
@@ -37,7 +38,7 @@ button:active {
 
 .div_main {
   padding: 5px;
-  min-width: 600px;
+  min-width: 800px;
   max-width: 1400px;
   margin: auto;
 }
@@ -83,6 +84,12 @@ button:active {
 
 .div_content {
   padding: 0px 20px 5px 20px;
+}
+
+.div_subcontent {
+  display: inline-block;
+  padding: 20px;
+  margin: auto;
 }
 
 p.error {
