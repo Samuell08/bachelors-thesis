@@ -1,6 +1,6 @@
 <?php
 // INFORMATION.php
-// PHP code to fill Information div in visual.php via AJAX
+// PHP code to fill Information div in live.php and history.php via AJAX
 
 // get session variables
 session_start();

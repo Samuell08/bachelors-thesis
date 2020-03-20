@@ -1,6 +1,6 @@
 <?php
 // CHART.php
-// PHP code to be called from visual.php
+// PHP code to be called from live.php and history.php
 
 // get session variables
 session_start();

@@ -1,6 +1,6 @@
 <?php
 // SETTINGS.php
-// PHP code to be expanded in visual.php
+// PHP code to be expanded in live.php and history.php
 
 $settingsok = "1";
 

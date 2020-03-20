@@ -14,6 +14,20 @@ a {
   text-decoration: inherit;
 }
 
+span.lh_current  {
+  color: #0f487f;
+  font-weight: bold;
+  background-color: #bbddff;
+  border-radius: 8px;
+  padding: 1px 5px 1px 5px;
+}
+
+span.lh_other {
+  color: #1e90ff;
+  font-weight: bold;
+  padding: 1px 5px 1px 5px;
+}
+
 input[type="text"], input[type="password"], input[type="number"] {
   border: 1px solid #d8d8d8;
   background-color: #f2f2f2;

@@ -1,6 +1,6 @@
 <?php
 // TEXTOUT.php
-// PHP code to be called from visual.php
+// PHP code to be called from live.php and history.php
 
 session_start();
 

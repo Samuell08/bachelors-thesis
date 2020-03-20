@@ -26,9 +26,6 @@ if($db_delete_all != ""){
   mysqli_multi_query($db_conn_s, $db_q);
 }
 
-// jump back to visual.php
+// jump back to caller website
 header("Location: " . $_SERVER['HTTP_REFERER']);
-  // HTTP_REFERER might be insecure!
-  // consider exchanging it for format:
-  // visual.php?timeperiod=15&timeperiod_format=MINUTE...
 ?>
