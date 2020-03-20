@@ -37,6 +37,8 @@ if (file_exists("var/bt_amnesia")) {
 $_SESSION["chart_wifi_bot"] = array();
 $_SESSION["chart_wifi_top"] = array();
 $_SESSION["chart_bt"] = array();
+
+$_SESSION["updateInterval"] = 30000;
 ?>
 
 <!DOCTYPE html>
@@ -57,7 +59,7 @@ $_SESSION["chart_bt"] = array();
     <script src="inc/js/chart.js"></script>
     <script>
 
-      var updateInterval = "30000"; 
+      var updateInterval = <?php echo $_SESSION["updateInterval"]?>; 
 
       function toggle_ib_bt_data(){
         if (document.getElementById("chckb_bt_data").checked == true) {
