@@ -50,6 +50,12 @@ $_SESSION["hostname"] = $hostname;
           if(!$loginok == "1") {
             echo "<p class=\"error\">FATAL ERROR: failed to load login.php - page is not be able to login to database</p>";
           }
+
+          // warning redirect handling
+          if (!($_SESSION["warn"] == NULL)){
+            echo "<p class=\"warning\">" . $_SESSION["warn"] . "</p>";
+          }
+          $_SESSION["warn"] = NULL;
         ?>
 
       </div>

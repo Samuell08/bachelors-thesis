@@ -13,6 +13,11 @@ $timeperiod = $_SESSION["timeperiod"];
 
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
+if(!$db_conn){
+  $_SESSION["warn"] = "Database connection lost! Please login again.";
+  header("Location: index.php");
+}
+
 // read variables var/...
 if (file_exists("var/bt_amnesia")) {
   $f_bt_amnesia = fopen("var/bt_amnesia", "r");
