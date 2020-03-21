@@ -22,8 +22,7 @@ $chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
 $chart_wifi_top     = $_SESSION["chart_wifi_top"];
 $chart_bt           = $_SESSION["chart_bt"];
 
-$time_since     = "2020-03-20 11:00:00";
-$time_actual    = $time_since;
+$time_since     = "2020-03-21 10:00:00";
 $time_until     = "2020-03-21 11:00:00";
 $time_increment = $_SESSION["updateInterval"]/1000;
 //date('Y-m-d H:i:s');
@@ -67,6 +66,8 @@ if ($db_source == NULL) {
       // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, "rpi_mon_node_99");
 
+      // reset counter
+      $time_actual = $time_since;
       // while actual < until
       while (strtotime($time_actual) <= strtotime($time_until)) {
 
@@ -135,6 +136,8 @@ if ($db_source == NULL) {
       // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, "rpi_mon_node_99");
 
+      // reset counter
+      $time_actual = $time_since;
       // while actual < until
       while (strtotime($time_actual) <= strtotime($time_until)) {
 
