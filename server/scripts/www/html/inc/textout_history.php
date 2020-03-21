@@ -22,7 +22,7 @@ $chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
 $chart_wifi_top     = $_SESSION["chart_wifi_top"];
 $chart_bt           = $_SESSION["chart_bt"];
 
-$time_since     = "2020-03-21 10:30:00";
+$time_since     = "2020-03-20 11:00:00";
 $time_actual    = $time_since;
 $time_until     = "2020-03-21 11:00:00";
 $time_increment = $_SESSION["updateInterval"]/1000;
@@ -132,6 +132,29 @@ if ($db_source == NULL) {
   // ----------------------------------------------------------------- Bluetooth
   // check if user selected to show bt
   if ($showbt == "1") {
+      // DB conn with specified source
+      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, "rpi_mon_node_99");
+
+      // while actual < until
+      while (strtotime($time_actual) <= strtotime($time_until)) {
+
+        // Bluetooth within time period
+        $db_q    = "SELECT BD_ADDR FROM Bluetooth WHERE
+                   (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "')
+                    GROUP BY BD_ADDR;";
+        $db_result = mysqli_query($db_conn_s, $db_q);
+        $bt_total  = mysqli_num_rows($db_result);
+
+        // push new data into chart arrays
+        array_push($chart_bt, array("x" => (strtotime($time_actual)*1000), "y" => $bt_total));
+
+        // increment counter
+        $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+      }
+
+    // debug
+    echo "<br><br>chart_bt:<br>";
+    print_r($chart_bt);
 
   }
 
