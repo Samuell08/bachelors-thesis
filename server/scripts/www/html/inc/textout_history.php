@@ -17,16 +17,16 @@ $timeperiod         = $_SESSION["timeperiod"];
 $timeperiod_format  = $_SESSION["timeperiod_format"];
 $showwlan           = $_SESSION["showwlan"];
 $showbt             = $_SESSION["showbt"];
+$time_since         = $_SESSION["time_since"];
+$time_until         = $_SESSION["time_until"];
+$time_increment     = $_SESSION["updateInterval"]/1000;
 // chart arrays
 $chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
 $chart_wifi_top     = $_SESSION["chart_wifi_top"];
 $chart_bt           = $_SESSION["chart_bt"];
 
-$time_since     = "2020-03-21 10:00:00";
-$time_until     = "2020-03-21 11:00:00";
-$time_increment = $_SESSION["updateInterval"]/1000;
-//date('Y-m-d H:i:s');
-
+//$time_since     = "2020-03-21 10:10:10";
+//$time_until     = "2020-03-21 10:55:55";
 
 // functions
 function is_anagram($string1, $string2) {
@@ -45,6 +45,8 @@ if ($db_source == NULL) {
   echo "<p class=\"warning\">Invalid time period.</p>";
 } elseif ((!($showwlan == "1")) and (!($showbt == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
+} elseif (strtotime($time_since) > strtotime($time_until)) {
+  echo "<p class=\"warning\">Time range \"Since\" is later in time than \"Until\".</p>";
 } else {
 
   // reset variables before queries
@@ -57,7 +59,7 @@ if ($db_source == NULL) {
   echo date('G:i:s (j.n.Y)') . "<br>";
   echo  "Showing results since " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_since)) . "</b>" .
     " until " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_until)) . "</b>" .
-    " with period of " . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "<br><br>";
+    " with period of " . "<b>" . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "</b>" . "<br><br>";
 
   // ---------------------------------------------------------------------- WIFI
   // check if user selected to show wlan
@@ -122,12 +124,6 @@ if ($db_source == NULL) {
         // increment counter
         $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
       }
-
-    // debug
-    echo "<br>chart_wifi_bot:<br>";
-    print_r($chart_wifi_bot);
-    echo "<br><br>chart_wifi_top:<br>";
-    print_r($chart_wifi_top);
   }
 
   // ----------------------------------------------------------------- Bluetooth
@@ -154,13 +150,22 @@ if ($db_source == NULL) {
         // increment counter
         $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
       }
-
-    // debug
-    echo "<br><br>chart_bt:<br>";
-    print_r($chart_bt);
-
   }
+  
+  // write completed chart arrays to json files
+  $json_dir = "../json";
+  if (!file_exists($json_dir)){ mkdir($json_dir); }
+  $f_bot = fopen($json_dir . "/chart_wifi_bot_" . $session_id, "w");
+  $f_top = fopen($json_dir . "/chart_wifi_top_" . $session_id, "w");
+  $f_bt  = fopen($json_dir . "/chart_bt_" . $session_id, "w");
+  fwrite($f_bot, json_encode($chart_wifi_bot));
+  fwrite($f_top, json_encode($chart_wifi_top));
+  fwrite($f_bt, json_encode($chart_bt));
+  fclose($f_bot);
+  fclose($f_top);
+  fclose($f_bt);
 
+  // update chart
 }
 
 ?>

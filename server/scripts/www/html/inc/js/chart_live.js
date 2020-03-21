@@ -13,7 +13,7 @@ function buildChart() {
     zoomEnabled: true,
     
     title: {
-      text: "Monitoring results"
+      text: "Monitoring live data"
     },
     subtitles: [{
       text: "updated every " + updateInterval/1000 + " seconds"

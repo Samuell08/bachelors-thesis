@@ -1,6 +1,6 @@
 function buildChart() {
  
-  var updateInterval = "30000"; 
+  var updateInterval = "5000"; 
   var session_id = /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 
   var colorWifi = "#1b81e5";
@@ -13,11 +13,8 @@ function buildChart() {
     zoomEnabled: true,
     
     title: {
-      text: "Monitoring results"
+      text: "Monitoring history"
     },
-    subtitles: [{
-      text: "updated every " + updateInterval/1000 + " seconds"
-    }],
     axisX: {
       title: "Timestamp",
       valueFormatString: "D.M H:mm",

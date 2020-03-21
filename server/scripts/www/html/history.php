@@ -10,6 +10,8 @@ $hostname   = $_SESSION["hostname"];
 
 $db_source  = $_SESSION["db_source"];
 $timeperiod = $_SESSION["timeperiod"];
+$time_since = $_SESSION["time_since"];
+$time_until = $_SESSION["time_until"];
 
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
@@ -137,6 +139,17 @@ $_SESSION["chart_bt"] = array();
             </div>
 
             <div class="div_subcontent">
+              <b>Time Range</b><br>
+              <table class="form">
+              <tr><td>Since</td></tr>
+              <tr><td><input type="text" name="time_since" value="<?php echo $time_since?>" style="width:125px;"></td></tr>
+              <tr><td>Until</td></tr>
+              <tr><td><input type="text" name="time_until" value="<?php echo $time_until?>" style="width:125px;"></td></tr>
+
+              </table>
+            </div>
+
+            <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
               <tr><td><input type="number" name="timeperiod" value="<?php echo $timeperiod?>" min="1" style="width:100px;"></td></tr>
@@ -145,17 +158,6 @@ $_SESSION["chart_bt"] = array();
               </table>
             </div>
 
-<!--    
-            <div class="div_subcontent">
-              <b>Refresh Interval</b><br>
-              <table class="form">
-              <tr><td><input type="number" name="refresh" value="<?php echo $refresh?>" min="1" style="width:100px;"></td></tr>
-              <tr><td><input type="radio" name="refresh_format" value="sec" <?php if ($refresh_format == "sec") {echo "checked";} ?>> Second(s) </td></tr>
-              <tr><td><input type="radio" name="refresh_format" value="min" <?php if ($refresh_format == "min") {echo "checked";} ?>> Minute(s) </td></tr>
-              </table>
-            </div>
--->
-
             <div class="div_subcontent">
               <b>Show Data</b><br>
               <table class="form">
@@ -163,11 +165,13 @@ $_SESSION["chart_bt"] = array();
               <tr><td><input type="checkbox" name="showbt"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($showbt == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
+
             <br><button type="submit">Submit</button>
 
           </form>
 
-          <p id="ib_bt_data" class="info_box" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
+          <p class="info_box">Time range must be entered in this exact format: YYYY-MM-DD HH:MM:SS (eg. 2020-03-20 10:30:00).</p>
+          <p class="info_box" id="ib_bt_data" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
 
         </div>
       </div>
@@ -189,28 +193,6 @@ $_SESSION["chart_bt"] = array();
         </div>
       </div>
       
-      <!-- DEBUG
-      <div class="div_debug">
-        <hr><h2>Debug</h2>
-        <div class="div_content">
-          This file: <?php echo $_SERVER['PHP_SELF']?><br><br>
-
-          MySQL connection information: <?php echo mysqli_get_host_info($db_conn)?><br>
-          MySQL connection error:       <?php echo mysqli_connect_error()?><br><br>
-
-          <i>Settings form:</i><br>
-          DB Source:                <?php echo var_dump($db_source)?><br>
-          DB Password:              <?php echo $db_pass?><br>
-          Time Period:              <?php echo $timeperiod?><br>
-          Time Period Format:       <?php echo $timeperiod_format?><br>
-          Refresh Interval:         <?php echo $refresh?><br>
-          Refresh Interval Format:  <?php echo $refresh_format ?><br>
-          Show Data Wi-Fi:          <?php echo $showwlan?><br>
-          Show Data Bluetooth:      <?php echo $showbt?>
-        </div>
-      </div>
-      -->
-
       <!-- FOOTER -->
       <div class="div_foot">
         <hr>
