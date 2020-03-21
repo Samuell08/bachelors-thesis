@@ -133,7 +133,6 @@ $_SESSION["updateInterval"] = 30000;
 
           <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
 
-<!--    
             <div class="div_subcontent">
               <?php
                 $settingsok="0";
@@ -153,6 +152,7 @@ $_SESSION["updateInterval"] = 30000;
               </table>
             </div>
 
+<!--    
             <div class="div_subcontent">
               <b>Refresh Interval</b><br>
               <table class="form">
@@ -192,7 +192,7 @@ $_SESSION["updateInterval"] = 30000;
       <div class="div_text">
         <h2>Text output</h2>
         <div class="div_content" id="textout">
-          Loading...
+          Loading... This might take a while... \_(ツ)_/
         </div>
       </div>
       

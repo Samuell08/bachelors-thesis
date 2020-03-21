@@ -62,7 +62,7 @@ if ($db_source == NULL) {
       // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
-      // global MAC within last $timeperiod minutes
+      // global MAC within last $timeperiod
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
                    (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))) AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
@@ -73,7 +73,7 @@ if ($db_source == NULL) {
       $db_result = mysqli_query($db_conn_s, $db_q);
       $mac_glbl  += mysqli_num_rows($db_result);
 
-      // local MAC within last $timeperiod minutes
+      // local MAC within last $timeperiod
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
                    (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))) AND NOT
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
@@ -84,7 +84,7 @@ if ($db_source == NULL) {
       $db_result = mysqli_query($db_conn_s, $db_q);
       $mac_local += mysqli_num_rows($db_result);
 
-      // local MAC unique probe request fingerprints assoc array
+      // local MAC unique probe request fingerprints assoc array within last $timeperiod time
       $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
                    (LENGTH(probed_ESSIDs) > 18) AND
                    (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))) AND NOT
@@ -140,7 +140,7 @@ if ($db_source == NULL) {
       // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
-      // Bluetooth within last $timeperiod minutes
+      // Bluetooth within last $timeperiod time
       $db_q      = "SELECT BD_ADDR FROM Bluetooth
                     WHERE last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod . " " . $timeperiod_format . "))
                     GROUP BY BD_ADDR;";
