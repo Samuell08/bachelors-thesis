@@ -1,6 +1,6 @@
 <?php
-// TEXTOUT.php
-// PHP code to be called from live.php and history.php
+// TEXTOUT_HISTORY.php
+// PHP code to be called from history.php
 
 session_start();
 

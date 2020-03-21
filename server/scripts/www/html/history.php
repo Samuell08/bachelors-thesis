@@ -95,7 +95,7 @@ $_SESSION["updateInterval"] = 30000;
             document.getElementById("textout").innerHTML = this.responseText;
           }
         };
-        xmlhttp.open("GET", "inc/textout.php", true);
+        xmlhttp.open("GET", "inc/textout_history.php", true);
         xmlhttp.send();
       }      
       

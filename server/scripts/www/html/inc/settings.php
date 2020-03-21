@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($timeperiod == "") { $timeperiod = 15; }
   if ($timeperiod_format == "") { $timeperiod_format = "MINUTE"; }
   
-  // store variables in session for TEXTOUTPUT.php
+  // store variables in session for TEXTOUT_*.php
   $_SESSION["db_source"]          = $db_source;
   $_SESSION["timeperiod"]         = $timeperiod;
   $_SESSION["timeperiod_format"]  = $timeperiod_format;
