@@ -56,7 +56,7 @@ $_SESSION["updateInterval"] = 30000;
     <link rel="stylesheet" type="text/css" href="inc/style.css">
 
     <!-- JavaScript -->
-    <script src="inc/js/chart.js"></script>
+    <script src="inc/js/chart_live.js"></script>
     <script>
       
       var updateInterval = <?php echo $_SESSION["updateInterval"]?>; 
