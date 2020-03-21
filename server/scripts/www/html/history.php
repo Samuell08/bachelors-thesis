@@ -141,10 +141,10 @@ $_SESSION["chart_bt"] = array();
             <div class="div_subcontent">
               <b>Time Range</b><br>
               <table class="form">
-              <tr><td>Since</td></tr>
-              <tr><td><input type="text" name="time_since" value="<?php echo $time_since?>" style="width:125px;"></td></tr>
-              <tr><td>Until</td></tr>
-              <tr><td><input type="text" name="time_until" value="<?php echo $time_until?>" style="width:125px;"></td></tr>
+              <tr><td>From</td></tr>
+              <tr><td><input type="text" name="time_since" value="<?php echo $time_since?>" style="width:150px;text-align:center;"></td></tr>
+              <tr><td>To</td></tr>
+              <tr><td><input type="text" name="time_until" value="<?php echo $time_until?>" style="width:150px;text-align:center;"></td></tr>
 
               </table>
             </div>
@@ -152,7 +152,7 @@ $_SESSION["chart_bt"] = array();
             <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
-              <tr><td><input type="number" name="timeperiod" value="<?php echo $timeperiod?>" min="1" style="width:100px;"></td></tr>
+              <tr><td><input type="number" name="timeperiod" value="<?php echo $timeperiod?>" min="1" style="width:100px;text-align:center;"></td></tr>
               <tr><td><input type="radio" name="timeperiod_format" value="MINUTE" <?php if ($timeperiod_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
               <tr><td><input type="radio" name="timeperiod_format" value="HOUR"   <?php if ($timeperiod_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
@@ -170,7 +170,7 @@ $_SESSION["chart_bt"] = array();
 
           </form>
 
-          <p class="info_box">Time range must be entered in this exact format: YYYY-MM-DD HH:MM:SS (eg. 2020-03-20 10:30:00).</p>
+          <p class="info_box">Time range must be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
 
         </div>

@@ -146,22 +146,11 @@ $_SESSION["updateInterval"] = 30000;
             <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
-              <tr><td><input type="number" name="timeperiod" value="<?php echo $timeperiod?>" min="1" style="width:100px;"></td></tr>
+              <tr><td><input type="number" name="timeperiod" value="<?php echo $timeperiod?>" min="1" style="width:100px;text-align:center;"></td></tr>
               <tr><td><input type="radio" name="timeperiod_format" value="MINUTE" <?php if ($timeperiod_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
               <tr><td><input type="radio" name="timeperiod_format" value="HOUR"   <?php if ($timeperiod_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
             </div>
-
-            <!-- not used
-            <div class="div_subcontent">
-              <b>Refresh Interval</b><br>
-              <table class="form">
-              <tr><td><input type="number" name="refresh" value="<?php echo $refresh?>" min="1" style="width:100px;"></td></tr>
-              <tr><td><input type="radio" name="refresh_format" value="sec" <?php if ($refresh_format == "sec") {echo "checked";} ?>> Second(s) </td></tr>
-              <tr><td><input type="radio" name="refresh_format" value="min" <?php if ($refresh_format == "min") {echo "checked";} ?>> Minute(s) </td></tr>
-              </table>
-            </div>
-            -->
 
             <div class="div_subcontent">
               <b>Show Data</b><br>
