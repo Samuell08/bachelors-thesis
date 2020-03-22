@@ -1,13 +1,13 @@
 function buildChart() {
  
-  var updateInterval = "5000"; 
-  var session_id = /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
+  updateInterval = "5000"; 
+  session_id = /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 
-  var colorWifi = "#1b81e5";
-  var colorWifiLocal = "#78bcff";
-  var colorBluetooth = "#061c33";
+  colorWifi = "#1b81e5";
+  colorWifiLocal = "#78bcff";
+  colorBluetooth = "#061c33";
 
-  var chart = new CanvasJS.Chart("chartContainer", {
+  chart = new CanvasJS.Chart("chartContainer", {
 
     theme: "light2",
     zoomEnabled: true,
@@ -78,7 +78,16 @@ function buildChart() {
   });
 
   chart.render();
-  updateChart();
+
+  function toggleDataSeries(e){
+    if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+      e.dataSeries.visible = false;
+    } else {
+      e.dataSeries.visible = true;
+    }
+      chart.render();
+  }
+}
 
   function readTextFile(file) {
     var rawFile = new XMLHttpRequest();
@@ -97,15 +106,6 @@ function buildChart() {
     return retVal;
   }
 
-  function toggleDataSeries(e){
-    if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-      e.dataSeries.visible = false;
-    } else {
-      e.dataSeries.visible = true;
-    }
-      chart.render();
-    }
-
   function updateChart() {
     var dps_wifi_bot = readTextFile("json/chart_wifi_bot_history_" + session_id);
     var dps_wifi_top = readTextFile("json/chart_wifi_top_history_" + session_id);
@@ -114,7 +114,4 @@ function buildChart() {
     chart.options.data[1].dataPoints = JSON.parse(dps_wifi_top);
     chart.options.data[2].dataPoints = JSON.parse(dps_bt);
     chart.render();
-  };
-        
-  setInterval(function () { updateChart() }, updateInterval);
-}
+  }

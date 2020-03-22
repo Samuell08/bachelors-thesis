@@ -183,6 +183,10 @@ $_SESSION["chart_bt"] = array();
           Loading...
         </div>
         <script src="inc/js/canvasjs.min.js"></script>
+        <div class="div_content">
+          <br><button onclick="updateChart()">Update Chart</button><br>
+          <p class="info_box">Chart needs to be updated manually <b>after</b> Text output is loaded.</p>
+        </div>
       </div>
 
       <!-- TEXT OUTPUT -->
