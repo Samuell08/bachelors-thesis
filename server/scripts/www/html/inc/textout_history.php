@@ -43,7 +43,9 @@ if ($db_source == NULL) {
 } elseif ((!($showwlan == "1")) and (!($showbt == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
 } elseif (strtotime($time_since) > strtotime($time_until)) {
-  echo "<p class=\"warning\">Time range \"Since\" is later in time than \"Until\".</p>";
+  echo "<p class=\"warning\">Time range \"From\" is later in time than \"To\".</p>";
+} elseif (strtotime($time_until) > time()) {
+  echo "<p class=\"warning\">Time range \"To\" is in the future.</p>";
 } else {
 
   // algorithm execution start
