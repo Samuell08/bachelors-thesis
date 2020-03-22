@@ -52,7 +52,7 @@ $_SESSION["updateInterval"] = 30000;
     <title><?php echo $hostname ?> monitoring server</title>
     
     <!-- CSS style -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:500|Open+Sans:300,700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:600|Roboto:400">
     <link rel="stylesheet" type="text/css" href="inc/style.css">
 
     <!-- JavaScript -->
