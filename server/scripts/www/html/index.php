@@ -20,7 +20,7 @@ $_SESSION["hostname"] = $hostname;
     <title><?php echo $hostname ?> monitoring server</title>
     
     <!-- CSS style -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:500|Roboto:400>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:500|Roboto:400">
     <link rel="stylesheet" type="text/css" href="inc/style.css">
   
   </head>
