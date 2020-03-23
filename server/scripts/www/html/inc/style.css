@@ -31,8 +31,8 @@ span.lh_other {
 }
 
 input[type="text"], input[type="password"], input[type="number"] {
-  border: 1px solid #cbcbcb;
-  background-color: #e2e2e2;
+  border: 0px solid #cbcbcb;
+  background-color: #d8d8d8;
   border-radius: 8px;
   padding: 5px;
 }
