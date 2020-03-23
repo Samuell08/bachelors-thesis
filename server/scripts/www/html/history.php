@@ -126,6 +126,8 @@ $_SESSION["chart_bt"] = array();
 
           <span class="lh_other"><a href="live.php">Live data</a></span> | <span class="lh_current">History</span>
 
+          <br><img src="inc/img/history.svg" style="width:90%;margin:70px auto 50px auto;display:block;">
+
           <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
 
             <div class="div_subcontent">
