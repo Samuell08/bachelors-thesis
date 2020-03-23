@@ -71,6 +71,18 @@ if ($db_source == NULL) {
       if ($showwlan == "1") {
 
         // GLOBAL MAC LOOP
+        
+        // prepare MySQL statement
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, "SELECT station_MAC FROM Clients WHERE
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND ?) AND
+                                   (station_MAC LIKE '_0:__:__:__:__:__' OR
+                                    station_MAC LIKE '_4:__:__:__:__:__' OR
+                                    station_MAC LIKE '_8:__:__:__:__:__' OR
+                                    station_MAC LIKE '_C:__:__:__:__:__')
+                                    GROUP BY station_MAC;");
+        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
+
         // reset counters
         $i = 0;
         $time_actual = $time_since;
@@ -78,15 +90,10 @@ if ($db_source == NULL) {
         // loop whole time range
         while (strtotime($time_actual) <= strtotime($time_until)) {
 
-          // global MAC within time period
-          $db_q    = "SELECT station_MAC FROM Clients WHERE
-                     (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "') AND
-                     (station_MAC LIKE '_0:__:__:__:__:__' OR
-                      station_MAC LIKE '_4:__:__:__:__:__' OR
-                      station_MAC LIKE '_8:__:__:__:__:__' OR
-                      station_MAC LIKE '_C:__:__:__:__:__')
-                      GROUP BY station_MAC;";
-          $db_result = mysqli_query($db_conn_s, $db_q);
+          // execute prepared MySQL statement
+          mysqli_stmt_execute($stmt);
+
+          $db_result = mysqli_stmt_get_result($stmt);
           $mac_glbl  = (mysqli_num_rows($db_result) > 0) ? mysqli_num_rows($db_result) : 0;
         
           // push new data into chart arrays
@@ -96,25 +103,34 @@ if ($db_source == NULL) {
           // increment counters
           $i += 1;
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        }
+        } // end of global MAC while
+        mysqli_stmt_close($stmt);
 
         // LOCAL MAC LOOP
+        
+        // prepare MySQL statement
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
+                                   (LENGTH(probed_ESSIDs) > 18) AND
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND ?) AND NOT
+                                   (station_MAC LIKE '_0:__:__:__:__:__' OR
+                                    station_MAC LIKE '_4:__:__:__:__:__' OR
+                                    station_MAC LIKE '_8:__:__:__:__:__' OR
+                                    station_MAC LIKE '_C:__:__:__:__:__')
+                                    GROUP BY station_MAC;");
+        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
+
         // reset counters
         $i = 0;
         $time_actual = $time_since;
         
         // loop whole time range
         while (strtotime($time_actual) <= strtotime($time_until)) {
-          // local MAC unique probe request fingerprints assoc array within time period
-          $db_q    = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
-                     (LENGTH(probed_ESSIDs) > 18) AND
-                     (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "') AND NOT
-                     (station_MAC LIKE '_0:__:__:__:__:__' OR
-                      station_MAC LIKE '_4:__:__:__:__:__' OR
-                      station_MAC LIKE '_8:__:__:__:__:__' OR
-                      station_MAC LIKE '_C:__:__:__:__:__')
-                      GROUP BY station_MAC;";
-          $db_result = mysqli_query($db_conn_s, $db_q);
+          
+          // execute prepared MySQL statement
+          mysqli_stmt_execute($stmt);
+
+          $db_result = mysqli_stmt_get_result($stmt);
 
           unset($fingerprints);
           // fill (append to) fingerprints array
@@ -144,11 +160,19 @@ if ($db_source == NULL) {
           // increment counters
           $i += 1;
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        }
+        } // end of local MAC while
+        mysqli_stmt_close($stmt);
       } // end of showwlan
 
       // ----------------------------------------------------------------- Bluetooth
       if ($showbt == "1") {
+          
+        // prepare MySQL statement
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, "SELECT BD_ADDR FROM Bluetooth WHERE
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND ?)
+                                    GROUP BY BD_ADDR;");
+        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
 
         // reset counters
         $i = 0;
@@ -157,11 +181,10 @@ if ($db_source == NULL) {
         // loop whole time range
         while (strtotime($time_actual) <= strtotime($time_until)) {
 
-          // Bluetooth within time period
-          $db_q    = "SELECT BD_ADDR FROM Bluetooth WHERE
-                     (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "')
-                      GROUP BY BD_ADDR;";
-          $db_result = mysqli_query($db_conn_s, $db_q);
+          // execute prepared MySQL statement
+          mysqli_stmt_execute($stmt);
+
+          $db_result = mysqli_stmt_get_result($stmt);
           $bt_total  = mysqli_num_rows($db_result);
 
           // push new data into chart arrays
@@ -171,7 +194,8 @@ if ($db_source == NULL) {
           // increment counters
           $i += 1;
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        }
+        } // end of Bluetooth while
+        mysqli_stmt_close($stmt);
       } // end of showbt
     } // end of foreach DB
 
