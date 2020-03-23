@@ -62,122 +62,131 @@ if ($db_source == NULL) {
     " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_until)) . "</b>" .
     " with period of " . "<b>" . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "</b>" . "<br><br>";
 
-  // ---------------------------------------------------------------------- WIFI
-  // check if user selected to show wlan
-  if ($showwlan == "1") {
-
     foreach ($db_source as $key => $value) {
 
       // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
-      // reset counters
-      $i = 0;
-      $time_actual = $time_since;
-      // while actual < until
-      while (strtotime($time_actual) <= strtotime($time_until)) {
+      // ---------------------------------------------------------------------- WIFI
+      if ($showwlan == "1") {
 
-        // global MAC within time period
-        $db_q    = "SELECT station_MAC FROM Clients WHERE
-                   (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "') AND
-                   (station_MAC LIKE '_0:__:__:__:__:__' OR
-                    station_MAC LIKE '_4:__:__:__:__:__' OR
-                    station_MAC LIKE '_8:__:__:__:__:__' OR
-                    station_MAC LIKE '_C:__:__:__:__:__')
-                    GROUP BY station_MAC;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-        $mac_glbl  = (mysqli_num_rows($db_result) > 0) ? mysqli_num_rows($db_result) : 0;
+        // GLOBAL MAC LOOP
+        // reset counters
+        $i = 0;
+        $time_actual = $time_since;
+        
+        // loop whole time range
+        while (strtotime($time_actual) <= strtotime($time_until)) {
 
-        // local MAC unique probe request fingerprints assoc array within time period
-        $db_q    = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
-                   (LENGTH(probed_ESSIDs) > 18) AND
-                   (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "') AND NOT
-                   (station_MAC LIKE '_0:__:__:__:__:__' OR
-                    station_MAC LIKE '_4:__:__:__:__:__' OR
-                    station_MAC LIKE '_8:__:__:__:__:__' OR
-                    station_MAC LIKE '_C:__:__:__:__:__')
-                    GROUP BY station_MAC;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
+          // global MAC within time period
+          $db_q    = "SELECT station_MAC FROM Clients WHERE
+                     (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "') AND
+                     (station_MAC LIKE '_0:__:__:__:__:__' OR
+                      station_MAC LIKE '_4:__:__:__:__:__' OR
+                      station_MAC LIKE '_8:__:__:__:__:__' OR
+                      station_MAC LIKE '_C:__:__:__:__:__')
+                      GROUP BY station_MAC;";
+          $db_result = mysqli_query($db_conn_s, $db_q);
+          $mac_glbl  = (mysqli_num_rows($db_result) > 0) ? mysqli_num_rows($db_result) : 0;
+        
+          // push new data into chart arrays
+          $chart_wifi_bot[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_bot[$i]["y"] += $mac_glbl;
 
-        unset($fingerprints);
-        // fill (append to) fingerprints array
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
-          }
-          // delete fingerprint anagrams
-          foreach ($fingerprints as $master_key => &$master_value) {
-            foreach ($fingerprints as $search_key => &$search_value) {
-              if ($master_key != $search_key){
-                if(is_anagram($master_value, $search_value)){
-                  // delete anagram from fingerprints array
-                  unset($fingerprints[$search_key]);
+          // increment counters
+          $i += 1;
+          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+        }
+
+        // LOCAL MAC LOOP
+        // reset counters
+        $i = 0;
+        $time_actual = $time_since;
+        
+        // loop whole time range
+        while (strtotime($time_actual) <= strtotime($time_until)) {
+          // local MAC unique probe request fingerprints assoc array within time period
+          $db_q    = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
+                     (LENGTH(probed_ESSIDs) > 18) AND
+                     (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "') AND NOT
+                     (station_MAC LIKE '_0:__:__:__:__:__' OR
+                      station_MAC LIKE '_4:__:__:__:__:__' OR
+                      station_MAC LIKE '_8:__:__:__:__:__' OR
+                      station_MAC LIKE '_C:__:__:__:__:__')
+                      GROUP BY station_MAC;";
+          $db_result = mysqli_query($db_conn_s, $db_q);
+
+          unset($fingerprints);
+          // fill (append to) fingerprints array
+          if (mysqli_num_rows($db_result) > 0) {
+            while ($db_row = mysqli_fetch_assoc($db_result)) {
+              $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+            }
+            // delete fingerprint anagrams
+            foreach ($fingerprints as $master_key => &$master_value) {
+              foreach ($fingerprints as $search_key => &$search_value) {
+                if ($master_key != $search_key){
+                  if(is_anagram($master_value, $search_value)){
+                    // delete anagram from fingerprints array
+                    unset($fingerprints[$search_key]);
+                  }
                 }
               }
             }
-          }
-        } 
+          } 
 
-        $fingerprints_count = (count($fingerprints) > 0) ? count($fingerprints) : 0;
+          $fingerprints_count = (count($fingerprints) > 0) ? count($fingerprints) : 0;
 
-        // push new data into chart arrays
-        $chart_wifi_bot[$i]["x"] = strtotime($time_actual)*1000;
-        $chart_wifi_bot[$i]["y"] += $mac_glbl;
-        $chart_wifi_top[$i]["x"] = strtotime($time_actual)*1000;
-        $chart_wifi_top[$i]["y"] += $fingerprints_count;
+          // push new data into chart arrays
+          $chart_wifi_top[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_top[$i]["y"] += $fingerprints_count;
 
-        // increment counters
-        $i += 1;
-        $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-      }
-    }
-  }
+          // increment counters
+          $i += 1;
+          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+        }
+      } // end of showwlan
 
-  // ----------------------------------------------------------------- Bluetooth
-  // check if user selected to show bt
-  if ($showbt == "1") {
+      // ----------------------------------------------------------------- Bluetooth
+      if ($showbt == "1") {
 
-    foreach ($db_source as $key => $value) {
+        // reset counters
+        $i = 0;
+        $time_actual = $time_since;
+        
+        // loop whole time range
+        while (strtotime($time_actual) <= strtotime($time_until)) {
 
-      // DB conn with specified source
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, "rpi_mon_node_99");
+          // Bluetooth within time period
+          $db_q    = "SELECT BD_ADDR FROM Bluetooth WHERE
+                     (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "')
+                      GROUP BY BD_ADDR;";
+          $db_result = mysqli_query($db_conn_s, $db_q);
+          $bt_total  = mysqli_num_rows($db_result);
 
-      // reset counters
-      $i = 0;
-      $time_actual = $time_since;
-      // while actual < until
-      while (strtotime($time_actual) <= strtotime($time_until)) {
+          // push new data into chart arrays
+          $chart_bt[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_bt[$i]["y"] += $bt_total;
 
-        // Bluetooth within time period
-        $db_q    = "SELECT BD_ADDR FROM Bluetooth WHERE
-                   (last_time_seen BETWEEN (DATE_SUB('" . $time_actual . "', INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND '" . $time_actual . "')
-                    GROUP BY BD_ADDR;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-        $bt_total  = mysqli_num_rows($db_result);
+          // increment counters
+          $i += 1;
+          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+        }
+      } // end of showbt
+    } // end of foreach DB
 
-        // push new data into chart arrays
-        $chart_bt[$i]["x"] = strtotime($time_actual)*1000;
-        $chart_bt[$i]["y"] += $bt_total;
-
-        // increment counters
-        $i += 1;
-        $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-      }
-    }
-  }
-  
   // write completed chart arrays to json files
   $json_dir = "../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
-  $f_bot = fopen($json_dir . "/chart_wifi_bot_history_" . $session_id, "w");
-  $f_top = fopen($json_dir . "/chart_wifi_top_history_" . $session_id, "w");
-  $f_bt  = fopen($json_dir . "/chart_bt_history_" . $session_id, "w");
-  fwrite($f_bot, json_encode($chart_wifi_bot));
-  fwrite($f_top, json_encode($chart_wifi_top));
-  fwrite($f_bt, json_encode($chart_bt));
-  fclose($f_bot);
-  fclose($f_top);
-  fclose($f_bt);
+  $f_bot_history = fopen($json_dir . "/chart_wifi_bot_history_" . $session_id, "w");
+  $f_top_history = fopen($json_dir . "/chart_wifi_top_history_" . $session_id, "w");
+  $f_bt_history  = fopen($json_dir . "/chart_bt_history_" . $session_id, "w");
+  fwrite($f_bot_history, json_encode($chart_wifi_bot));
+  fwrite($f_top_history, json_encode($chart_wifi_top));
+  fwrite($f_bt_history, json_encode($chart_bt));
+  fclose($f_bot_history);
+  fclose($f_top_history);
+  fclose($f_bt_history);
 
   // algorithm execution end
   $alg_end = time();
