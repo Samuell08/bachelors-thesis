@@ -64,7 +64,6 @@ if ($db_source == NULL) {
 
     foreach ($db_source as $key => $value) {
 
-      // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
       // ---------------------------------------------------------------------- WIFI
@@ -74,14 +73,14 @@ if ($db_source == NULL) {
         
         // prepare MySQL statement
         $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, "SELECT station_MAC FROM Clients WHERE
+        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
                                    (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND ?) AND
                                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                                     station_MAC LIKE '_4:__:__:__:__:__' OR
                                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                                    station_MAC LIKE '_C:__:__:__:__:__')
-                                    GROUP BY station_MAC;");
+                                    station_MAC LIKE '_C:__:__:__:__:__');");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
+        mysqli_stmt_bind_result($stmt, $mac_glbl);
 
         // reset counters
         $i = 0;
@@ -92,10 +91,9 @@ if ($db_source == NULL) {
 
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);
+          // save MySQL query result to mac_glbl
+          mysqli_stmt_fetch($stmt);
 
-          $db_result = mysqli_stmt_get_result($stmt);
-          $mac_glbl  = (mysqli_num_rows($db_result) > 0) ? mysqli_num_rows($db_result) : 0;
-        
           // push new data into chart arrays
           $chart_wifi_bot[$i]["x"]  = strtotime($time_actual)*1000;
           $chart_wifi_bot[$i]["y"] += $mac_glbl;
@@ -169,10 +167,10 @@ if ($db_source == NULL) {
           
         // prepare MySQL statement
         $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, "SELECT BD_ADDR FROM Bluetooth WHERE
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND ?)
-                                    GROUP BY BD_ADDR;");
+        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT BD_ADDR) AS TotalRows FROM Bluetooth WHERE
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod . " " . $timeperiod_format . ")) AND ?);");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
+        mysqli_stmt_bind_result($stmt, $bt_total);
 
         // reset counters
         $i = 0;
@@ -183,9 +181,8 @@ if ($db_source == NULL) {
 
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);
-
-          $db_result = mysqli_stmt_get_result($stmt);
-          $bt_total  = mysqli_num_rows($db_result);
+          // save MySQL query result to bt_total
+          mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
           $chart_bt[$i]["x"]  = strtotime($time_actual)*1000;
