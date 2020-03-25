@@ -23,6 +23,7 @@ if(!$db_conn){
 }
 
 // read variables var/...
+// bt_amnesia
 if (file_exists("var/bt_amnesia")) {
   $f_bt_amnesia = fopen("var/bt_amnesia", "r");
   $var_bt_amnesia = fgets($f_bt_amnesia);
@@ -185,6 +186,7 @@ $_SESSION["chart_bt"] = array();
           </form>
 
           <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
+          <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
 
         </div>

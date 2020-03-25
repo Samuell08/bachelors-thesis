@@ -19,6 +19,7 @@ if(!$db_conn){
 }
 
 // read variables var/...
+// bt_amnesia
 if (file_exists("var/bt_amnesia")) {
   $f_bt_amnesia = fopen("var/bt_amnesia", "r");
   $var_bt_amnesia = fgets($f_bt_amnesia);
