@@ -19,7 +19,8 @@ $showwlan           = $_SESSION["showwlan"];
 $showbt             = $_SESSION["showbt"];
 $time_from          = $_SESSION["time_from"];
 $time_to            = $_SESSION["time_to"];
-$time_increment     = $_SESSION["updateInterval"]/1000;
+$time_step          = $_SESSION["time_step"];
+$time_step_format   = $_SESSION["time_step_format"];
 // chart arrays
 $chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
 $chart_wifi_top     = $_SESSION["chart_wifi_top"];
@@ -56,6 +57,19 @@ if ($db_source == NULL) {
   $mac_local  = 0;
   $bt_total   = 0;
   $fingerprints_count = 0;
+
+  // calculate time increment
+  switch ($time_step_format) {
+  case "SECOND":
+    $time_increment = $time_step;
+    break;
+  case "MINUTE":
+    $time_increment = $time_step*60;
+    break;
+  case "HOUR":
+    $time_increment = $time_step*3600;
+    break;
+  }    
   
   // text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from)) . "</b>" .

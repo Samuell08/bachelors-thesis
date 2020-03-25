@@ -12,6 +12,8 @@ $db_source  = $_SESSION["db_source"];
 $timeperiod = $_SESSION["timeperiod"];
 $time_from  = $_SESSION["time_from"];
 $time_to    = $_SESSION["time_to"];
+$time_step  = $_SESSION["time_step"];
+$time_step_format = $_SESSION["time_step_format"];
 
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
@@ -152,6 +154,16 @@ $_SESSION["chart_bt"] = array();
             </div>
 
             <div class="div_subcontent">
+              <b>Time Step</b><br>
+              <table class="form">
+              <tr><td><input type="number" name="time_step" value="<?php echo $time_step?>" min="1" style="width:100px;text-align:center;"></td></tr>
+              <tr><td><input type="radio" name="time_step_format" value="SECOND" <?php if ($time_step_format == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
+              <tr><td><input type="radio" name="time_step_format" value="MINUTE" <?php if ($time_step_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+              <tr><td><input type="radio" name="time_step_format" value="HOUR"   <?php if ($time_step_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+              </table>
+            </div>
+
+            <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
               <tr><td><input type="number" name="timeperiod" value="<?php echo $timeperiod?>" min="1" style="width:100px;text-align:center;"></td></tr>
@@ -172,7 +184,7 @@ $_SESSION["chart_bt"] = array();
 
           </form>
 
-          <p class="info_box">Time range must be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
+          <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
 
         </div>

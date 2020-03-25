@@ -1,6 +1,5 @@
 function buildChart() {
  
-  updateInterval = "5000"; 
   session_id = /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 
   colorWifi = "#1b81e5";
