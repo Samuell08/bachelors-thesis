@@ -30,7 +30,6 @@ Options:
       Airodump-ng updates log file every 5 seconds.
       These options can be combined for precise timing. 
       
-      
     -d,--device HOSTNAME
       Hostname of monitoring device from which log files will be imported to
       MySQL database (stored on this device).
@@ -277,6 +276,10 @@ EOF
   # reload systemd daemon to register new service
   echo "reloading systemd daemon..."
   systemctl daemon-reload
+  
+  # write server import information to HTML var
+  echo "writing ${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${IMPORT_SOURCE}"
+  echo "${IMPORT_FORMAT}" > "${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${IMPORT_SOURCE}"
 
   return 0
 }
@@ -320,11 +323,20 @@ do
       ;;
    
     # period between server_import calls
-    -s|--sec)  IMPORT_PERIOD="${IMPORT_PERIOD}${2}s ";   shift 2 ;;
+    -s|--sec)
+      IMPORT_PERIOD="${IMPORT_PERIOD}${2}s ";
+      IMPORT_FORMAT="${2} second(s)";
+      shift 2 ;;
     
-    -m|--min)  IMPORT_PERIOD="${IMPORT_PERIOD}${2}m ";   shift 2 ;;
+    -m|--min)
+      IMPORT_PERIOD="${IMPORT_PERIOD}${2}m ";
+      IMPORT_FORMAT="${2} minute(s)";
+      shift 2 ;;
     
-    -h|--hour) IMPORT_PERIOD="${IMPORT_PERIOD}${2}h ";   shift 2 ;;
+    -h|--hour)
+      IMPORT_PERIOD="${IMPORT_PERIOD}${2}h ";
+      IMPORT_FORMAT="${2} hour(s)";
+      shift 2 ;;
 
     -w|--wlan)
       # arguments
@@ -393,6 +405,11 @@ do
       fi
 
       remove_service ${SERVICE_SERVER_AUTO}_${2}    
+  
+      # remove server import information from HTML var
+      echo "removing ${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${2}"
+      rm "${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${2}"
+
       exit 0
       ;;
 

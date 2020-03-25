@@ -65,3 +65,4 @@ SERVER_DB_MON_USER="mon"
 # file storing format of Bluelog amnesia setting
 HTML_USER="www-data"
 HTML_VAR_AMNESIA="bt_amnesia"
+HTML_VAR_SERVER_IMPORT="server_import"
