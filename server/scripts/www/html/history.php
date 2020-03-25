@@ -10,8 +10,8 @@ $hostname   = $_SESSION["hostname"];
 
 $db_source  = $_SESSION["db_source"];
 $timeperiod = $_SESSION["timeperiod"];
-$time_since = $_SESSION["time_since"];
-$time_until = $_SESSION["time_until"];
+$time_from  = $_SESSION["time_from"];
+$time_to    = $_SESSION["time_to"];
 
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
@@ -144,9 +144,9 @@ $_SESSION["chart_bt"] = array();
               <b>Time Range</b><br>
               <table class="form">
               <tr><td>From</td></tr>
-              <tr><td><input type="text" name="time_since" value="<?php echo $time_since?>" style="width:150px;text-align:center;"></td></tr>
+              <tr><td><input type="text" name="time_from" value="<?php echo $time_from?>" style="width:150px;text-align:center;"></td></tr>
               <tr><td>To</td></tr>
-              <tr><td><input type="text" name="time_until" value="<?php echo $time_until?>" style="width:150px;text-align:center;"></td></tr>
+              <tr><td><input type="text" name="time_to" value="<?php echo $time_to?>" style="width:150px;text-align:center;"></td></tr>
 
               </table>
             </div>

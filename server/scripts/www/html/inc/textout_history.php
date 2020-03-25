@@ -17,8 +17,8 @@ $timeperiod         = $_SESSION["timeperiod"];
 $timeperiod_format  = $_SESSION["timeperiod_format"];
 $showwlan           = $_SESSION["showwlan"];
 $showbt             = $_SESSION["showbt"];
-$time_since         = $_SESSION["time_since"];
-$time_until         = $_SESSION["time_until"];
+$time_from          = $_SESSION["time_from"];
+$time_to            = $_SESSION["time_to"];
 $time_increment     = $_SESSION["updateInterval"]/1000;
 // chart arrays
 $chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
@@ -42,9 +42,9 @@ if ($db_source == NULL) {
   echo "<p class=\"warning\">Invalid time period.</p>";
 } elseif ((!($showwlan == "1")) and (!($showbt == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
-} elseif (strtotime($time_since) > strtotime($time_until)) {
+} elseif (strtotime($time_from) > strtotime($time_to)) {
   echo "<p class=\"warning\">Time range \"From\" is later in time than \"To\".</p>";
-} elseif (strtotime($time_until) > time()) {
+} elseif (strtotime($time_to) > time()) {
   echo "<p class=\"warning\">Time range \"To\" is in the future.</p>";
 } else {
 
@@ -58,8 +58,8 @@ if ($db_source == NULL) {
   $fingerprints_count = 0;
   
   // text output
-  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_since)) . "</b>" .
-    " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_until)) . "</b>" .
+  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from)) . "</b>" .
+    " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to)) . "</b>" .
     " with period of " . "<b>" . $timeperiod . " " . strtolower($timeperiod_format) . "(s)" . "</b>" . "<br><br>";
 
     foreach ($db_source as $key => $value) {
@@ -84,10 +84,10 @@ if ($db_source == NULL) {
 
         // reset counters
         $i = 0;
-        $time_actual = $time_since;
+        $time_actual = $time_from;
         
         // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_until)) {
+        while (strtotime($time_actual) <= strtotime($time_to)) {
 
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);
@@ -120,10 +120,10 @@ if ($db_source == NULL) {
 
         // reset counters
         $i = 0;
-        $time_actual = $time_since;
+        $time_actual = $time_from;
         
         // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_until)) {
+        while (strtotime($time_actual) <= strtotime($time_to)) {
           
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);
@@ -174,10 +174,10 @@ if ($db_source == NULL) {
 
         // reset counters
         $i = 0;
-        $time_actual = $time_since;
+        $time_actual = $time_from;
         
         // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_until)) {
+        while (strtotime($time_actual) <= strtotime($time_to)) {
 
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);

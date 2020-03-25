@@ -9,8 +9,8 @@ $db_source  = "";
 $timeperiod = "";
 $showwlan   = "";
 $showbt     = "";
-$time_since = "";
-$time_until = "";
+$time_from  = "";
+$time_to    = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -22,14 +22,16 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $showwlan           = $_GET["showwlan"];
   $showbt             = $_GET["showbt"];
 
-  $time_since         = filter_var($_GET["time_since"], FILTER_SANITIZE_STRING);
-  $time_until         = filter_var($_GET["time_until"], FILTER_SANITIZE_STRING);
+  $time_from          = filter_var($_GET["time_from"], FILTER_SANITIZE_STRING);
+  $time_to            = filter_var($_GET["time_to"], FILTER_SANITIZE_STRING);
   
   // default values
   if ($timeperiod == "") { $timeperiod = 15; }
   if ($timeperiod_format == "") { $timeperiod_format = "MINUTE"; }
-  if ($time_since == "") { $time_since = "2020-03-20 10:00:00"; }
-  if ($time_until == "") { $time_until = "2020-03-20 12:00:00"; }
+  $today = date('Y-m-d');
+  $now = date('H:i:s');
+  if ($time_from == "") { $time_from = "$today" . " 04:00:00"; }
+  if ($time_to == "") { $time_to = "$today" . " $now"; }
   
   // store variables in session
   $_SESSION["db_source"]          = $db_source;
@@ -37,8 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["timeperiod_format"]  = $timeperiod_format;
   $_SESSION["showwlan"]           = $showwlan;
   $_SESSION["showbt"]             = $showbt;
-  $_SESSION["time_since"]         = $time_since;
-  $_SESSION["time_until"]         = $time_until;
+  $_SESSION["time_from"]          = $time_from;
+  $_SESSION["time_to"]            = $time_to;
 }
 
 // DYNAMIC FORM PART
