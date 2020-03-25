@@ -255,6 +255,9 @@ do
       if [[ "$2" == "remove" ]];
       then
         remove_service $SERVICE_NODE_BT
+        # remove bt_amnesia HTML var entry
+        echo "removing entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+        rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
       else
 
         intf_bt="$2"
