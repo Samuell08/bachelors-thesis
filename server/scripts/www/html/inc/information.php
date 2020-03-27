@@ -35,18 +35,27 @@ echo "<form method=\"post\" action=\"inc/db_delete.php\">";
       echo "<tr class=\"info\">";
       echo "<th class=\"info\">" . "Database name" . "</th>";
       echo "<th class=\"info\">" . "Database size (MB)" . "</th>";
-      echo "<th class=\"info\">" . "Delete entries older than #" . "</th>";
+      echo "<th class=\"info\">" . "Import period" . "</th>";
       echo "<th class=\"info\">" . "Delete all entries" . "</th>";
       echo "</tr>";
 
       // loop all returned rows
       while ($db_row = mysqli_fetch_assoc($db_result)) {
 
+        // read Import period from var file
+        $filename = $db_row["DB_name"] . "_server_import";
+        $var_import_period = "unknown";
+        if (file_exists("../var/" . $filename)) {
+          $f_import_period = fopen("../var/" . $filename, "r");
+          $var_import_period = fgets($f_import_period);
+          fclose($f_import_period);
+        }
+
         // fill 1 row
         echo "<tr class=\"info\">";
         echo "<td>" . $db_row["DB_name"] . "</td>";
         echo "<td>" . $db_row["DB_size_MB"] . "</td>";
-        echo "<td>" . "<button type=\"submit\" name=\"db_delete\" value=\"" . $db_row["DB_name"] . "\">" . "Delete Older" . "</button>" . "</td>";
+        echo "<td>" . $var_import_period . "</td>";
         echo "<td>" . "<button type=\"submit\" name=\"db_delete_all\" value=\"" . $db_row["DB_name"] . "\">" . "Delete All" . "</button>" . "</td>";
         echo "</tr>";
 

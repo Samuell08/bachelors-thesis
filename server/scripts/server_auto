@@ -277,9 +277,9 @@ EOF
   echo "reloading systemd daemon..."
   systemctl daemon-reload
   
-  # write server import information to HTML var
-  echo "writing ${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${IMPORT_SOURCE}"
-  echo "${IMPORT_FORMAT}" > "${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${IMPORT_SOURCE}"
+  # write server import period information to HTML var
+  echo "writing ${DIR_HTML_VAR}/rpi_mon_${IMPORT_SOURCE}_${HTML_VAR_SERVER_IMPORT}"
+  echo "${VAR_IMPORT_PERIOD}" > "${DIR_HTML_VAR}/rpi_mon_${IMPORT_SOURCE}_${HTML_VAR_SERVER_IMPORT}"
 
   return 0
 }
@@ -325,17 +325,17 @@ do
     # period between server_import calls
     -s|--sec)
       IMPORT_PERIOD="${IMPORT_PERIOD}${2}s ";
-      IMPORT_FORMAT="${2} second(s)";
+      VAR_IMPORT_PERIOD="${VAR_IMPORT_PERIOD}${2} second(s) ";
       shift 2 ;;
     
     -m|--min)
       IMPORT_PERIOD="${IMPORT_PERIOD}${2}m ";
-      IMPORT_FORMAT="${2} minute(s)";
+      VAR_IMPORT_PERIOD="${VAR_IMPORT_PERIOD}${2} minute(s) ";
       shift 2 ;;
     
     -h|--hour)
       IMPORT_PERIOD="${IMPORT_PERIOD}${2}h ";
-      IMPORT_FORMAT="${2} hour(s)";
+      VAR_IMPORT_PERIOD="${VAR_IMPORT_PERIOD}${2} hour(s) ";
       shift 2 ;;
 
     -w|--wlan)
@@ -407,8 +407,8 @@ do
       remove_service ${SERVICE_SERVER_AUTO}_${2}    
   
       # remove server import information from HTML var
-      echo "removing ${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${2}"
-      rm "${DIR_HTML_VAR}/${HTML_VAR_SERVER_IMPORT}_${2}"
+      echo "removing ${DIR_HTML_VAR}/rpi_mon_${2}_${HTML_VAR_SERVER_IMPORT}"
+      rm "${DIR_HTML_VAR}/rpi_mon_${2}_${HTML_VAR_SERVER_IMPORT}"
 
       exit 0
       ;;
