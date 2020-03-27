@@ -69,6 +69,10 @@ This command is used to setup everything needed for monitoring node and server.
 To copy directory tree from USB drive name of the USB drive needs to be specified
 as argument.
 
+Wi-Fi adapter driver rtl8812au is needed for proper operation of adapter
+Alfa AWUS036ACH (used in bachelor thesis) or any other adapter based on
+Realtek 8811, 8812, 8814 and 8821 chipsets.
+
 Common setup:
   > set password
   > set hostname
@@ -81,6 +85,7 @@ Node setup:
   > install aircrack-ng
   > install Bluelog
   > generate Bluelog OUI file
+  > install rtl8812au driver
   
 Server setup:
   > install Apache web server
@@ -497,6 +502,44 @@ function setup_node() {
     
   else
     echo "WARNING: Bluelog not installed: skipping OUI file generation!"
+  fi
+
+  ######################################################### rtl8812au driver
+  echo "---"
+  if [[ "$YES_ALL" == "1" ]];
+  then
+    echo "installing DKMS (needed to install rtl8812au driver..."
+    apt-get install dkms -y
+    cd $DIR_MON
+    git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
+    cd rtl8812au
+    ./dkms-install.sh
+  else
+    # user prompt
+    while :
+    do
+      read -p "do you want to install rtl8812au driver? (y/n) " i_driver
+      case $i_driver in
+        y|Y|yes|YES)
+          apt-get install dkms
+          cd $DIR_MON
+          git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
+          cd rtl8812au
+          ./dkms-install.sh
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "rtl8812au driver installation declined!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+
+      esac
+    done
   fi
 
   #########################################################
