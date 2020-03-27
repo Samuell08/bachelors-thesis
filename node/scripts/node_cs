@@ -13,7 +13,10 @@ Usage:
 Options:
 
     -w, --wlan INTERFACE[ INTERFACE...]
-      Specify one or more wlan interfaces(s).
+      Specify one or more 2.4GHz wlan interfaces(s).
+    
+    -w5, --wlan5 INTERFACE[ INTERFACE...]
+      Specify one or more 5GHz wlan interfaces(s).
     
     -b, --bt INTERFACE [AMNESIA]
       Specify exactly one bluetooth interface.
@@ -32,7 +35,7 @@ Examples:
 
   node_cs -b hci0
   node_cs -b remove
-  node_cs -w usbwlan0
+  node_cs -w5 usbwlan5ghz
   node_cs -w usbwlan0 -b hci0 15
   node_cs -w 'usbwlan0 usbwlan1 usbwlan2'
 
@@ -48,18 +51,21 @@ This command is used to create systemd service for specified wlan or bluetooth
 interface. It will create .service file in systemd directory. This created
 service will handle node_dump script calling at startup or for current
 session which can be controlled by node_service script. Service must be
-enabled/started manually with node_service script after creation. For more
-information try using node_dump --help.
+enabled/started manually with node_service script after creation.
+
+For more information try using node_dump --help.
+
+There is separate option for 2.4GHz and 5GHz wlan interfaces (-w and -w5).
 
 Note that the node_dump script started by this service will sleep for $DUMP_SLEEP
 (defined in node_var) before starting monitoring. This ensures correct
 execution of node_dump script after boot.
 
-node scripts directory:  ${DIR_NODE_SCRIPTS}
-systemd directory:       ${DIR_SYSTEMD_SERVICE}
+systemd directory: ${DIR_SYSTEMD_SERVICE}
 
-name of wlan service:       ${SERVICE_NODE_WLAN}
-name of bluetooth service:  ${SERVICE_NODE_BT}
+name of 2.4GHz wlan service: ${SERVICE_NODE_WLAN}
+name of 5GHz wlan service:   ${SERVICE_NODE_WLAN_5GHZ}
+name of bluetooth service:   ${SERVICE_NODE_BT}
 
 Location cannot be altered because scripts on this or remote device
 might be depending on it!
@@ -73,13 +79,35 @@ function write_service_wlan() {
   echo "creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN}..."
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN}"
 [Unit]
-Description=Monitoring node wlan service
+Description=Monitoring node 2.4GHz wlan service
 After=networking.service
 Requires=networking.service
 
 [Service]
 Type=forking
 ExecStart=${DIR_NODE_SCRIPTS}/node_dump -w '${intf_wlan}'
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  # reload systemd daemon to register new service
+  echo "reloading systemd daemon..."
+  systemctl daemon-reload
+}
+
+function write_service_wlan_5ghz() {
+
+  echo "creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN_5GHZ}..."
+  cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN_5GHZ}"
+[Unit]
+Description=Monitoring node 5GHz wlan service
+After=networking.service
+Requires=networking.service
+
+[Service]
+Type=forking
+ExecStart=${DIR_NODE_SCRIPTS}/node_dump -w5 '${intf_wlan_5ghz}'
 
 [Install]
 WantedBy=multi-user.target
@@ -232,6 +260,30 @@ do
         if create_service ${SERVICE_NODE_WLAN} ;
         then
           write_service_wlan
+        fi
+      fi
+
+      shift
+      ;;
+    
+    -w5|--wlan5)
+      # check if argument -w5 empty
+      if [[ -z "$2" ]] || [[ "$2" == -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option '${1}'"
+        print_usage
+        break
+      fi
+
+      # check if option is remove
+      if [[ "$2" == "remove" ]];
+      then
+        remove_service $SERVICE_NODE_WLAN_5GHZ
+      else
+        intf_wlan_5ghz="$2"
+        if create_service ${SERVICE_NODE_WLAN_5GHZ} ;
+        then
+          write_service_wlan_5ghz
         fi
       fi
 

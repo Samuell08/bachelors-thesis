@@ -21,7 +21,10 @@ Options:
       duration is set to ${DUMP_SLEEP}, which is defined in node_var).
 
     -w, --wlan INTERFACE[ INTERFACE...]
-      Specify one or more wlan interface(s).
+      Specify one or more 2.4GHz wlan interface(s).
+    
+    -w5, --wlan5 INTERFACE[ INTERFACE...]
+      Specify one or more 5GHz wlan interface(s).
     
     -b, --bt INTERFACE [AMNESIA]
       Specify exactly one bluetooth interface.
@@ -39,7 +42,7 @@ Multiple wlan interfaces MUST be enclosed in apostrophes (')
 Examples:
 
   node_dump -b hci0
-  node_dump -n -w usbwlan0
+  node_dump -n -w5 usbwlan5ghz
   node_dump -w usbwlan0 -n -b hci0 15
   node_dump -w 'usbwlan0 usbwlan1 usbwlan2'
 
@@ -57,6 +60,10 @@ monitor mode prior to calling airodump-ng. Only one Bluetooth interface
 can be specified and it will use Bluelog for logging. Amnesia mode can
 be used to monitor number of Bluetooth devices present in set time period
 
+There is separate option for 2.4GHz and 5GHz wlan interfaces (-w and -w5)
+to make sure that 5GHz adapters that also support 2.4GHz jump only on 5GHz
+channels
+
 Interfaces will be setup in order in which they are written in command
 options.
 
@@ -66,8 +73,12 @@ before starting monitoring.
 Processes spawned by this script will be run in background with output
 redirected to /dev/null. Only logs that they create will be preserved.
 
-log location: $DIR_NODE_LOGS
+log location:     $DIR_NODE_LOGS
 Bluelog location: $DIR_NODE_BLUELOG
+
+2.4GHz wlan log name: $LOG_NODE_AIRODUMP
+5GHz wlan log name:   $LOG_NODE_AIRODUMP_5GHZ
+Bluelog log name:     $LOG_NODE_BLUELOG
 
 Location cannot be changed because scripts on remote devices might be
 depending on it!
@@ -114,6 +125,7 @@ do
      
       # change wlan interface(s) into monitoring mode
       # and create string in airodump-ng format
+      intf_airodump="";
       for i in $2
       do
         echo "Changing interface $i into monitoring mode!"
@@ -126,8 +138,44 @@ do
       # remove last character (,) from string
       intf_airodump="${intf_airodump::-1}"
 
-      echo "Starting airodump-ng with interface(s) $2!"
-      sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}" -o csv "$intf_airodump" &>/dev/null &
+      echo "Starting airodump-ng with 2.4GHz interface(s) $2!"
+      sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}" -o csv -b bg "$intf_airodump" &>/dev/null &
+     
+      shift
+      ;;
+
+    -w5|--wlan5)
+      # check if argument -w5 empty
+      if [[ -z "$2" ]] || [[ "$2" == -* ]];
+      then
+        echo "ERROR: invalid argument $2 for option $1"
+        print_usage
+        break
+      fi
+
+      if [[ "$now" == "0" ]];
+      then
+        echo "Sleeping for ${DUMP_SLEEP}..."
+        sleep "$DUMP_SLEEP" 
+      fi
+     
+      # change wlan interface(s) into monitoring mode
+      # and create string in airodump-ng format
+      intf_airodump="";
+      for i in $2
+      do
+        echo "Changing interface $i into monitoring mode!"
+        sudo ip link set "$i" down
+        sudo iw "$i" set monitor control
+        sudo ip link set "$i" up
+        # append interface, to string
+        intf_airodump="${intf_airodump}${i},"
+      done
+      # remove last character (,) from string
+      intf_airodump="${intf_airodump::-1}"
+
+      echo "Starting airodump-ng with 5GHz interface(s) $2!"
+      sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP_5GHZ}" -o csv -b a "$intf_airodump" &>/dev/null &
      
       shift
       ;;
