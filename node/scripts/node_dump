@@ -128,7 +128,7 @@ do
       intf_airodump="";
       for i in $2
       do
-        echo "Changing interface $i into monitoring mode!"
+        echo "Changing interface $i into monitoring mode..."
         sudo ip link set "$i" down
         sudo iw "$i" set monitor control
         sudo ip link set "$i" up
@@ -138,7 +138,7 @@ do
       # remove last character (,) from string
       intf_airodump="${intf_airodump::-1}"
 
-      echo "Starting airodump-ng with 2.4GHz interface(s) $2!"
+      echo "Starting airodump-ng with 2.4GHz interface(s) ${2}..."
       sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}" -o csv -b bg "$intf_airodump" &>/dev/null &
      
       shift
@@ -164,7 +164,7 @@ do
       intf_airodump="";
       for i in $2
       do
-        echo "Changing interface $i into monitoring mode!"
+        echo "Changing interface $i into monitoring mode..."
         sudo ip link set "$i" down
         sudo iw "$i" set monitor control
         sudo ip link set "$i" up
@@ -174,7 +174,7 @@ do
       # remove last character (,) from string
       intf_airodump="${intf_airodump::-1}"
 
-      echo "Starting airodump-ng with 5GHz interface(s) $2!"
+      echo "Starting airodump-ng with 5GHz interface(s) ${2}..."
       sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP_5GHZ}" -o csv -b a "$intf_airodump" &>/dev/null &
      
       shift
@@ -199,16 +199,16 @@ do
         sleep "$DUMP_SLEEP" 
       fi
       
-      echo "Killing Bluelog process if there is one!"
+      echo "Killing Bluelog process if there is one..."
       "${DIR_NODE_BLUELOG}/bluelog" -k
 
       # check optional argument $3
       if [[ -z "$3" ]] || [[ "$3" == -* ]];
       then
-        echo "Starting Bluelog with interface ${2}!"
+        echo "Starting Bluelog with interface ${2}..."
         "${DIR_NODE_BLUELOG}/bluelog" -o "${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log" -i "$2" -nmft &>/dev/null &
       else
-        echo "Starting Bluelog with interface ${2} with amnesia mode set to ${3} minutes!"
+        echo "Starting Bluelog with interface ${2} with amnesia mode set to ${3} minutes..."
         "${DIR_NODE_BLUELOG}/bluelog" -o "${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log" -i "$2" -nmft -a "$3" &>/dev/null &
         shift
       fi

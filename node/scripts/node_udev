@@ -68,19 +68,19 @@ function append() {
   # return 1 - udev rule NOT appended
 
   echo ""
-  echo "checking if file ${DIR_UDEV_RULES}/${1} exists..."
+  echo "Checking if file ${DIR_UDEV_RULES}/${1} exists..."
   # check if rule file already exists
   if [ -f "${DIR_UDEV_RULES}/${1}" ];
   then
-    echo "file ${DIR_UDEV_RULES}/${1} exists!"
+    echo "File ${DIR_UDEV_RULES}/${1} exists!"
     # append
     echo "SUBSYSTEM==\"net\", ACTION==\"add\", ATTR{address}==\"${2}\", NAME=\"${3}\"" >> ${DIR_UDEV_RULES}/${1}
-    echo "udev rule appended!"
+    echo "Udev rule appended!"
     return 0
   else
-    echo "file ${DIR_UDEV_RULES}/${1} does not exist!"
+    echo "File ${DIR_UDEV_RULES}/${1} does not exist!"
     # ask to create rule
-    read -p "do you want to create it? (y/n) " i_create
+    read -p "Do you want to create it? (y/n) " i_create
     if [ "$i_create" == "y" ] || [ "$i_create" == "Y" ];
     then  
       # creating new rule and append
@@ -89,12 +89,11 @@ function append() {
     elif [ "$i_create" == "n" ] || [ "$i_create" == "N" ];
     then
       # not creating new rule - exit
-      echo "file ${DIR_UDEV_RULES}/${1} not created!"
       return 1
     else
       # invalid input - exit
       echo "ERROR: invalid input - expecting y/Y/n/N"
-      echo "file ${DIR_UDEV_RULES}/${1} not created!"
+      echo "File ${DIR_UDEV_RULES}/${1} not created!"
       return 1
     fi
   fi
@@ -106,17 +105,17 @@ function modify() {
   # return 1 - file NOT opened
 
   echo ""
-  echo "checking if file ${DIR_UDEV_RULES}/${1} exists..."
+  echo "Checking if file ${DIR_UDEV_RULES}/${1} exists..."
   # check if rule file already exists
   if [ -f "${DIR_UDEV_RULES}/${1}" ];
   then
-    echo "file ${DIR_UDEV_RULES}/${1} exists!"
+    echo "File ${DIR_UDEV_RULES}/${1} exists!"
     vim "${DIR_UDEV_RULES}/${1}"
     return 0
   else
-    echo "file ${DIR_UDEV_RULES}/${1} doesnt not exist!"
+    echo "File ${DIR_UDEV_RULES}/${1} does not exist!"
     # ask to create rule
-    read -p "do you want to create it? (y/n) " i_create
+    read -p "Do you want to create it? (y/n) " i_create
     if [ "$i_create" == "y" ] || [ "$i_create" == "Y" ];
     then  
       # creating new rule
@@ -125,12 +124,11 @@ function modify() {
     elif [ "$i_create" == "n" ] || [ "$i_create" == "N" ];
     then
       # not creating new rule - exit
-      echo "file ${DIR_UDEV_RULES}/${1} not created!"
       return 1
     else
       # invalid input - exit
       echo "ERROR: invalid input - expecting y/Y/n/N"
-      echo "file ${DIR_UDEV_RULES}/${1} not created!"
+      echo "File ${DIR_UDEV_RULES}/${1} not created!"
       return 1
     fi
   fi
@@ -142,31 +140,31 @@ function remove() {
   # return 1 - file NOT removed
 
   echo ""
-  echo "checking if file ${DIR_UDEV_RULES}/${1} exists..."
+  echo "Checking if file ${DIR_UDEV_RULES}/${1} exists..."
   # check if rule file already exists
   if [ -f "${DIR_UDEV_RULES}/${1}" ];
   then
-    echo "file ${DIR_UDEV_RULES}/${1} exists!"
+    echo "File ${DIR_UDEV_RULES}/${1} exists!"
     read -p "delete? (y/n) " i_delete
     if [ "$i_delete" == "y" ] || [ "$i_delete" == "Y" ];
     then
       # Y
-      echo "removing file ${DIR_UDEV_RULES}/${1}..."
+      echo "Removing file ${DIR_UDEV_RULES}/${1}..."
       rm ${DIR_UDEV_RULES}/${1}
       return 0
     elif [ "$i_delete" == "n" ] || [ "$i_delete" == "N" ];
     then
       # not deleting rule - exit
-      echo "file ${DIR_UDEV_RULES}/${1} NOT deleted!"
+      echo "File ${DIR_UDEV_RULES}/${1} NOT deleted!"
       return 1
     else
       # invalid input - exit
       echo "ERROR: invalid input - expecting y/Y/n/N"
-      echo "file ${DIR_UDEV_RULES}/${1} NOT deleted!"
+      echo "File ${DIR_UDEV_RULES}/${1} NOT deleted!"
       return 1
     fi
   else
-    echo "file ${DIR_UDEV_RULES}/${1} doesnt not exist!"
+    echo "File ${DIR_UDEV_RULES}/${1} does not exist!"
     return 1
   fi
 }

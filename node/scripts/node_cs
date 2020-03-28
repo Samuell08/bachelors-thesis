@@ -76,7 +76,7 @@ print_usage
 
 function write_service_wlan() {
 
-  echo "creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN}..."
+  echo "Creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN}..."
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN}"
 [Unit]
 Description=Monitoring node 2.4GHz wlan service
@@ -92,13 +92,13 @@ WantedBy=multi-user.target
 EOF
 
   # reload systemd daemon to register new service
-  echo "reloading systemd daemon..."
+  echo "Reloading systemd daemon..."
   systemctl daemon-reload
 }
 
 function write_service_wlan_5ghz() {
 
-  echo "creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN_5GHZ}..."
+  echo "Creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN_5GHZ}..."
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_WLAN_5GHZ}"
 [Unit]
 Description=Monitoring node 5GHz wlan service
@@ -114,7 +114,7 @@ WantedBy=multi-user.target
 EOF
 
   # reload systemd daemon to register new service
-  echo "reloading systemd daemon..."
+  echo "Reloading systemd daemon..."
   systemctl daemon-reload
 }
 
@@ -128,7 +128,7 @@ function write_service_bt() {
     # remove bt_amnesia in HTML var
     if [[ -f ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA} ]];
     then
-      echo "removing old entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+      echo "Removing old entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
       rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
     fi
 
@@ -137,12 +137,12 @@ function write_service_bt() {
     ExecStart="ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt} ${bt_amnesia}";
     echo "Bluelog amnesia set to ${bt_amnesia} minutes!"
     # write bt_amnesia to HTML var
-    echo "writing Bluelog amnesia setting to ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+    echo "Writing Bluelog amnesia setting to ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
     echo "${bt_amnesia}" > "${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
 
   fi
 
-  echo "creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_BT}..."
+  echo "Creating file ${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_BT}..."
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_NODE_BT}"
 [Unit]
 Description=Monitoring node bluetooth service
@@ -158,7 +158,7 @@ WantedBy=multi-user.target
 EOF
   
   # reload systemd daemon to register new service
-  echo "reloading systemd daemon..."
+  echo "Reloading systemd daemon..."
   systemctl daemon-reload
 }
 
@@ -168,36 +168,36 @@ function create_service() {
   # return # - do NOT write service
 
   # check if service file already exists
-  echo "checking if service ${1} already exists..."
+  echo "Checking if service ${1} already exists..."
   if [ -f "${DIR_SYSTEMD_SERVICE}/${1}" ];
   then
-    echo "service ${1} already exists!"
+    echo "Service ${1} already exists!"
     # ask to replace existing service
-    read -p "do you want to replace it? (y/n) " i_replace
+    read -p "Do you want to replace it? (y/n) " i_replace
     if [ "$i_replace" == "y" ] || [ "$i_replace" == "Y" ]
     then
       # replacing existing service
-      echo "file ${DIR_SYSTEMD_SERVICE}/${1} will be replaced!"
-      echo "stopping ${1}"
+      echo "File ${DIR_SYSTEMD_SERVICE}/${1} will be replaced!"
+      echo "Stopping service ${1}..."
       systemctl stop "${1}"
-      echo "disabling ${1}"
+      echo "Disabling service ${1}..."
       systemctl disable "${1}"
-      echo "removing existing service ${1}..."
+      echo "Removing existing service ${1}..."
       rm "${DIR_SYSTEMD_SERVICE}/${1}"
       return 0
     elif [ "$i_replace" == "n" ] || [ "$i_replace" == "N" ]
     then
       # not replacing existing - exit
-      echo "existing service ${1} unchanged!"
+      echo "Existing service ${1} unchanged!"
       return 1
     else
       # invalid input - exit
       echo "ERROR: invalid input - expecting y/Y/n/N"
-      echo "existing service ${1} unchanged!"
+      echo "Existing service ${1} unchanged!"
       return 1
     fi
   else
-    echo "service ${1} does not exist yet!"
+    echo "Service ${1} does not exist yet!"
     return 0
   fi
 }
@@ -206,20 +206,20 @@ function remove_service() {
   # first argument - name of the service
 
   # check if service exists
-  echo "checking if service ${1} exists..."
+  echo "Checking if service ${1} exists..."
   if [ -f "${DIR_SYSTEMD_SERVICE}/${1}" ];
   then
-    echo "service ${1} will be removed!"
-    echo "stopping service ${1}..."
+    echo "Service ${1} will be removed!"
+    echo "Stopping service ${1}..."
     systemctl stop "${1}"
-    echo "disabling service ${1}"
+    echo "Disabling service ${1}"
     systemctl disable "${1}"
-    echo "removing service ${1}..."
+    echo "Removing service ${1}..."
     rm "${DIR_SYSTEMD_SERVICE}/${1}"
-    echo "reloading systemd daemon..."
+    echo "Reloading systemd daemon..."
     systemctl daemon-reload
   else
-    echo "service ${1} does not exist!"
+    echo "Service ${1} does not exist!"
   fi
   
   return 0  
@@ -306,10 +306,12 @@ do
       # check if option is remove
       if [[ "$2" == "remove" ]];
       then
+
         remove_service $SERVICE_NODE_BT
         # remove bt_amnesia HTML var entry
-        echo "removing entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+        echo "Removing entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
         rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
+
       else
 
         intf_bt="$2"

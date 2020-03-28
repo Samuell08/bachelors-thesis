@@ -113,7 +113,7 @@ function ssh_pair() {
   if [[ ! "${CALLER}" == "pi" ]];
   then
     echo "ERROR: user calling this script is '${CALLER}', MUST be 'pi'!"
-    echo "try running the command without 'sudo' or with 'sudo -u pi'"
+    echo "Try running the command with 'sudo -u pi'"
     return 2
   fi
 
@@ -124,19 +124,19 @@ function ssh_pair() {
   # check if id_rsa already generated
   if [[ -f  "${DIR_SSH}/${ID_RSA}" ]];
   then
-    echo "WARNING: ssh key already exists!"
+    echo "WARNING: SSH key already exists!"
     # check if .pub key also exists
     if [[ ! -f "${DIR_SSH}/${ID_RSA}.pub" ]];
     then
-      echo "WARNING: existing ssh key is missing .pub key!"
-      echo "WARNING: removing existing ssh key!"
+      echo "WARNING: existing SSH key is missing .pub key!"
+      echo "WARNING: removing existing SSH key!"
       rm "${DIR_SSH}/${ID_RSA}"
     fi
   fi
     
   while :
   do
-    read -p "do you want to generate new ssh key? (y/n) " i_gen
+    read -p "Do you want to generate new SSH key? (y/n) " i_gen
     case $i_gen in
       y|Y|yes|YES)
         # generate ssh key
@@ -145,7 +145,7 @@ function ssh_pair() {
         ;;
 
       n|N|no|NO)
-        echo "ssh key generation cancelled!"
+        echo "SSH key generation cancelled!"
         break;
         ;;
 
@@ -166,11 +166,11 @@ function ssh_pair() {
     # copy ssh key to remote device(s)
     for i in $1
     do
-      echo "copying ssh key to remote device with address: '${i}'..."
+      echo "Copying SSH key to remote device with address: '${i}'..."
       sudo -u pi ssh-copy-id pi@${i}
     done
   else
-    echo "ERROR: missing ssh key!"
+    echo "ERROR: missing SSH key!"
     return 1
   fi
 
@@ -217,25 +217,25 @@ function write_service {
   fi
 
   # mysql password prompt
-  read -s -p "enter MySQL password for user ${SERVER_DB_MON_USER}: " MYSQL_SECRET
+  read -s -p "Enter MySQL password for user ${SERVER_DB_MON_USER}: " MYSQL_SECRET
   echo ""
 
   # check if service file already exists
-  echo "checking if service ${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE} already exists..."
+  echo "Checking if service ${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE} already exists..."
   if [ -f "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service" ] && \
      [ -f "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.timer" ];
   then
-    echo "service already exists!"
+    echo "Service already exists!"
     while :
     do
-      read -p "do you want to replace it? (y/n) " i_replace
+      read -p "Do you want to replace it? (y/n) " i_replace
       case $i_replace in
         y|Y|yes|YES)
-          echo "replacing..."
+          echo "Replacing..."
           break
           ;;
         n|N|no|NO)
-          echo "service ${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE} unchanged!"
+          echo "Service ${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE} unchanged!"
           return 1
           ;;
         *)
@@ -246,7 +246,7 @@ function write_service {
   fi
 
   # write server_auto.service
-  echo "creating file '${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service'..."
+  echo "Creating file '${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service'..."
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service"
 [Unit]
 Description=Monitoring server automatic import of logs to database service
@@ -261,7 +261,7 @@ WantedBy=multi-user.target
 EOF
   
   # write server_auto.timer
-  echo "creating file '${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.timer'..."
+  echo "Creating file '${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.timer'..."
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.timer"
 [Unit]
 Description=Monitoring server automatic import of logs to database service timer
@@ -275,11 +275,11 @@ WantedBy=timers.target
 EOF
 
   # reload systemd daemon to register new service
-  echo "reloading systemd daemon..."
+  echo "Reloading systemd daemon..."
   systemctl daemon-reload
   
   # write server import period information to HTML var
-  echo "writing ${DIR_HTML_VAR}/rpi_mon_${IMPORT_SOURCE}_${HTML_VAR_SERVER_IMPORT}"
+  echo "Writing ${DIR_HTML_VAR}/rpi_mon_${IMPORT_SOURCE}_${HTML_VAR_SERVER_IMPORT}..."
   echo "${VAR_IMPORT_PERIOD}" > "${DIR_HTML_VAR}/rpi_mon_${IMPORT_SOURCE}_${HTML_VAR_SERVER_IMPORT}"
 
   return 0
@@ -289,19 +289,19 @@ function remove_service() {
   # first argument - name of the service
 
   # check if service exists
-  echo "checking if service ${1} exists..."
+  echo "Checking if service ${1} exists..."
   if [ -f "${DIR_SYSTEMD_SERVICE}/${1}.service" ] || \
      [ -f "${DIR_SYSTEMD_SERVICE}/${1}.timer" ];
   then
-    echo "service ${1} will be removed!"
-    echo "stopping service ${1}..."
+    echo "Service ${1} will be removed!"
+    echo "Stopping service ${1}..."
     systemctl stop "${1}.timer"
-    echo "disabling service ${1}..."
+    echo "Disabling service ${1}..."
     systemctl disable "${1}.timer"
-    echo "removing service ${1}..."
+    echo "Removing service ${1}..."
     rm "${DIR_SYSTEMD_SERVICE}/${1}"*
   else
-    echo "service ${1} does not exist!"
+    echo "Service ${1} does not exist!"
   fi
   return 0
 }
@@ -408,7 +408,7 @@ do
       remove_service ${SERVICE_SERVER_AUTO}_${2}    
   
       # remove server import information from HTML var
-      echo "removing ${DIR_HTML_VAR}/rpi_mon_${2}_${HTML_VAR_SERVER_IMPORT}"
+      echo "Removing ${DIR_HTML_VAR}/rpi_mon_${2}_${HTML_VAR_SERVER_IMPORT}..."
       rm "${DIR_HTML_VAR}/rpi_mon_${2}_${HTML_VAR_SERVER_IMPORT}"
 
       exit 0

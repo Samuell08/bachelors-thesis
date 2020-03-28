@@ -131,7 +131,7 @@ do
 
       case $2 in
         start|stop|enable|disable|status)
-          echo "systemctl ${SERVICE_NODE_WLAN_5GHZ}: $2"
+          echo "Performing action: $2 systemctl ${SERVICE_NODE_WLAN_5GHZ}"
           systemctl "$2" "${SERVICE_NODE_WLAN_5GHZ}"
           ;;
 
@@ -155,7 +155,7 @@ do
 
       case $2 in
         start|stop|enable|disable|status)
-          echo "systemctl ${SERVICE_NODE_BT}: $2"
+          echo "Performing action: $2 systemctl ${SERVICE_NODE_BT}"
           systemctl "$2" "${SERVICE_NODE_BT}"
           ;;
 

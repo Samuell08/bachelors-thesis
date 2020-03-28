@@ -120,12 +120,12 @@ function setup_common(){
   ######################################################### password
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "skipping password setup..."
+    echo "Skipping password setup..."
   else
     # user prompt
     while :
     do
-      read -p "do you want to set new password? (y/n) " i_passwd
+      read -p "Do you want to set new password? (y/n) " i_passwd
       case $i_passwd in
         y|Y|yes|YES)
           passwd
@@ -133,7 +133,7 @@ function setup_common(){
           ;;
 
         n|N|no|NO)
-          echo "password unchanged!"
+          echo "Password NOT changed!"
           break
           ;;
 
@@ -149,22 +149,22 @@ function setup_common(){
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "skipping hostname setup..."
+    echo "Skipping hostname setup..."
   else
     # user prompt
     while :
     do
-      read -p "do you want to change hostname? (y/n) " i_hostname
+      read -p "Do you want to change hostname? (y/n) " i_hostname
       case $i_hostname in
         y|Y|yes|YES)
-          read -p "enter new hostname (only a-Z, 0-9 and \"-\", case insensitive): " new_hostname
-	  echo "WARNING: hostname will be changed after reboot!"
+          read -p "Enter new hostname (only a-Z, 0-9 and \"-\", case insensitive): " new_hostname
+          echo "WARNING: hostname will be changed after reboot!"
           echo "$new_hostname" > $PI_HOSTNAME 
           break;
           ;;
 
         n|N|no|NO)
-          echo "hostname unchanged!"
+          echo "Hostname unchanged!"
           break;
           ;;
 
@@ -181,21 +181,21 @@ function setup_common(){
   if [[ "$YES_ALL" == "1" ]];
   then
     timedatectl set-timezone Europe/Prague
-    echo "timezone set to Prague!"
+    echo "Timezone set to Prague!"
   else
     # user prompt
     while :
     do
-      read -p "do you want to change timezone to Prague? (y/n) " i_timezone
+      read -p "Do you want to change timezone to Prague? (y/n) " i_timezone
       case $i_timezone in
         y|Y|yes|YES)
           timedatectl set-timezone Europe/Prague
-          echo "timezone set to Prague!"
+          echo "Timezone set to Prague!"
           break;
           ;;
 
         n|N|no|NO)
-          echo "timezone unchanged!"
+          echo "Timezone unchanged!"
           break;
           ;;
 
@@ -211,25 +211,25 @@ function setup_common(){
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "updating package lists..."
+    echo "Updating package lists..."
     apt-get update -y
-    echo "package lists updated!"
+    echo "Package lists updated!"
     goto_upgrade="1";
   else
     # user prompt
     while :
     do
-      read -p "do you want to update package lists? (y/n) " i_update
+      read -p "Do you want to update package lists? (y/n) " i_update
       case $i_update in
         y|Y|yes|YES)
           apt-get update
-          echo "package lists updated!"
+          echo "Package lists updated!"
           goto_upgrade="1";
           break;
           ;;
 
         n|N|no|NO)
-          echo "package lists not updated!"
+          echo "Package lists not updated!"
           break;
           ;;
 
@@ -245,24 +245,25 @@ function setup_common(){
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "upgrading packages..."
+    echo "Upgrading packages..."
     apt-get upgrade -y
-    echo "packages upgraded!"
+    echo "Packages upgraded!"
   else
     if [ "$goto_upgrade" == "1" ];
     then
       while :
       do
-        read -p "do you want to upgrade packages? (y/n) " i_upgrade
+        read -p "Do you want to upgrade packages? (y/n) " i_upgrade
         case $i_upgrade in
           y|Y|yes|YES)
+            echo "Upgrading packages..."
             apt-get upgrade
-            echo "packages upgraded!"
+            echo "Packages upgraded!"
             break;
             ;;
 
           n|N|no|NO)
-            echo "packages not upgraded!"
+            echo "Packages not upgraded!"
             break;
             ;;
 
@@ -273,7 +274,7 @@ function setup_common(){
         esac
       done
     else
-      echo "skipping package upgrade..."
+      echo "Skipping package upgrade..."
     fi
   fi
 
@@ -281,13 +282,13 @@ function setup_common(){
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "installing Vim..."
+    echo "Installing Vim..."
     apt-get install vim -y
   else
     # user prompt
     while :
     do
-      read -p "do you want to install Vim? (y/n) " i_vim
+      read -p "Do you want to install Vim? (y/n) " i_vim
       case $i_vim in
         y|Y|yes|YES)
           apt-get install vim
@@ -313,15 +314,15 @@ function setup_common(){
   then
     if [[ "$YES_ALL" == "1" ]];
     then
-      echo "copying files from '$DIR_USB_SETUP' to '/home/pi'..."
+      echo "Copying files from '$DIR_USB_SETUP' to '/home/pi'..."
       cp -r $DIR_USB_SETUP /home/pi
-      echo "changing owner of directory: $DIR_MON to user 'pi'..."
+      echo "Changing owner of directory: $DIR_MON to user 'pi'..."
       chown pi:pi $DIR_MON -R
-      echo "making scripts in directory: $DIR_NODE_SCRIPTS executable..."
+      echo "Making scripts in directory: $DIR_NODE_SCRIPTS executable..."
       chmod +x ${DIR_NODE_SCRIPTS}/*
-      echo "making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
+      echo "Making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
       chmod +x ${DIR_SERVER_SCRIPTS}/*
-      echo "making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
+      echo "Making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
       chmod +x ${DIR_COMMON_SCRIPTS}/*
     else
       # user prompt
@@ -330,21 +331,21 @@ function setup_common(){
         read -p "do you want to copy directory tree and scripts from USB drive '${USB_NAME}'? (y/n) " i_copydir
         case $i_copydir in
           y|Y|yes|YES)
-            echo "copying files from $DIR_USB_SETUP to /home/pi"
+            echo "Copying files from $DIR_USB_SETUP to /home/pi"
             cp -r $DIR_USB_SETUP /home/pi
-            echo "changing owner of directory: $DIR_MON to user 'pi'..."
+            echo "Changing owner of directory: $DIR_MON to user 'pi'..."
             chown pi:pi $DIR_MON -R
-            echo "making scripts in directory: $DIR_NODE_SCRIPTS executable..."
+            echo "Making scripts in directory: $DIR_NODE_SCRIPTS executable..."
             chmod +x ${DIR_NODE_SCRIPTS}/*
-            echo "making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
+            echo "Making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
             chmod +x ${DIR_SERVER_SCRIPTS}/*
-            echo "making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
+            echo "Making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
             chmod +x ${DIR_COMMON_SCRIPTS}/*
             break;
             ;;
 
           n|N|no|NO)
-            echo "direcotry tree and scripts not copied!"
+            echo "Direcotry tree and scripts not copied!"
             break;
             ;;
 
@@ -356,7 +357,7 @@ function setup_common(){
       done
     fi
   else
-    echo "skipping directory tree copy from USB..."
+    echo "Skipping directory tree copy from USB..."
   fi
 
   #########################################################
@@ -375,13 +376,13 @@ function setup_node() {
   ######################################################### aircrack-ng
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "installing aircrack-ng..."
+    echo "Installing aircrack-ng..."
     apt-get install aircrack-ng -y
   else
     # user prompt
     while :
     do
-      read -p "do you want to install aircrack-ng? (y/n) " i_aircrack
+      read -p "Do you want to install aircrack-ng? (y/n) " i_aircrack
       case $i_aircrack in
         y|Y|yes|YES)
           apt-get install aircrack-ng
@@ -389,7 +390,7 @@ function setup_node() {
           ;;
 
         n|N|no|NO)
-          echo "aircrack-ng installation declined!"
+          echo "Aircrack-ng installation declined!"
           break;
           ;;
 
@@ -408,12 +409,12 @@ function setup_node() {
   then
     if [[ "$YES_ALL" == "1" ]];
     then
-      echo "installing Bluelog..."
+      echo "Installing Bluelog..."
       apt-get install libbluetooth-dev -y
       cd $DIR_NODE
       git clone https://github.com/MS3FGX/Bluelog.git
       cd ${DIR_NODE}/Bluelog
-      echo "patching bluelog.c to change log timestamp to mariaDB friendly format..."
+      echo "Patching bluelog.c to change log timestamp to mariaDB friendly format..."
       sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
       sed -i 's/\[%s\]/%s/g' ./bluelog.c
       make
@@ -421,7 +422,7 @@ function setup_node() {
       # user prompt
       while :
       do
-        read -p "do you want to install Bluelog? (y/n) " i_bluelog
+        read -p "Do you want to install Bluelog? (y/n) " i_bluelog
         case $i_bluelog in
           y|Y|yes|YES)
             apt-get install libbluetooth-dev
@@ -429,7 +430,7 @@ function setup_node() {
             git clone https://github.com/MS3FGX/Bluelog.git
             cd ${DIR_NODE}/Bluelog
             # patch
-            echo "patching bluelog.c to change log timestamp to mariaDB friendly format..."
+            echo "Patching bluelog.c to change log timestamp to mariaDB friendly format..."
             sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
             sed -i 's/\[%s\]/%s/g' ./bluelog.c
 	    make
@@ -449,7 +450,7 @@ function setup_node() {
       done
     fi
   else
-    echo "directory $DIR_NODE does not exist: skipping Bluelog installation!"
+    echo "Directory $DIR_NODE does not exist: skipping Bluelog installation!"
   fi
 
   ######################################################### OUI file
@@ -463,27 +464,27 @@ function setup_node() {
       # check if oui.tmp exists
       if [[ -f "/tmp/${BLUELOG_OUI}" ]];
       then
-        echo "removing existing OUI tmp file..."
+        echo "Removing existing OUI tmp file..."
         rm /tmp/${BLUELOG_OUI}
       fi
      
       # create dir /etc/bluelog if it does not exist
       mkdir -p ${DIR_BLUELOG_OUI}
       cd ${DIR_BLUELOG_OUI}
-      echo "starting bluelog gen_oui script..."
+      echo "Starting bluelog gen_oui script..."
       ${DIR_NODE_BLUELOG}/scripts/gen_oui.sh check
     else
       # user prompt
       while :
       do
-        read -p "do you want to generate OUI file for Bluelog? (y/n) " i_bluelog_oui
+        read -p "Do you want to generate OUI file for Bluelog? (y/n) " i_bluelog_oui
         case $i_bluelog_oui in
           y|Y|yes|YES)
             chmod +x ${DIR_NODE_BLUELOG}/scripts/gen_oui.sh
             # create dir /etc/bluelog if it does not exist
             mkdir -p ${DIR_BLUELOG_OUI}
             cd ${DIR_BLUELOG_OUI}
-            echo "starting bluelog gen_oui script..."
+            echo "Starting bluelog gen_oui script..."
             ${DIR_NODE_BLUELOG}/scripts/gen_oui.sh force
             break;
             ;;
@@ -509,29 +510,33 @@ function setup_node() {
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "installing DKMS (needed to install rtl8812au driver..."
+    echo "Installing DKMS (needed to install rtl8812au driver)..."
     apt-get install dkms -y
     cd $DIR_MON
+    echo "Cloning rtl8812au repository from Github..."
     git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
     cd rtl8812au
+    echo "Executing rtl18812au installation script..."
     ./dkms-install.sh
   else
     # user prompt
     while :
     do
-      read -p "do you want to install rtl8812au driver? (y/n) " i_driver
+      read -p "Do you want to install rtl8812au driver? (y/n) " i_driver
       case $i_driver in
         y|Y|yes|YES)
           apt-get install dkms
           cd $DIR_MON
+          echo "Cloning rtl8812au repository from Github..."
           git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
           cd rtl8812au
+          echo "Executing rtl18812au installation script..."
           ./dkms-install.sh
           break;
           ;;
 
         n|N|no|NO)
-          echo "rtl8812au driver installation declined!"
+          echo "Driver rtl8812au installation declined!"
           break;
           ;;
 
@@ -558,16 +563,16 @@ function setup_server() {
   ######################################################### Apache
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "installing Apache (web server)..."
+    echo "Installing Apache (web server)..."
     apt-get install apache2 -y
   else
     # user prompt
     while :
     do
-      read -p "do you want to install Apache (web server)? (y/n) " i_apache
+      read -p "Do you want to install Apache (web server)? (y/n) " i_apache
       case $i_apache in
         y|Y|yes|YES)
-          echo "installing Apache..."
+          echo "Installing Apache..."
           apt-get install apache2
           break;
           ;;
@@ -592,15 +597,15 @@ function setup_server() {
 
     if [[ "$YES_ALL" == "1" ]];
     then
-      echo "installing PHP with recommended modules..."
+      echo "Installing PHP with recommended modules..."
       apt install php7.3 php7.3-mbstring php7.3-mysql php7.3-curl php7.3-gd php7.3-zip -y
     else
       while :
       do
-        read -p "do you want to install PHP? (y/n) " i_php
+        read -p "Do you want to install PHP? (y/n) " i_php
         case $i_php in
           y|Y|yes|YES)
-            echo "installing PHP with recommended modules..."
+            echo "Installing PHP with recommended modules..."
             apt install php7.3 php7.3-mbstring php7.3-mysql php7.3-curl php7.3-gd php7.3-zip
             break;
             ;;
@@ -626,24 +631,24 @@ function setup_server() {
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "installing MySQL database (MariaDB)..."
+    echo "Installing MySQL database (MariaDB)..."
     apt-get install mariadb-server -y
-    echo "installing PHP-MySQL connector module"
+    echo "Installing PHP-MySQL connector module"
     apt-get install php-mysql -y
-    echo "starting MySQL secure installation..."
+    echo "Starting MySQL secure installation..."
     mysql_secure_installation
   else
     # user prompt
     while :
     do
-      read -p "do you want to install MySQL database (MariaDB)? (y/n) " i_mysql
+      read -p "Do you want to install MySQL database (MariaDB)? (y/n) " i_mysql
       case $i_mysql in
         y|Y|yes|YES)
-          echo "installing MySQL database (MariaDB)..."
+          echo "Installing MySQL database (MariaDB)..."
           apt-get install mariadb-server
-          echo "installing PHP-MySQL connector module"
+          echo "Installing PHP-MySQL connector module"
           apt-get install php-mysql
-          echo "starting MySQL secure installation..."
+          echo "Starting MySQL secure installation..."
           mysql_secure_installation
           break;
           ;;
@@ -666,14 +671,14 @@ function setup_server() {
   if [[ "$YES_ALL" == "1" ]];
   then
 
-    echo "creating new MySQL user '${SERVER_DB_MON_USER}'..."
+    echo "Creating new MySQL user '${SERVER_DB_MON_USER}'..."
 
     # root password prompt
-    read -s -p "enter root MySQL password (set in previous step): " i_root_usr_pass
+    read -s -p "Enter root MySQL password (set in previous step): " i_root_usr_pass
     echo ""
     
     # NEW mon password prompt
-    read -s -p "enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
+    read -s -p "Enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
     echo ""
     
     # query - create mon user
@@ -715,16 +720,16 @@ EOF
     # user prompt
     while :
     do
-      read -p "do you want to create new MySQL user '${SERVER_DB_MON_USER}' (y/n) " i_mysql_usr
+      read -p "Do you want to create new MySQL user '${SERVER_DB_MON_USER}' (y/n) " i_mysql_usr
       case $i_mysql_usr in
         y|Y|yes|YES)
 
           # root password prompt
-          read -s -p "enter root MySQL password (set in previous step): " i_root_usr_pass
+          read -s -p "Enter root MySQL password (set in previous step): " i_root_usr_pass
           echo ""
     
           # NEW mon password prompt
-          read -s -p "enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
+          read -s -p "Enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
           echo ""
     
           # query - create mon user
@@ -793,7 +798,7 @@ EOF
     else
       while :
       do
-        read -p "do you want to copy web interface to Apache web server? (y/n) " i_www_copy
+        read -p "Do you want to copy web interface to Apache web server? (y/n) " i_www_copy
         case $i_www_copy in
           y|Y|yes|YES)
             echo "Removing old web interface from Apache web server..."
@@ -839,13 +844,13 @@ function parse_args() {
   case $1 in
     "")
       # setup without USB
-      echo "starting setup without USB!"
+      echo "Starting setup without USB!"
       ;;
     -y|--yes)
       # setup without USB, yes to all
       YES_ALL="1";
-      echo "starting setup without USB!"
-      echo "user prompts disabled!"
+      echo "Starting setup without USB!"
+      echo "User prompts disabled!"
       ;;
     *)
       # setup with USB, check 2nd argument
@@ -853,7 +858,7 @@ function parse_args() {
       USB_NAME="$1";
       echo "USB name set to: '${1}'!"
       DIR_USB_SETUP="/media/pi/${USB_NAME}/pi/monitoring"
-      echo "USB setup directory set to '${DIR_USB_SETUP}'!"
+      echo "USB setup path set to '${DIR_USB_SETUP}'!"
       ;;
   esac
 
@@ -865,7 +870,7 @@ function parse_args() {
     -y|--yes)
       # setup with USB, yes to all
       YES_ALL="1";
-      echo "user prompts disabled!"
+      echo "User prompts disabled!"
       ;;
     *)
       echo "ERROR: second argument $2 unknown!"

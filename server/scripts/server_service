@@ -104,7 +104,7 @@ do
 
       case $3 in
         start|stop|enable|disable|status)
-          echo "systemctl ${SERVICE_SERVER_AUTO}_${2}.timer: $3"
+          echo "Performing action: $3 systemctl ${SERVICE_SERVER_AUTO}_${2}.timer"
           systemctl "$3" "${SERVICE_SERVER_AUTO}_${2}.timer"
           ;;
 

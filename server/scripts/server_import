@@ -91,7 +91,7 @@ function import_wlan() {
   if [[ "${MYSQL_SECRET}" == "" ]];
   then
     # mysql password prompt
-    read -s -p "enter MySQL password for user '${SERVER_DB_MON_USER}': " MYSQL_SECRET
+    read -s -p "Enter MySQL password for user '${SERVER_DB_MON_USER}': " MYSQL_SECRET
     echo ""
   fi
 
@@ -108,18 +108,18 @@ function import_wlan() {
     CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${2}.csv"
     CP_LOG_TO="${LOG_FILE}.csv"
     LOG_SOURCE="${CP_LOG_FROM}"
-    echo "copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    echo "Copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
     cp "${CP_LOG_FROM}" "${CP_LOG_TO}"
   else
     # remote copy
     CP_LOG_FROM="pi@${3}:${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${2}.csv"
     CP_LOG_TO="/tmp/${LOG_NODE_AIRODUMP}-${2}.${RAND}.csv"
     LOG_SOURCE="${CP_LOG_FROM}"
-    echo "copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
+    echo "Copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
     sudo -u pi scp "${CP_LOG_FROM}" "${CP_LOG_TO}"
     CP_LOG_FROM="${CP_LOG_TO}"
     CP_LOG_TO="${LOG_FILE}.csv"
-    echo "moving temporary log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    echo "Moving temporary log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
     mv "${CP_LOG_FROM}" "${CP_LOG_TO}"
   fi
 
@@ -130,7 +130,7 @@ function import_wlan() {
     return 1
   fi
      
-  echo "parsing local copy of log file..."
+  echo "Parsing local copy of log file..."
   # remove carriage returns
   sed -i 's/\r$//g' ${LOG_FILE}.csv
   # remove unwanted delimiters
@@ -145,11 +145,11 @@ function import_wlan() {
   ROW_START=$ROW_APS
   ROW_END=$((ROW_CLIENTS-2))
   SED_STRING="${ROW_START},${ROW_END}p;$((ROW_END+1))q"
-  echo "extracting AccessPoints (row ${ROW_START} to ${ROW_END}; total $((ROW_END-ROW_START)))..."
+  echo "Extracting AccessPoints (row ${ROW_START} to ${ROW_END}; total $((ROW_END-ROW_START)))..."
   sed -n $SED_STRING ${LOG_FILE}.csv > ${LOG_FILE}-AccessPoints.csv
       
   # parse AccessPoints into custom csv
-  echo "parsing extracted AccessPoints log file into csv..."
+  echo "Parsing extracted AccessPoints log file into csv..."
   awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15}' \
   ${LOG_FILE}-AccessPoints.csv > ${DIR_MYSQL}/AccessPoints.${RAND}.csv
   
@@ -158,17 +158,17 @@ function import_wlan() {
   ROW_START=$ROW_CLIENTS
   ROW_END=$((ROW_TOTAL-1))
   SED_STRING="${ROW_START},${ROW_END}p;$((ROW_END+1))q"
-  echo "extracting Clients (row ${ROW_START} to ${ROW_END}; total $((ROW_END-ROW_START)))..."
+  echo "Extracting Clients (row ${ROW_START} to ${ROW_END}; total $((ROW_END-ROW_START)))..."
   sed -n $SED_STRING ${LOG_FILE}.csv > ${LOG_FILE}-Clients.csv
       
   # parse Clients into custom csv
-  echo "parsing extracted Clients log file into csv..."
+  echo "Parsing extracted Clients log file into csv..."
   awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6}' \
   ${LOG_FILE}-Clients.csv > ${DIR_MYSQL}/Clients.${RAND}.csv
   
   ##    
   # database querry
-  echo "importing extracted data into database 'rpi_mon_${1}'..."
+  echo "Importing extracted data into database 'rpi_mon_${1}'..."
   mysqlimport -u ${SERVER_DB_MON_USER} -p${MYSQL_SECRET} \
   --verbose \
   --low-priority \
@@ -230,7 +230,7 @@ function import_bt() {
   if [[ "${MYSQL_SECRET}" == "" ]];
   then
     # mysql password prompt
-    read -s -p "enter MySQL password for user '${SERVER_DB_MON_USER}': " MYSQL_SECRET
+    read -s -p "Enter MySQL password for user '${SERVER_DB_MON_USER}': " MYSQL_SECRET
     echo ""
   fi
 
@@ -246,18 +246,18 @@ function import_bt() {
     CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log"
     CP_LOG_TO="${LOG_FILE}.log"
     LOG_SOURCE="${CP_LOG_FROM}"
-    echo "copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    echo "Copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
     cp "${CP_LOG_FROM}" "${CP_LOG_TO}"
   else
     # remote copy
     CP_LOG_FROM="pi@${2}:${DIR_NODE_LOGS}/${LOG_NODE_BLUELOG}.log"
     CP_LOG_TO="/tmp/${LOG_NODE_BLUELOG}.${RAND}.log"
     LOG_SOURCE="${CP_LOG_FROM}"
-    echo "copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
+    echo "Copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
     sudo -u pi scp "${CP_LOG_FROM}" "${CP_LOG_TO}"
     CP_LOG_FROM="${CP_LOG_TO}"
     CP_LOG_TO="${LOG_FILE}.log"
-    echo "moving temporary log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
+    echo "Moving temporary log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
     mv "${CP_LOG_FROM}" "${CP_LOG_TO}"
   fi
       
@@ -268,7 +268,7 @@ function import_bt() {
     return 1
   fi
 
-  echo "parsing local copy of log file into csv..."
+  echo "Parsing local copy of log file into csv..."
   # remove Scan start/stop lines
   sed -i '/Scan /d' ${LOG_FILE}.log
   # remove unwanted delimiters
@@ -278,7 +278,7 @@ function import_bt() {
   ${LOG_FILE}.log > ${DIR_MYSQL}/Bluetooth.${RAND}.csv
 
   # database querry
-  echo "importing formated data into database 'rpi_mon_${1}'..."
+  echo "Importing formated data into database 'rpi_mon_${1}'..."
   mysqlimport -u ${SERVER_DB_MON_USER} -p${MYSQL_SECRET} \
   --verbose \
   --low-priority \
@@ -376,7 +376,7 @@ do
         0)
           log_server_import "successful" "wlan" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
           # remove runtime files
-          echo "removing runtime files..."
+          echo "Removing runtime files..."
           rm ${LOG_FILE}*
           rm ${DIR_MYSQL}/AccessPoints.${RAND}.csv
           rm ${DIR_MYSQL}/Clients.${RAND}.csv
@@ -387,7 +387,7 @@ do
         2)
           log_server_import "failed import" "wlan" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
           # remove runtime files
-          echo "removing runtime files..."
+          echo "Removing runtime files..."
           rm ${LOG_FILE}*
           rm ${DIR_MYSQL}/AccessPoints.${RAND}.csv
           rm ${DIR_MYSQL}/Clients.${RAND}.csv
@@ -433,7 +433,7 @@ do
         0)
           log_server_import "successful" "bt" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
           # remove runtime files
-          echo "removing runtime files..."
+          echo "Removing runtime files..."
           rm ${LOG_FILE}*
           rm ${DIR_MYSQL}/Bluetooth.${RAND}.csv
           ;;
@@ -443,7 +443,7 @@ do
         2)
           log_server_import "failed import" "bt" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
           # remove runtime files
-          echo "removing runtime files..."
+          echo "Removing runtime files..."
           rm ${LOG_FILE}*
           rm ${DIR_MYSQL}/Bluetooth.${RAND}.csv
           ;;

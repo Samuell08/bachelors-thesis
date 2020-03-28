@@ -70,7 +70,7 @@ function create_db() {
   HOSTNAME="rpi_mon_${1}"
   
   # mysql password prompt
-  read -s -p "enter MySQL root password: " i_root_usr_pass
+  read -s -p "Enter MySQL root password: " i_root_usr_pass
   echo ""
 
   # check if DB already exists
@@ -123,7 +123,7 @@ EOF
   if [ $? -eq 0 ];
   then
     echo "MySQL: access to newly created database '${HOSTNAME}' for user '${SERVER_DB_MON_USER}' granted successfully!"
-    echo "reloading MySQL privileges..."
+    echo "Reloading MySQL privileges..."
     mysql -u root -p"${i_root_usr_pass}" <<EOF
 FLUSH PRIVILEGES;
 EOF
