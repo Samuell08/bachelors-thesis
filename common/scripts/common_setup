@@ -32,24 +32,25 @@ Usage:
 Options:
 
     -c, --common [USB_NAME] [-y]
-      setup Raspberry Pi only with common stuff
+      Setup Raspberry Pi only with common stuff.
 
     -n, --node [USB_NAME] [-y]
-      setup Raspberry Pi as monitoring node
+      Setup Raspberry Pi as monitoring node.
 
     -s, --server [USB_NAME] [-y]
-      setup Raspberry Pi as monitoring server
+      Setup Raspberry Pi as monitoring server.
 
     -a, --all [USB_NAME] [-y]
-      setup Raspberry Pi as both monitoring node and server
+      Setup Raspberry Pi as both monitoring node and server.
 
     --help
-      print help page
+      Print help page.
  
 When argument USB_NAME is not specified copying of direcotry tree from USB
-will be skipped
+will be skipped.
 Option -y will disable user prompts (all will be answered 'yes') and will
-skip password and hostname setup (to avoid any user prompt)
+skip password and hostname setup (to avoid user prompt). However, user prompt
+is necessary for MySQL (MariaDB) setup and it will not be skipped!
 
 Examples:
 
@@ -625,30 +626,30 @@ function setup_server() {
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "installing mysql database (MariaDB)..."
+    echo "installing MySQL database (MariaDB)..."
     apt-get install mariadb-server -y
-    echo "installing PHP-mysql connector module"
+    echo "installing PHP-MySQL connector module"
     apt-get install php-mysql -y
-    echo "starting mysql secure installation..."
+    echo "starting MySQL secure installation..."
     mysql_secure_installation
   else
     # user prompt
     while :
     do
-      read -p "do you want to install mysql database (MariaDB)? (y/n) " i_mysql
+      read -p "do you want to install MySQL database (MariaDB)? (y/n) " i_mysql
       case $i_mysql in
         y|Y|yes|YES)
-          echo "installing mysql database (MariaDB)..."
+          echo "installing MySQL database (MariaDB)..."
           apt-get install mariadb-server
-          echo "installing PHP-mysql connector module"
+          echo "installing PHP-MySQL connector module"
           apt-get install php-mysql
-          echo "starting mysql secure installation..."
+          echo "starting MySQL secure installation..."
           mysql_secure_installation
           break;
           ;;
 
         n|N|no|NO)
-          echo "mysql database (MariaDB) installation declined!"
+          echo "MySQL database (MariaDB) installation declined!"
           break;
           ;;
 

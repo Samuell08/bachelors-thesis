@@ -19,12 +19,12 @@ Options:
       Create database with tables for logs from specified device (hostname).
       Name of the database will be the same as specified hostname.
       Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
-      hostname needs to be specified (eg. node_1)
+      hostname needs to be specified (eg. node_1).
 
     -d, --drop HOSTNAME
       Drop (remove) database for specified device (hostname).
       Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
-      hostname needs to be specified (eg. node_1)
+      hostname needs to be specified (eg. node_1).
 
     --help
       Print help page.

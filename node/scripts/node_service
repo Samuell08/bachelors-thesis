@@ -13,35 +13,35 @@ Usage:
 Options:
 
     -w, --wlan [ARGUMENT]
-      manages 2.4GHz wlan service ${SERVICE_NODE_WLAN}
+      Manages 2.4GHz wlan service ${SERVICE_NODE_WLAN}
     
     -w5, --wlan5 [ARGUMENT]
-      manages 5GHz wlan service ${SERVICE_NODE_WLAN_5GHZ}
+      Manages 5GHz wlan service ${SERVICE_NODE_WLAN_5GHZ}
     
     -b, --bt [ARGUMENT]
-      manages bluetooth service ${SERVICE_NODE_WLAN}
+      Manages Bluetooth service ${SERVICE_NODE_WLAN}
     
     --help
-      print help page
+      Print help page.
 
 Arguments:
 
   start
-    start monitoring service until shutdown/stop
+    Start monitoring service until shutdown/stop.
   
   stop
-    stop monitoring service until start/reboot (if enabled)
+    Stop monitoring service until start/reboot (if enabled).
   
   enable
-    enable automatic monitoring service start after boot
-    (still can be controlled by start/stop for current session)
+    Enable automatic monitoring service start after boot
+    (still can be controlled by start/stop for current session).
   
   disable
-    disable automatic monitoring after startup
-    (still can be controlled by start/stop for current session)
+    Disable automatic monitoring after startup
+    (still can be controlled by start/stop for current session).
   
   status
-    show status of given systemd service
+    Show status of given systemd service.
 
 Examples:
 
@@ -61,8 +61,8 @@ This command is used to start/stop monitoring through systemd service,
 to enable/disable automatic start of this service at system boot or to
 show current status of specified service.
 
-For more information about monitoring use node_dump --help
-For more information about systemd services use node_cs --help
+For more information about monitoring try using node_dump --help
+For more information about systemd services try using node_cs --help
 
 There is separate option for 2.4GHz and 5GHz wlan interfaces (-w and -w5).
 

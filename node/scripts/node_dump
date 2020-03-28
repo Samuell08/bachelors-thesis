@@ -35,9 +35,9 @@ Options:
     --help
       Print help page.
 
-Now option affects ONLY interfaces specified AFTER this option
-All specified interfaces MUST exist
-Multiple wlan interfaces MUST be enclosed in apostrophes (')
+Now option affects ONLY interfaces specified AFTER this option.
+All specified interfaces MUST exist.
+Multiple wlan interfaces MUST be enclosed in apostrophes (').
 
 Examples:
 
@@ -58,11 +58,11 @@ This command is used to start monitoring and dumping log files with
 specified bluetooth/wlan interface(s). Wlan interfaces will be put into
 monitor mode prior to calling airodump-ng. Only one Bluetooth interface
 can be specified and it will use Bluelog for logging. Amnesia mode can
-be used to monitor number of Bluetooth devices present in set time period
+be used to monitor number of Bluetooth devices present in set time period.
 
 There is separate option for 2.4GHz and 5GHz wlan interfaces (-w and -w5)
 to make sure that 5GHz adapters that also support 2.4GHz jump only on 5GHz
-channels
+channels.
 
 Interfaces will be setup in order in which they are written in command
 options.

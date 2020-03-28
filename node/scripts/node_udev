@@ -13,29 +13,26 @@ Usage:
 Options:
 
     -a, --append RULE [ARGUMENT...]
-      udev rule name to be appended to must be specified
-      as first argument (different rules might require
-      different arguments)
-      arguments will be appended to the end of specified
-      udev rule
+      Udev rule name to be appended to must be specified as first argument
+      (different rules might require different arguments).
+      Arguments will be appended to the end of specified udev rule.
 
     -m, --mod RULE
-      open specified rule in vim for editing
+      Open specified rule in vim for editing.
 
     -r, --remove RULE
-      remove specified rule
+      Remove specified rule.
 
     --help
-      print help page
+      Print help page.
 
 Udev rules:
 
       persistent-net MAC NAME
-        USB WiFi interface MAC address and name to be set are
-        both required in this exact order
+        USB WiFi interface MAC address and name that shall be set are required.
 
 Both -a and -m will ask to create specified rule if that rule
-doesnt exist yet
+doesnt exist yet.
 
 Examples:
 

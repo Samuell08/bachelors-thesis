@@ -27,9 +27,9 @@ Options:
     --help
       Print help page.
 
-All specified interfaces MUST exist
-Multiple wlan interfaces MUST be enclosed in apostrophes (')
-Argument 'remove' will delete existing service 
+All specified interfaces MUST exist.
+Multiple wlan interfaces MUST be enclosed in apostrophes (').
+Argument 'remove' will delete existing service.
 
 Examples:
 

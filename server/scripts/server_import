@@ -24,13 +24,13 @@ Options:
       Import airodump-ng log with specified number from device with specified
       hostname and optionally IP address.
       Argument hostname will be prefixed with 'rpi_mon_', therefore ONLY last
-      bit of hostname needs to be specified (eg. node_1)
+      bit of hostname needs to be specified (eg. node_1).
 
     -b, --bt HOSTNAME [IP_ADDRESS]
       Import Bluelog log from device with specified hostname and optionally
       IP address.
       Argument hostname will be prefixed with 'rpi_mon_', therefore ONLY last
-      bit of hostname needs to be specified (eg. node_1)
+      bit of hostname needs to be specified (eg. node_1).
 
     --help
       Print help page.
