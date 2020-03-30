@@ -86,7 +86,17 @@ function import_wlan() {
   CP_LOG_FROM=""
   CP_LOG_TO=""
   LOG_FILE=""
+
+  # determine variables from function arguments
   SOURCE_HOSTNAME="rpi_mon_${2}"
+  case $1 in
+    "a")
+      LOG_FILE_NAME=${LOG_NODE_AIRODUMP_5GHZ}
+      ;;
+    "bg")
+      LOG_FILE_NAME=${LOG_NODE_AIRODUMP}
+      ;;
+  esac
 
   # check if mysql password passed as -a argument
   if [[ "${MYSQL_SECRET}" == "" ]];
@@ -101,20 +111,20 @@ function import_wlan() {
   
   ##
   # copy to local mysql dir
-  LOG_FILE="${DIR_MYSQL}/${LOG_NODE_AIRODUMP}-${3}.${RAND}"
+  LOG_FILE="${DIR_MYSQL}/${LOG_FILE_NAME}-${3}.${RAND}"
 
-  if [ "$3" == "" ];
+  if [ "${4}" == "" ];
   then
     # local copy
-    CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${3}.csv"
+    CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_FILE_NAME}-${3}.csv"
     CP_LOG_TO="${LOG_FILE}.csv"
     LOG_SOURCE="${CP_LOG_FROM}"
     echo "Copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
     cp "${CP_LOG_FROM}" "${CP_LOG_TO}"
   else
     # remote copy
-    CP_LOG_FROM="pi@${4}:${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${3}.csv"
-    CP_LOG_TO="/tmp/${LOG_NODE_AIRODUMP}-${3}.${RAND}.csv"
+    CP_LOG_FROM="pi@${4}:${DIR_NODE_LOGS}/${LOG_FILE_NAME}-${3}.csv"
+    CP_LOG_TO="/tmp/${LOG_FILE_NAME}-${3}.${RAND}.csv"
     LOG_SOURCE="${CP_LOG_FROM}"
     echo "Copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
     sudo -u pi scp "${CP_LOG_FROM}" "${CP_LOG_TO}"
@@ -151,7 +161,7 @@ function import_wlan() {
       
   # parse AccessPoints into custom csv
   echo "Parsing extracted AccessPoints log file into csv..."
-  awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15}' \
+  awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,"'${1}'"}' \
   ${LOG_FILE}-AccessPoints.csv > ${DIR_MYSQL}/AccessPoints.${RAND}.csv
   
   ##    
@@ -164,7 +174,7 @@ function import_wlan() {
       
   # parse Clients into custom csv
   echo "Parsing extracted Clients log file into csv..."
-  awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6}' \
+  awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6,"'${1}'"}' \
   ${LOG_FILE}-Clients.csv > ${DIR_MYSQL}/Clients.${RAND}.csv
   
   ##    
@@ -177,7 +187,7 @@ function import_wlan() {
   --fields-terminated-by='|~|' \
   --lines-terminated-by='\n' \
   --ignore-lines=1 \
-  --columns=BSSID,first_time_seen,last_time_seen,channel,speed,privacy,cipher,authentication,power,beacons,IV,LAN_IP,ID_length,ESSID,passphrase \
+  --columns=BSSID,first_time_seen,last_time_seen,channel,speed,privacy,cipher,authentication,power,beacons,IV,LAN_IP,ID_length,ESSID,passphrase,standard \
   ${SOURCE_HOSTNAME} \
   ${DIR_MYSQL}/AccessPoints.${RAND}.csv
       
@@ -197,7 +207,7 @@ function import_wlan() {
   --fields-terminated-by='|~|' \
   --lines-terminated-by='\n' \
   --ignore-lines=1 \
-  --columns=station_MAC,first_time_seen,last_time_seen,power,packets,probed_ESSIDs \
+  --columns=station_MAC,first_time_seen,last_time_seen,power,packets,probed_ESSIDs,standard \
   ${SOURCE_HOSTNAME} \
   ${DIR_MYSQL}/Clients.${RAND}.csv
       
@@ -387,6 +397,73 @@ do
           ;;
         2)
           log_server_import "failed import" "wlan" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          # remove runtime files
+          echo "Removing runtime files..."
+          rm ${LOG_FILE}*
+          rm ${DIR_MYSQL}/AccessPoints.${RAND}.csv
+          rm ${DIR_MYSQL}/Clients.${RAND}.csv
+          ;;
+        esac
+
+      if [[ -z "$4" ]] || [[ "$4" = -* ]];
+      then
+        shift 3
+      else
+        shift 4
+      fi
+      ;;
+    
+    -w5|--wlan5)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###)
+      # $3 - log number (aircrack-ng-##.csv)
+      # $4 - [IP address of remote monitoring device] (optional)
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+      
+      # check if argument $3 empty
+      if [[ -z "$3" ]] || [[ "$3" = -* ]];
+      then
+        echo "ERROR: invalid argument '${3}' for option ${1}!"
+        print_usage
+        break
+      fi
+      
+      # check optional argument $4
+      if [[ -z "$4" ]] || [[ "$4" = -* ]];
+      then
+        import_wlan "a" $2 $3
+      else
+        import_wlan "a" $2 $3 $4
+      fi
+
+      RET_VAL=$?
+      
+      # import_wlan return:
+      # 0 - successfully finished
+      # 1 - copy command failed
+      # 2 - mysqlimport failed
+      echo "[$(timestamp)] writing database import log entry to '${DIR_SERVER_LOGS}/${LOG_SERVER_IMPORT}.log'..."
+      case $RET_VAL in
+        0)
+          log_server_import "successful" "wlan5" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          # remove runtime files
+          echo "Removing runtime files..."
+          rm ${LOG_FILE}*
+          rm ${DIR_MYSQL}/AccessPoints.${RAND}.csv
+          rm ${DIR_MYSQL}/Clients.${RAND}.csv
+          ;;
+        1)
+          log_server_import "failed copy" "wlan5" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
+          ;;
+        2)
+          log_server_import "failed import" "wlan5" "${SOURCE_HOSTNAME}" "${LOG_SOURCE}"
           # remove runtime files
           echo "Removing runtime files..."
           rm ${LOG_FILE}*

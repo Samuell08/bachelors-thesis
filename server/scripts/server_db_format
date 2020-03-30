@@ -2,7 +2,7 @@ CREATE TABLE AccessPoints(
 BSSID CHAR(17),
 first_time_seen TIMESTAMP,
 last_time_seen TIMESTAMP,
-channel TINYINT,
+channel SMALLINT,
 speed SMALLINT,
 privacy VARCHAR(20),
 cipher VARCHAR(20),
@@ -14,6 +14,7 @@ LAN_IP VARCHAR(15),
 ID_length TINYINT,
 ESSID VARCHAR(127),
 passphrase VARCHAR(127),
+standard VARCHAR(3),
 PRIMARY KEY(BSSID,last_time_seen)
 );
 
@@ -24,6 +25,7 @@ last_time_seen TIMESTAMP,
 power TINYINT,
 packets INT,
 probed_ESSIDs VARCHAR(1023),
+standard VARCHAR(3),
 PRIMARY KEY(station_MAC,last_time_seen)
 );
 
