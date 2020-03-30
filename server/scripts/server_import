@@ -64,9 +64,10 @@ print_usage
 }
 
 function import_wlan() {
-  # first  argument - hostname ending (rpi_mon_###) (database name)
-  # second argument - log number (aircrack-ng-##.csv)
-  # third  argument - IP address of source (optional)
+  # first  argument - wlan standard (a/bg)
+  # second argument - hostname ending (rpi_mon_###) (database name)
+  # third  argument - log number (aircrack-ng-##.csv)
+  # fourth argument - IP address of source (optional)
   # return 0 - function finished
   # return 1 - copy command failed
   # return 2 - mysqlimport failed
@@ -85,7 +86,7 @@ function import_wlan() {
   CP_LOG_FROM=""
   CP_LOG_TO=""
   LOG_FILE=""
-  SOURCE_HOSTNAME="rpi_mon_${1}"
+  SOURCE_HOSTNAME="rpi_mon_${2}"
 
   # check if mysql password passed as -a argument
   if [[ "${MYSQL_SECRET}" == "" ]];
@@ -100,20 +101,20 @@ function import_wlan() {
   
   ##
   # copy to local mysql dir
-  LOG_FILE="${DIR_MYSQL}/${LOG_NODE_AIRODUMP}-${2}.${RAND}"
+  LOG_FILE="${DIR_MYSQL}/${LOG_NODE_AIRODUMP}-${3}.${RAND}"
 
   if [ "$3" == "" ];
   then
     # local copy
-    CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${2}.csv"
+    CP_LOG_FROM="${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${3}.csv"
     CP_LOG_TO="${LOG_FILE}.csv"
     LOG_SOURCE="${CP_LOG_FROM}"
     echo "Copying local log file from: '${CP_LOG_FROM}' to: '${CP_LOG_TO}'..."
     cp "${CP_LOG_FROM}" "${CP_LOG_TO}"
   else
     # remote copy
-    CP_LOG_FROM="pi@${3}:${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${2}.csv"
-    CP_LOG_TO="/tmp/${LOG_NODE_AIRODUMP}-${2}.${RAND}.csv"
+    CP_LOG_FROM="pi@${4}:${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}-${3}.csv"
+    CP_LOG_TO="/tmp/${LOG_NODE_AIRODUMP}-${3}.${RAND}.csv"
     LOG_SOURCE="${CP_LOG_FROM}"
     echo "Copying remote log file from: '${CP_LOG_FROM}' to temporary location: '${CP_LOG_TO}'..."
     sudo -u pi scp "${CP_LOG_FROM}" "${CP_LOG_TO}"
@@ -168,7 +169,7 @@ function import_wlan() {
   
   ##    
   # database querry
-  echo "Importing extracted data into database 'rpi_mon_${1}'..."
+  echo "Importing extracted data into database 'rpi_mon_${2}'..."
   mysqlimport -u ${SERVER_DB_MON_USER} -p${MYSQL_SECRET} \
   --verbose \
   --low-priority \
@@ -360,9 +361,9 @@ do
       # check optional argument $4
       if [[ -z "$4" ]] || [[ "$4" = -* ]];
       then
-        import_wlan $2 $3
+        import_wlan "bg" $2 $3
       else
-        import_wlan $2 $3 $4
+        import_wlan "bg" $2 $3 $4
       fi
 
       RET_VAL=$?
