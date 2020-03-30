@@ -280,6 +280,7 @@ EOF
   
   # write server import period information to HTML var
   echo "Writing ${DIR_HTML_VAR}/rpi_mon_${IMPORT_SOURCE}_${HTML_VAR_SERVER_IMPORT}..."
+  mkdir -p ${DIR_HTML_VAR}
   echo "${VAR_IMPORT_PERIOD}" > "${DIR_HTML_VAR}/rpi_mon_${IMPORT_SOURCE}_${HTML_VAR_SERVER_IMPORT}"
 
   return 0

@@ -138,6 +138,7 @@ function write_service_bt() {
     echo "Bluelog amnesia set to ${bt_amnesia} minutes!"
     # write bt_amnesia to HTML var
     echo "Writing Bluelog amnesia setting to ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
+    mkdir -p ${DIR_HTML_VAR}
     echo "${bt_amnesia}" > "${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
 
   fi
