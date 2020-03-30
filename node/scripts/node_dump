@@ -52,7 +52,7 @@ EOF
 function print_help() {
 cat <<EOF
   
-NODE START MONITORING
+NODE: START MONITORING
 
 This command is used to start monitoring and dumping log files with
 specified bluetooth/wlan interface(s). Wlan interfaces will be put into
@@ -73,8 +73,8 @@ before starting monitoring.
 Processes spawned by this script will be run in background with output
 redirected to /dev/null. Only logs that they create will be preserved.
 
-log location:     $DIR_NODE_LOGS
-Bluelog location: $DIR_NODE_BLUELOG
+Log location:         $DIR_NODE_LOGS
+Bluelog location:     $DIR_NODE_BLUELOG
 
 2.4GHz wlan log name: $LOG_NODE_AIRODUMP
 5GHz wlan log name:   $LOG_NODE_AIRODUMP_5GHZ

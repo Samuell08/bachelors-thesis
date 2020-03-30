@@ -54,7 +54,7 @@ EOF
 function print_help() { 
 cat << EOF
 
-SERVER MANAGE SYSTEMD SERVICES
+SERVER: MANAGE SYSTEMD IMPORT SERVICES
 
 This command is used to control automatic database import service timers.
 It can start/stop automatic database import through systemd service timer,
@@ -62,12 +62,12 @@ enable/disable automatic start of this service timer at system boot or
 show current status of specified service timer. Timer will wait for 30
 seconds before first import.
 
-For more information about automatic database import use server_auto --help
+For more information about automatic database import try using 'server_auto --help'.
 
-systemd directory:  ${DIR_SYSTEMD_SERVICE}
+Systemd directory:   ${DIR_SYSTEMD_SERVICE}
 
-name of automatic database import timer service:  ${SERVICE_SERVER_AUTO}_###.timer
-name of automatic database import service:        ${SERVICE_SERVER_AUTO}_###.service
+Import timer name:   ${SERVICE_SERVER_AUTO}_<hostname>.timer
+Import service name: ${SERVICE_SERVER_AUTO}_<hostname>.service
 
 Location cannot be altered because scripts on this or remote device
 might be depending on it!

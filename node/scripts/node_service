@@ -55,22 +55,22 @@ EOF
 function print_help() { 
 cat <<EOF
 
-NODE MANAGE SYSTEMD SERVICES
+NODE: MANAGE SYSTEMD SERVICES
 
 This command is used to start/stop monitoring through systemd service,
 to enable/disable automatic start of this service at system boot or to
 show current status of specified service.
 
-For more information about monitoring try using node_dump --help
-For more information about systemd services try using node_cs --help
+For more information about monitoring try using 'node_dump --help'.
+For more information about systemd services try using 'node_cs --help'.
 
 There is separate option for 2.4GHz and 5GHz wlan interfaces (-w and -w5).
 
-systemd directory: ${DIR_SYSTEMD_SERVICE}
+Systemd directory:        ${DIR_SYSTEMD_SERVICE}
 
-name of 2.4GHz wlan service: ${SERVICE_NODE_WLAN}
-name of 5GHz wlan service:   ${SERVICE_NODE_WLAN_5GHZ}
-name of bluetooth service:   ${SERVICE_NODE_BT}
+2.4GHz wlan service name: ${SERVICE_NODE_WLAN}
+5GHz wlan service name:   ${SERVICE_NODE_WLAN_5GHZ}
+Bluetooth service name:   ${SERVICE_NODE_BT}
 
 Location cannot be altered because scripts on this or remote device
 might be depending on it!

@@ -45,7 +45,7 @@ EOF
 function print_help() {
 cat <<EOF
 
-NODE CREATE MONITORING SYSTEMD SERVICE
+NODE: CREATE MONITORING SYSTEMD SERVICE
 
 This command is used to create systemd service for specified wlan or bluetooth
 interface. It will create .service file in systemd directory. This created
@@ -53,7 +53,7 @@ service will handle node_dump script calling at startup or for current
 session which can be controlled by node_service script. Service must be
 enabled/started manually with node_service script after creation.
 
-For more information try using node_dump --help.
+For more information try using 'node_dump --help'.
 
 There is separate option for 2.4GHz and 5GHz wlan interfaces (-w and -w5).
 
@@ -61,11 +61,11 @@ Note that the node_dump script started by this service will sleep for $DUMP_SLEE
 (defined in node_var) before starting monitoring. This ensures correct
 execution of node_dump script after boot.
 
-systemd directory: ${DIR_SYSTEMD_SERVICE}
+Systemd directory:        ${DIR_SYSTEMD_SERVICE}
 
-name of 2.4GHz wlan service: ${SERVICE_NODE_WLAN}
-name of 5GHz wlan service:   ${SERVICE_NODE_WLAN_5GHZ}
-name of bluetooth service:   ${SERVICE_NODE_BT}
+2.4GHz wlan service name: ${SERVICE_NODE_WLAN}
+5GHz wlan service name:   ${SERVICE_NODE_WLAN_5GHZ}
+Bluetooth service name:   ${SERVICE_NODE_BT}
 
 Location cannot be altered because scripts on this or remote device
 might be depending on it!

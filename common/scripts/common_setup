@@ -64,7 +64,7 @@ EOF
 function print_help() {
 cat <<EOF
 
-NODE SETUP MONITORING ENVIRONMENT
+COMMON: SETUP MONITORING ENVIRONMENT
 
 This command is used to setup everything needed for monitoring node and server.
 To copy directory tree from USB drive name of the USB drive needs to be specified

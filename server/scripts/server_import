@@ -21,7 +21,13 @@ Usage:
 Options:
 
     -w, --wlan HOSTNAME LOG_NUMBER [IP_ADDRESS]
-      Import airodump-ng log with specified number from device with specified
+      Import ${LOG_NODE_AIRODUMP} log with specified number from device with specified
+      hostname and optionally IP address.
+      Argument hostname will be prefixed with 'rpi_mon_', therefore ONLY last
+      bit of hostname needs to be specified (eg. node_1).
+
+    -w5, --wlan5 HOSTNAME LOG_NUMBER [IP_ADDRESS]
+      Import ${LOG_NODE_AIRODUMP_5GHZ} log with specified number from device with specified
       hostname and optionally IP address.
       Argument hostname will be prefixed with 'rpi_mon_', therefore ONLY last
       bit of hostname needs to be specified (eg. node_1).
@@ -38,7 +44,8 @@ Options:
 Examples:
 
   server_import -w node_1 01
-  server_import -b 192.168.0.31 -w node_2 03 192.168.0.31
+  server_import -w5 node_1 01
+  server_import -b node_1 192.168.0.31 -w node_2 01 192.168.0.31
 
 EOF
 }
@@ -46,15 +53,20 @@ EOF
 function print_help() {
 cat <<EOF
 
-SERVER IMPORT DATA FROM MONITORING LOGS INTO DATABASE
+SERVER: IMPORT DATA FROM MONITORING NODE LOGS INTO DATABASE
 
-This command is used to import data from monitoring logs into MySQL database.
-It can import logs from both local and remote monitoring devices. Suitable
-database must exist prior to calling this script (try server_db --help).
+This command is used to import data from monitoring node logs into MySQL
+database. It can import logs from both local and remote monitoring devices.
+Suitable database must exist prior to calling this script.
 
-server log directory:  ${DIR_SERVER_LOGS}
+For more information try using 'server_db --help'.
 
-name of log file for server imports:  ${LOG_SERVER_IMPORT}
+Server log directory:          ${DIR_SERVER_LOGS}
+Monitoring node log directory: $DIR_NODE_LOGS
+
+Server imports log name:       ${LOG_SERVER_IMPORT}
+2.4GHz wlan log name:          $LOG_NODE_AIRODUMP
+5GHz wlan log name:            $LOG_NODE_AIRODUMP_5GHZ
 
 Location cannot be altered because scripts on this or remote device
 might be depending on it!
@@ -160,6 +172,7 @@ function import_wlan() {
   sed -n $SED_STRING ${LOG_FILE}.csv > ${LOG_FILE}-AccessPoints.csv
       
   # parse AccessPoints into custom csv
+  # insert wlan standard to last column
   echo "Parsing extracted AccessPoints log file into csv..."
   awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,"'${1}'"}' \
   ${LOG_FILE}-AccessPoints.csv > ${DIR_MYSQL}/AccessPoints.${RAND}.csv
@@ -173,6 +186,7 @@ function import_wlan() {
   sed -n $SED_STRING ${LOG_FILE}.csv > ${LOG_FILE}-Clients.csv
       
   # parse Clients into custom csv
+  # insert wlan standard to last column
   echo "Parsing extracted Clients log file into csv..."
   awk -F', ' 'BEGIN{OFS="|~|"} {print $1,$2,$3,$4,$5,$6,"'${1}'"}' \
   ${LOG_FILE}-Clients.csv > ${DIR_MYSQL}/Clients.${RAND}.csv

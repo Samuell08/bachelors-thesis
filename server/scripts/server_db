@@ -40,7 +40,7 @@ EOF
 function print_help() {
 cat <<EOF
 
-SERVER DATABASE MANAGEMENT
+SERVER: DATABASE MANAGEMENT
 
 This command is used to manage MySQL databases. It can be used to create or
 drop (remove) database for any device (hostname). Every database must have
@@ -49,9 +49,7 @@ monitoring logs. Format of database tables is stored in a separate file.
 
 MySQL password prompt is necessary to create or drop any database.
 
-name of database tables format file:  ${SERVER_DB_FORMAT}
-
-location of format file:  ${DIR_SERVER_SCRIPTS}
+Database format file location: ${DIR_SERVER_SCRIPTS}/${SERVER_DB_FORMAT}
 
 Location cannot be altered because scripts on this or remote device
 might be depending on it!

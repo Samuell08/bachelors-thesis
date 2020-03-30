@@ -45,12 +45,12 @@ EOF
 function print_help() {
 cat <<EOF
 
-NODE MANAGE UDEV RULES
+NODE: MANAGE UDEV RULES
 
 This command is used to manage supported udev rules. Supported udev
 rules are defined in node_var.
 
-udev rules directory: ${DIR_UDEV_RULES}
+Udev rules directory: ${DIR_UDEV_RULES}
 
 List of supported udev rules:
 
