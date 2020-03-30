@@ -32,7 +32,7 @@ Options:
       
     -d,--device HOSTNAME
       Hostname of monitoring device from which log files will be imported to
-      MySQL database (stored on this device).
+      MySQL database with the same name (stored on this device).
       Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
       hostname needs to be specified (eg. node_1)
 
@@ -189,7 +189,7 @@ function write_service {
   # check options
   if [[ -z "$IMPORT_PERIOD" ]];
   then
-    echo "ERROR: missing import period option! (-s, -m or -h)"
+    echo "ERROR: missing import period option! (-s | -m | -h)"
     return 2
   fi
 
@@ -199,9 +199,9 @@ function write_service {
     return 2
   fi
 
-  if [[ -z "$IMPORT_BT" ]] && [[ -z "$IMPORT_WLAN" ]];
+  if [[ -z "$IMPORT_BT" ]] && [[ -z "$IMPORT_WLAN" ]] && [[ -z "$IMPORT_WLAN_5GHZ" ]];
   then
-    echo "ERROR: missing log type option! (-w and/or -b)"
+    echo "ERROR: missing log type option! (-w | -w5 | -b)"
     return 2
   fi
 
@@ -214,6 +214,11 @@ function write_service {
   if [[ ! -z "$IMPORT_WLAN" ]];
   then
     IMPORT_STRING="${IMPORT_STRING}-w ${IMPORT_SOURCE} ${IMPORT_WLAN} ${IMPORT_ADDRESS}"
+  fi
+
+  if [[ ! -z "$IMPORT_WLAN_5GHZ" ]];
+  then
+    IMPORT_STRING="${IMPORT_STRING}-w5 ${IMPORT_SOURCE} ${IMPORT_WLAN_5GHZ} ${IMPORT_ADDRESS}"
   fi
 
   # mysql password prompt
@@ -353,6 +358,22 @@ do
       fi
 
       IMPORT_WLAN="$2"
+      shift 2
+      ;;
+    
+    -w5|--wlan5)
+      # arguments
+      # $2 - log number (aircrack-ng-##.csv)
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+
+      IMPORT_WLAN_5GHZ="$2"
       shift 2
       ;;
     
