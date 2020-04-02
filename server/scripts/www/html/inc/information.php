@@ -15,7 +15,7 @@ $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass);
 // Database Size(s)
 echo "Database Sizes(s)<br>";
 // form sending 'delete 'buttons to PHP script db_delete.php
-echo "<form method=\"post\" action=\"inc/db_delete.php\">";
+echo "<form method=\"post\" action=\"confirm.php\">";
   echo "<table class=\"info\">";
 
   if (!$db_conn_s) {

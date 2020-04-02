@@ -9,23 +9,17 @@ $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
 
 // RECEIVE DELETE FORM
-// both can contain name of database to delete from (eg. rpi_mon_node_1)
-$db_delete      = $_POST["db_delete"];
+// contains name of database to delete data from (eg. rpi_mon_node_1)
 $db_delete_all  = $_POST["db_delete_all"];
 
-// drop entries older than # 
-//if($db_delete != ""){};
-
 // drop all entries
-if($db_delete_all != ""){
-  // DB conn with database specified
-  $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_delete_all);
-  $db_q      = "DELETE FROM AccessPoints;
-                DELETE FROM Clients;
-                DELETE FROM Bluetooth;";
-  mysqli_multi_query($db_conn_s, $db_q);
-}
+// DB conn with database specified
+$db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_delete_all);
+$db_q      = "DELETE FROM AccessPoints;
+              DELETE FROM Clients;
+              DELETE FROM Bluetooth;";
+mysqli_multi_query($db_conn_s, $db_q);
 
 // jump back to caller website
-header("Location: " . $_SERVER['HTTP_REFERER']);
+echo "<script> window.history.go(-2); </script>"
 ?>
