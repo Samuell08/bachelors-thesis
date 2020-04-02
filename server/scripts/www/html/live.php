@@ -187,28 +187,6 @@ $_SESSION["updateInterval"] = 30000;
         </div>
       </div>
       
-      <!-- DEBUG
-      <div class="div_debug">
-        <hr><h2>Debug</h2>
-        <div class="div_content">
-          This file: <?php echo $_SERVER['PHP_SELF']?><br><br>
-
-          MySQL connection information: <?php echo mysqli_get_host_info($db_conn)?><br>
-          MySQL connection error:       <?php echo mysqli_connect_error()?><br><br>
-
-          <i>Settings form:</i><br>
-          DB Source:                <?php echo var_dump($db_source)?><br>
-          DB Password:              <?php echo $db_pass?><br>
-          Time Period:              <?php echo $timeperiod?><br>
-          Time Period Format:       <?php echo $timeperiod_format?><br>
-          Refresh Interval:         <?php echo $refresh?><br>
-          Refresh Interval Format:  <?php echo $refresh_format ?><br>
-          Show Data Wi-Fi:          <?php echo $showwlan?><br>
-          Show Data Bluetooth:      <?php echo $showbt?>
-        </div>
-      </div>
-      -->
-
       <!-- FOOTER -->
       <div class="div_foot">
         <hr>
