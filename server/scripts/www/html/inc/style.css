@@ -98,6 +98,12 @@ button:active {
   text-align: center;        
 }
 
+.div_confirm {
+  padding: 0px 20px 0px 20px;
+  margin: 10px;
+  text-align: center;        
+}
+
 .div_content {
   padding: 0px 20px 5px 20px;
 }

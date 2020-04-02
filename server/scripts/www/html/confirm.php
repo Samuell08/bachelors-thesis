@@ -46,7 +46,7 @@ $db_delete_all  = $_POST["db_delete_all"];
       </div>
 
       <!-- CONFIRM -->
-      <div class="div_confirm" style="text-align:center">
+      <div class="div_confirm">
       <h2>Are you sure you want to delete all data from database <?php echo $db_delete_all ?>?</h2>
         <div class="div_content">
           
