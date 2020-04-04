@@ -169,7 +169,7 @@ if ($db_source == NULL) {
   $_SESSION["chart_bt"] = $chart_bt;
 
   // write updated chart arrays to json files
-  $json_dir = "../json";
+  $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
   $f_bot = fopen($json_dir . "/chart_wifi_bot_" . $session_id, "w");
   $f_top = fopen($json_dir . "/chart_wifi_top_" . $session_id, "w");

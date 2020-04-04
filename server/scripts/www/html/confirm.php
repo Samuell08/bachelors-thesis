@@ -31,7 +31,7 @@ $db_delete_all  = $_POST["db_delete_all"];
     
     <!-- CSS style -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:600|Roboto:400">
-    <link rel="stylesheet" type="text/css" href="inc/style.css">
+    <link rel="stylesheet" type="text/css" href="inc/common/style.css">
   
   </head>
   <body onload="updateAll()">
@@ -54,7 +54,7 @@ $db_delete_all  = $_POST["db_delete_all"];
         <p class="warning">All records of device movement will be lost!<p>
         
           <div class="div_subcontent">
-            <form method="post" action="inc/db_delete.php">
+            <form method="post" action="inc/common/db_delete.php">
               <br><button type="submit" name="db_delete_all" value="<?php echo $db_delete_all ?>" style="color:red">Confirm</button>
             </form>
           </div>

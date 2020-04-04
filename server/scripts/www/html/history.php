@@ -56,10 +56,10 @@ $_SESSION["chart_bt"] = array();
     
     <!-- CSS style -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:600|Roboto:400">
-    <link rel="stylesheet" type="text/css" href="inc/style.css">
+    <link rel="stylesheet" type="text/css" href="inc/common/style.css">
 
     <!-- JavaScript -->
-    <script src="inc/js/chart_history.js"></script>
+    <script src="inc/range/js/chart_history.js"></script>
     <script>
 
       function toggle_ib_bt_data(){
@@ -85,7 +85,7 @@ $_SESSION["chart_bt"] = array();
             document.getElementById("info").innerHTML = this.responseText;
           }
         };
-        xmlhttp.open("GET", "inc/information.php", true);
+        xmlhttp.open("GET", "inc/common/information.php", true);
         xmlhttp.send();
       }      
       
@@ -96,7 +96,7 @@ $_SESSION["chart_bt"] = array();
             document.getElementById("textout").innerHTML = this.responseText;
           }
         };
-        xmlhttp.open("GET", "inc/textout_history.php", true);
+        xmlhttp.open("GET", "inc/range/textout_history.php", true);
         xmlhttp.send();
       }      
       
@@ -129,16 +129,16 @@ $_SESSION["chart_bt"] = array();
 
           <span class="lh_other"><a href="live.php">Live data</a></span> | <span class="lh_current">History</span>
 
-          <br><img src="inc/img/history.svg" style="width:90%;margin:70px auto 20px auto;display:block;">
+          <br><img src="inc/range/img/history.svg" style="width:90%;margin:70px auto 20px auto;display:block;">
 
           <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
 
             <div class="div_subcontent">
               <?php
                 $settingsok="0";
-                include 'inc/settings.php';
+                include 'inc/range/settings.php';
                 if(!$settingsok == "1") {
-                  echo "<p class=\"error\">ERROR: failed to load settings.php - page will not be able to process Settings form</p>";
+                  echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";
                 }
               ?>
             </div>
@@ -198,7 +198,7 @@ $_SESSION["chart_bt"] = array();
         <div id="chartContainer" style="height: 370px; width: 100%;">
           Loading...
         </div>
-        <script src="inc/js/canvasjs.min.js"></script>
+        <script src="inc/common/js/canvasjs.min.js"></script>
         <div class="div_content">
           <br><button onclick="updateChart()">Update Chart</button><br>
           <p class="info_box">Chart needs to be updated manually <b>after</b> Text output is loaded.</p>

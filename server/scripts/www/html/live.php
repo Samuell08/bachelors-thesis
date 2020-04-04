@@ -54,10 +54,10 @@ $_SESSION["updateInterval"] = 30000;
     
     <!-- CSS style -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:600|Roboto:400">
-    <link rel="stylesheet" type="text/css" href="inc/style.css">
+    <link rel="stylesheet" type="text/css" href="inc/common/style.css">
 
     <!-- JavaScript -->
-    <script src="inc/js/chart_live.js"></script>
+    <script src="inc/range/js/chart_live.js"></script>
     <script>
       
       var updateInterval = <?php echo $_SESSION["updateInterval"]?>; 
@@ -85,7 +85,7 @@ $_SESSION["updateInterval"] = 30000;
             document.getElementById("info").innerHTML = this.responseText;
           }
         };
-        xmlhttp.open("GET", "inc/information.php", true);
+        xmlhttp.open("GET", "inc/common/information.php", true);
         xmlhttp.send();
       }      
       
@@ -96,7 +96,7 @@ $_SESSION["updateInterval"] = 30000;
             document.getElementById("textout").innerHTML = this.responseText;
           }
         };
-        xmlhttp.open("GET", "inc/textout_live.php", true);
+        xmlhttp.open("GET", "inc/range/textout_live.php", true);
         xmlhttp.send();
       }      
       
@@ -137,9 +137,9 @@ $_SESSION["updateInterval"] = 30000;
             <div class="div_subcontent">
               <?php
                 $settingsok="0";
-                include 'inc/settings.php';
+                include 'inc/range/settings.php';
                 if(!$settingsok == "1") {
-                  echo "<p class=\"error\">ERROR: failed to load settings.php - page will not be able to process Settings form</p>";
+                  echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";
                 }
               ?>
             </div>
@@ -176,7 +176,7 @@ $_SESSION["updateInterval"] = 30000;
         <div id="chartContainer" style="height: 370px; width: 100%;">
           Loading...
         </div>
-        <script src="inc/js/canvasjs.min.js"></script>
+        <script src="inc/common/js/canvasjs.min.js"></script>
       </div>
 
       <!-- TEXT OUTPUT -->

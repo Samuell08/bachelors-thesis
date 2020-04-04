@@ -21,7 +21,7 @@ $_SESSION["hostname"] = $hostname;
     
     <!-- CSS style -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:500|Roboto:400">
-    <link rel="stylesheet" type="text/css" href="inc/style.css">
+    <link rel="stylesheet" type="text/css" href="inc/common/style.css">
   
   </head>
   <body>
@@ -46,9 +46,9 @@ $_SESSION["hostname"] = $hostname;
 
         <?php
           $loginok="0";
-          include 'inc/login.php';
+          include 'inc/common/login.php';
           if(!$loginok == "1") {
-            echo "<p class=\"error\">FATAL ERROR: failed to load login.php - page is not be able to login to database</p>";
+            echo "<p class=\"error\">FATAL ERROR: failed to load login script - page cannot login to database</p>";
           }
 
           // warning redirect handling

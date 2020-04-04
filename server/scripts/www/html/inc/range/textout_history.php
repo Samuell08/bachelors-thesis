@@ -211,7 +211,7 @@ if ($db_source == NULL) {
     } // end of foreach DB
 
   // write completed chart arrays to json files
-  $json_dir = "../json";
+  $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
   $f_bot_history = fopen($json_dir . "/chart_wifi_bot_history_" . $session_id, "w");
   $f_top_history = fopen($json_dir . "/chart_wifi_top_history_" . $session_id, "w");
