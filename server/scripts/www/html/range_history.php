@@ -147,7 +147,7 @@ if (file_exists("var/bt_amnesia")) {
             <div class="div_subcontent">
               <?php
                 $settingsok="0";
-                include 'inc/range/settings.php';
+                include 'inc/range/settings_history.php';
                 include 'inc/common/settings.php';
                 if(!$settingsok == "1") {
                   echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";
