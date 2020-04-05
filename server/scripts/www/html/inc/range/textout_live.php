@@ -163,11 +163,6 @@ if ($db_source == NULL) {
   array_push($chart_wifi_top, array("x" => $current_time, "y" => $fingerprints_count));
   array_push($chart_bt, array("x" => $current_time, "y" => $bt_total));
 
-  // save updated chart arrays to session
-  $_SESSION["chart_wifi_bot"] = $chart_wifi_bot;
-  $_SESSION["chart_wifi_top"] = $chart_wifi_top;
-  $_SESSION["chart_bt"] = $chart_bt;
-
   // write updated chart arrays to json files
   $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
@@ -180,6 +175,11 @@ if ($db_source == NULL) {
   fclose($f_bot);
   fclose($f_top);
   fclose($f_bt);
+  
+  // save updated chart arrays to session
+  $_SESSION["chart_wifi_bot"] = $chart_wifi_bot;
+  $_SESSION["chart_wifi_top"] = $chart_wifi_top;
+  $_SESSION["chart_bt"] = $chart_bt;
 }
 
 ?>

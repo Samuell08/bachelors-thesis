@@ -21,10 +21,6 @@ $time_from          = $_SESSION["time_from"];
 $time_to            = $_SESSION["time_to"];
 $time_step          = $_SESSION["time_step"];
 $time_step_format   = $_SESSION["time_step_format"];
-// chart arrays
-$chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
-$chart_wifi_top     = $_SESSION["chart_wifi_top"];
-$chart_bt           = $_SESSION["chart_bt"];
 
 // functions
 function is_anagram($string1, $string2) {
@@ -109,8 +105,8 @@ if ($db_source == NULL) {
           mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
-          $chart_wifi_bot[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_bot[$i]["y"] += $mac_glbl;
+          $chart_wifi_bot_history[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_bot_history[$i]["y"] += $mac_glbl;
 
           // increment counters
           $i += 1;
@@ -166,8 +162,8 @@ if ($db_source == NULL) {
           $fingerprints_count = (count($fingerprints) > 0) ? count($fingerprints) : 0;
 
           // push new data into chart arrays
-          $chart_wifi_top[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_top[$i]["y"] += $fingerprints_count;
+          $chart_wifi_top_history[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_top_history[$i]["y"] += $fingerprints_count;
 
           // increment counters
           $i += 1;
@@ -199,8 +195,8 @@ if ($db_source == NULL) {
           mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
-          $chart_bt[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_bt[$i]["y"] += $bt_total;
+          $chart_bt_history[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_bt_history[$i]["y"] += $bt_total;
 
           // increment counters
           $i += 1;
@@ -216,9 +212,9 @@ if ($db_source == NULL) {
   $f_bot_history = fopen($json_dir . "/chart_wifi_bot_history_" . $session_id, "w");
   $f_top_history = fopen($json_dir . "/chart_wifi_top_history_" . $session_id, "w");
   $f_bt_history  = fopen($json_dir . "/chart_bt_history_" . $session_id, "w");
-  fwrite($f_bot_history, json_encode($chart_wifi_bot));
-  fwrite($f_top_history, json_encode($chart_wifi_top));
-  fwrite($f_bt_history, json_encode($chart_bt));
+  fwrite($f_bot_history, json_encode($chart_wifi_bot_history));
+  fwrite($f_top_history, json_encode($chart_wifi_top_history));
+  fwrite($f_bt_history, json_encode($chart_bt_history));
   fclose($f_bot_history);
   fclose($f_top_history);
   fclose($f_bt_history);

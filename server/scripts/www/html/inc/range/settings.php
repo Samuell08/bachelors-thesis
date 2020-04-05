@@ -29,14 +29,14 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_step_format   = $_GET["time_step_format"];
   
   // default values
-  if ($timeperiod == "") { $timeperiod = 15; }
-  if ($timeperiod_format == "") { $timeperiod_format = "MINUTE"; }
   $today = date('Y-m-d');
-  $now = date('H:i:s');
-  if ($time_from == "") { $time_from = "$today" . " 04:00:00"; }
-  if ($time_to == "") { $time_to = "$today" . " $now"; }
-  if ($time_step == "") { $time_step = 1; }
-  if ($time_step_format == "") { $time_step_format = "MINUTE"; }
+  $now   = date('H:i:s');
+  if ($timeperiod == "")        { $timeperiod = 15; }
+  if ($timeperiod_format == "") { $timeperiod_format = "MINUTE"; }
+  if ($time_from == "")         { $time_from = "$today" . " 04:00:00"; }
+  if ($time_to == "")           { $time_to = "$today" . " $now"; }
+  if ($time_step == "")         { $time_step = 1; }
+  if ($time_step_format == "")  { $time_step_format = "MINUTE"; }
   
   // store variables in session
   $_SESSION["db_source"]          = $db_source;
@@ -49,34 +49,4 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_step"]          = $time_step;
   $_SESSION["time_step_format"]   = $time_step_format;
 }
-
-// DYNAMIC FORM PART
-// Select Source Database(s)
-echo "<b>Select Source Database(s)</b><br>";
-echo "<table class=\"form\">";
-
-if (!$db_conn) {
-  echo "<tr><td>" . "<p class=\"error\">Database not connected!</p>" . "</td></tr>";
-} else {
-  $db_q = "SHOW DATABASES LIKE 'rpi_mon_%';";
-  $db_result = mysqli_query($db_conn, $db_q);
-  
-  if (mysqli_num_rows($db_result) > 0) {
-    while ($db_row = mysqli_fetch_assoc($db_result)) {
-      // table row checkbox
-      echo "<tr><td>" . "<input type=\"checkbox\" name=\"db_source[]\" value=\"" . $db_row["Database (rpi_mon_%)"] . "\"";
-        // keep checked?
-        foreach ($db_source as $key => $val) {
-          if ($val == $db_row["Database (rpi_mon_%)"]) { echo "checked"; }
-        }
-      echo ">" . "</td>";
-      // table row name
-      echo "<td>" . $db_row["Database (rpi_mon_%)"] . "</td></tr>";
-    }
-  } else {
-    echo "<tr><td>" . "0 available databases" . "</td></tr>";
-  }
-}
-
-echo "</table>";
 ?>

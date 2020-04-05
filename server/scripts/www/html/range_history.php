@@ -37,11 +37,6 @@ if (file_exists("var/bt_amnesia")) {
                   Bluetooth monitoring data will show only <b>newly discovered</b> Bluetooth
                   devices within set Time Period.";
 }
-
-// initialize chart arrays
-$_SESSION["chart_wifi_bot"] = array();
-$_SESSION["chart_wifi_top"] = array();
-$_SESSION["chart_bt"] = array();
 ?>
 
 <!DOCTYPE html>
@@ -153,6 +148,7 @@ $_SESSION["chart_bt"] = array();
               <?php
                 $settingsok="0";
                 include 'inc/range/settings.php';
+                include 'inc/common/settings.php';
                 if(!$settingsok == "1") {
                   echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";
                 }
