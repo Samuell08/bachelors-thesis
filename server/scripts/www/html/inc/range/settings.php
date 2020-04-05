@@ -1,6 +1,6 @@
 <?php
 // SETTINGS.php
-// PHP code to be expanded in live.php and history.php
+// PHP code to be expanded in range_live.php and range_history.php
 
 $settingsok = "1";
 

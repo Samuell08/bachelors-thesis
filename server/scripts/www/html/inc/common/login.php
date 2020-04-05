@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION["db_server"]  = $db_server;
     $_SESSION["db_user"]    = $db_user;
     $_SESSION["db_pass"]    = $db_pass;
-    header("Location: live.php");
+    header("Location: range_live.php");
   }
 }
 ?>

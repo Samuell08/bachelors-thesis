@@ -10,10 +10,6 @@ $hostname   = $_SESSION["hostname"];
 
 $db_source  = $_SESSION["db_source"];
 $timeperiod = $_SESSION["timeperiod"];
-$time_from  = $_SESSION["time_from"];
-$time_to    = $_SESSION["time_to"];
-$time_step  = $_SESSION["time_step"];
-$time_step_format = $_SESSION["time_step_format"];
 
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
@@ -42,12 +38,14 @@ if (file_exists("var/bt_amnesia")) {
 $_SESSION["chart_wifi_bot"] = array();
 $_SESSION["chart_wifi_top"] = array();
 $_SESSION["chart_bt"] = array();
+
+$_SESSION["updateInterval"] = 30000;
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- HISTORY.php -->
+<!-- LIVE.php -->
 
   <head>
     
@@ -59,8 +57,10 @@ $_SESSION["chart_bt"] = array();
     <link rel="stylesheet" type="text/css" href="inc/common/style.css">
 
     <!-- JavaScript -->
-    <script src="inc/range/js/chart_history.js"></script>
+    <script src="inc/range/js/chart_live.js"></script>
     <script>
+      
+      var updateInterval = <?php echo $_SESSION["updateInterval"]?>; 
 
       function toggle_ib_bt_data(){
         if (document.getElementById("chckb_bt_data").checked == true) {
@@ -96,9 +96,12 @@ $_SESSION["chart_bt"] = array();
             document.getElementById("textout").innerHTML = this.responseText;
           }
         };
-        xmlhttp.open("GET", "inc/range/textout_history.php", true);
+        xmlhttp.open("GET", "inc/range/textout_live.php", true);
         xmlhttp.send();
       }      
+      
+      // timers
+      setInterval(function(){updateTextout();}, updateInterval);
       
     </script>
   
@@ -114,9 +117,24 @@ $_SESSION["chart_bt"] = array();
         <hr>
       </div>
     
+      <!-- MENU -->
+      <div class="div_menu">
+        <div class="div_content">
+          
+          <!-- Range | Movement | Passages --> 
+          <span class="menu_current">In Range</span> |
+          <span class="menu_other"><a href="move_live.php">Movement</a></span> |
+          <span class="menu_other"><a href="pass_live.php">Passages</a></span>
+
+        </div>
+      </div>
+    
       <!-- INFORMATION -->
       <div class="div_info">
         <h2>Information</h2>
+        <div class="div_content">
+          <p><b>In Range</b> mode displays monitoring data as number of devices detected in range of selected source device(s) over given period of time or live.</p>
+        </div>
         <div class="div_content" id="info">
           Loading...
         </div>
@@ -127,9 +145,8 @@ $_SESSION["chart_bt"] = array();
         <h2>Settings</h2>
         <div class="div_content">
 
-          <span class="lh_other"><a href="live.php">Live data</a></span> | <span class="lh_current">History</span>
-
-          <br><img src="inc/range/img/history.svg" style="width:90%;margin:70px auto 20px auto;display:block;">
+          <!-- Live data | History --> 
+          <span class="lh_current">Live data</span> | <span class="lh_other"><a href="range_history.php" >History</a></span>
 
           <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
 
@@ -142,28 +159,7 @@ $_SESSION["chart_bt"] = array();
                 }
               ?>
             </div>
-
-            <div class="div_subcontent">
-              <b>Time Range</b><br>
-              <table class="form">
-              <tr><td>From</td></tr>
-              <tr><td><input type="text" name="time_from" value="<?php echo $time_from?>" style="width:150px;text-align:center;"></td></tr>
-              <tr><td>To</td></tr>
-              <tr><td><input type="text" name="time_to" value="<?php echo $time_to?>" style="width:150px;text-align:center;"></td></tr>
-
-              </table>
-            </div>
-
-            <div class="div_subcontent">
-              <b>Time Step</b><br>
-              <table class="form">
-              <tr><td><input type="number" name="time_step" value="<?php echo $time_step?>" min="1" style="width:100px;text-align:center;"></td></tr>
-              <tr><td><input type="radio" name="time_step_format" value="SECOND" <?php if ($time_step_format == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
-              <tr><td><input type="radio" name="time_step_format" value="MINUTE" <?php if ($time_step_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-              <tr><td><input type="radio" name="time_step_format" value="HOUR"   <?php if ($time_step_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
-              </table>
-            </div>
-
+	  
             <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
@@ -185,9 +181,7 @@ $_SESSION["chart_bt"] = array();
 
           </form>
 
-          <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
-          <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
-          <p class="info_box" id="ib_bt_data" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
+          <p id="ib_bt_data" class="info_box" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
 
         </div>
       </div>
@@ -199,17 +193,13 @@ $_SESSION["chart_bt"] = array();
           Loading...
         </div>
         <script src="inc/common/js/canvasjs.min.js"></script>
-        <div class="div_content">
-          <br><button onclick="updateChart()">Update Chart</button><br>
-          <p class="info_box">Chart needs to be updated manually <b>after</b> Text output is loaded.</p>
-        </div>
       </div>
 
       <!-- TEXT OUTPUT -->
       <div class="div_text">
         <h2>Text output</h2>
         <div class="div_content" id="textout">
-          Loading... This might take a while... \_(ツ)_/
+          Loading...
         </div>
       </div>
       

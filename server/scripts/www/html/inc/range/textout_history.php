@@ -1,6 +1,6 @@
 <?php
 // TEXTOUT_HISTORY.php
-// PHP code to be called from history.php
+// PHP code to be called from range_history.php
 
 session_start();
 

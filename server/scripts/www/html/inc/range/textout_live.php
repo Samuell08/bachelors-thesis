@@ -1,6 +1,6 @@
 <?php
 // TEXTOUT_LIVE.php
-// PHP code to be called from live.php
+// PHP code to be called from range_live.php
 
 session_start();
 
