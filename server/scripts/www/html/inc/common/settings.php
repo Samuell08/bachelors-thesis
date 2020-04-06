@@ -1,5 +1,9 @@
 <?php
-// DYNAMIC PART OF LIVE SETTINGS FORM
+
+$input_name = $_SESSION["common_settings_input_name"];
+$db_source = json_decode($_SESSION["common_settings_db_source"]);
+
+// DYNAMIC PART OF HISTORY SETTINGS FORM
 // Select Source Database(s)
 echo "<b>Select Source Database(s)</b><br>";
 echo "<table class=\"form\">";
@@ -13,9 +17,9 @@ if (!$db_conn) {
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
       // table row checkbox
-      echo "<tr><td>" . "<input type=\"checkbox\" name=\"db_source_live[]\" value=\"" . $db_row["Database (rpi_mon_%)"] . "\"";
+      echo "<tr><td>" . "<input type=\"checkbox\" name=$input_name value=\"" . $db_row["Database (rpi_mon_%)"] . "\"";
         // keep checked?
-        foreach ($db_source_live as $key => $val) {
+        foreach ($db_source as $key => $val) {
           if ($val == $db_row["Database (rpi_mon_%)"]) { echo "checked"; }
         }
       echo ">" . "</td>";
