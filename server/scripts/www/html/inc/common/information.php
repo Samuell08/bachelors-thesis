@@ -44,9 +44,10 @@ echo "<form method=\"post\" action=\"confirm.php\">";
 
         // read Import period from var file
         $filename = $db_row["DB_name"] . "_server_import";
+        $filepath = "../../var/" . $filename;
         $var_import_period = "unknown";
-        if (file_exists("../var/" . $filename)) {
-          $f_import_period = fopen("../var/" . $filename, "r");
+        if (file_exists($filepath)) {
+          $f_import_period = fopen($filepath, "r");
           $var_import_period = fgets($f_import_period);
           fclose($f_import_period);
         }
