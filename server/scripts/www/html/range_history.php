@@ -85,14 +85,10 @@ if(!$db_conn){
 
       <!-- MENU -->
       <div class="div_menu">
-        <div class="div_content">
-          
-          <!-- Range | Movement | Passages --> 
-          <span class="menu_current">In Range</span> |
-          <span class="menu_other"><a href="move_live.php">Movement</a></span> |
-          <span class="menu_other"><a href="pass_live.php">Passages</a></span>
-
-        </div>
+        <?php
+          $_SESSION["menu_current"] = 1;
+          include 'inc/common/menu.php';
+        ?>
       </div>
     
       <!-- INFORMATION -->
