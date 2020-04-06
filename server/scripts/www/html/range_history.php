@@ -1,15 +1,13 @@
 <?php
 session_start();
-
 $session_id = session_id();
 
+// connect to MySQL database
 $db_server  = $_SESSION["db_server"];
 $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
 $hostname   = $_SESSION["hostname"];
-
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
-
 if(!$db_conn){
   $_SESSION["warn"] = "Database connection lost! Please login again.";
   header("Location: index.php");
@@ -20,7 +18,6 @@ if(!$db_conn){
 <html lang="en">
 
 <!-- HISTORY.php -->
-
   <head>
     
     <meta charset="utf-8">
@@ -100,38 +97,37 @@ if(!$db_conn){
             <div class="div_subcontent">
               <b>Time Range</b><br>
               <table class="form">
-              <tr><td>From</td></tr>
-              <tr><td><input type="text" name="time_from_rh" value="<?php echo $time_from_rh?>" style="width:150px;text-align:center;"></td></tr>
-              <tr><td>To</td></tr>
-              <tr><td><input type="text" name="time_to_rh" value="<?php echo $time_to_rh?>" style="width:150px;text-align:center;"></td></tr>
-
+                <tr><td>From</td></tr>
+                <tr><td><input type="text" name="time_from_rh" value="<?php echo $time_from_rh?>" style="width:150px;text-align:center;"></td></tr>
+                <tr><td>To</td></tr>
+                <tr><td><input type="text" name="time_to_rh" value="<?php echo $time_to_rh?>" style="width:150px;text-align:center;"></td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Time Step</b><br>
               <table class="form">
-              <tr><td><input type="number" name="time_step_rh" value="<?php echo $time_step_rh?>" min="1" style="width:100px;text-align:center;"></td></tr>
-              <tr><td><input type="radio" name="time_step_format_rh" value="SECOND" <?php if ($time_step_format_rh == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
-              <tr><td><input type="radio" name="time_step_format_rh" value="MINUTE" <?php if ($time_step_format_rh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-              <tr><td><input type="radio" name="time_step_format_rh" value="HOUR"   <?php if ($time_step_format_rh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+                <tr><td><input type="number" name="time_step_rh" value="<?php echo $time_step_rh?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="time_step_format_rh" value="SECOND" <?php if ($time_step_format_rh == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
+                <tr><td><input type="radio" name="time_step_format_rh" value="MINUTE" <?php if ($time_step_format_rh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+                <tr><td><input type="radio" name="time_step_format_rh" value="HOUR"   <?php if ($time_step_format_rh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
-              <tr><td><input type="number" name="time_period_rh" value="<?php echo $time_period_rh?>" min="1" style="width:100px;text-align:center;"></td></tr>
-              <tr><td><input type="radio" name="time_period_format_rh" value="MINUTE" <?php if ($time_period_format_rh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-              <tr><td><input type="radio" name="time_period_format_rh" value="HOUR"   <?php if ($time_period_format_rh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+                <tr><td><input type="number" name="time_period_rh" value="<?php echo $time_period_rh?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="time_period_format_rh" value="MINUTE" <?php if ($time_period_format_rh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+                <tr><td><input type="radio" name="time_period_format_rh" value="HOUR"   <?php if ($time_period_format_rh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Show Data</b><br>
               <table class="form">
-              <tr><td><input type="checkbox" name="show_wlan_rh" value="1" <?php if ($show_wlan_rh == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-              <tr><td><input type="checkbox" name="show_bt_rh"   value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_rh == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+                <tr><td><input type="checkbox" name="show_wlan_rh" value="1" <?php if ($show_wlan_rh == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
+                <tr><td><input type="checkbox" name="show_bt_rh"   value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_rh == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
 
@@ -153,14 +149,17 @@ if(!$db_conn){
       <!-- CHART -->
       <div class="div_chart">
         <h2>Chart</h2>
+      
         <div id="chartContainer" style="height: 370px; width: 100%;">
           Loading...
         </div>
         <script src="inc/common/js/canvasjs.min.js"></script>
+
         <div class="div_content">
           <br><button onclick="updateChart()">Update Chart</button><br>
           <p class="info_box">Chart needs to be updated manually <b>after</b> Text output is loaded.</p>
         </div>
+
       </div>
 
       <!-- TEXT OUTPUT -->

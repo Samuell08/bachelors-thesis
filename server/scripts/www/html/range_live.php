@@ -1,15 +1,13 @@
 <?php
 session_start();
-
 $session_id = session_id();
 
+// connect to MySQL databse
 $db_server  = $_SESSION["db_server"];
 $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
 $hostname   = $_SESSION["hostname"];
-
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
-
 if(!$db_conn){
   $_SESSION["warn"] = "Database connection lost! Please login again.";
   header("Location: index.php");
@@ -27,7 +25,6 @@ $_SESSION["updateInterval"] = 30000;
 <html lang="en">
 
 <!-- LIVE.php -->
-
   <head>
     
     <meta charset="utf-8">
@@ -106,17 +103,17 @@ $_SESSION["updateInterval"] = 30000;
             <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
-              <tr><td><input type="number" name="time_period_rl" value="<?php echo $time_period_rl?>" min="1" style="width:100px;text-align:center;"></td></tr>
-              <tr><td><input type="radio" name="time_period_format_rl" value="MINUTE" <?php if ($time_period_format_rl == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-              <tr><td><input type="radio" name="time_period_format_rl" value="HOUR"   <?php if ($time_period_format_rl == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+                <tr><td><input type="number" name="time_period_rl" value="<?php echo $time_period_rl?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="time_period_format_rl" value="MINUTE" <?php if ($time_period_format_rl == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+                <tr><td><input type="radio" name="time_period_format_rl" value="HOUR"   <?php if ($time_period_format_rl == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Show Data</b><br>
               <table class="form">
-              <tr><td><input type="checkbox" name="show_wlan_rl" value="1" <?php if ($show_wlan_rl == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-              <tr><td><input type="checkbox" name="show_bt_rl"   value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_rl == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+                <tr><td><input type="checkbox" name="show_wlan_rl" value="1" <?php if ($show_wlan_rl == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
+                <tr><td><input type="checkbox" name="show_bt_rl"   value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_rl == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
 
