@@ -31,47 +31,16 @@ if(!$db_conn){
     <link rel="stylesheet" type="text/css" href="inc/common/style.css">
 
     <!-- JavaScript -->
+    <script src="inc/common/js/scripts.js"></script>
+    <script src="inc/range/js/scripts_history.js"></script>
     <script src="inc/range/js/chart_history.js"></script>
     <script>
-
-      function toggle_ib_bt_data(){
-        if (document.getElementById("chckb_bt_data").checked == true) {
-          document.getElementById("ib_bt_data").style.display = "block";
-        } else {
-          document.getElementById("ib_bt_data").style.display = "none";
-        }
-      }
-
-      // update functions
       function updateAll(){
         updateInfo();
         updateTextout();
-        toggle_ib_bt_data();
+        toggleIbBtData();
         buildChart();
       }
-
-      function updateInfo(){
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-          if (this.readyState == 4 && this.status == 200) {
-            document.getElementById("info").innerHTML = this.responseText;
-          }
-        };
-        xmlhttp.open("GET", "inc/common/information.php", true);
-        xmlhttp.send();
-      }      
-      
-      function updateTextout(){
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-          if (this.readyState == 4 && this.status == 200) {
-            document.getElementById("textout").innerHTML = this.responseText;
-          }
-        };
-        xmlhttp.open("GET", "inc/range/textout_history.php", true);
-        xmlhttp.send();
-      }      
-      
     </script>
   
   </head>
@@ -162,7 +131,7 @@ if(!$db_conn){
               <b>Show Data</b><br>
               <table class="form">
               <tr><td><input type="checkbox" name="show_wlan_rh" value="1" <?php if ($show_wlan_rh == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-              <tr><td><input type="checkbox" name="show_bt_rh"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($show_bt_rh == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+              <tr><td><input type="checkbox" name="show_bt_rh"   value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_rh == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
 
