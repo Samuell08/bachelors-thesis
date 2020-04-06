@@ -8,19 +8,19 @@ $session_id = session_id();
 
 // get session variables
 // database connection
-$db_server          = $_SESSION["db_server"];
-$db_user            = $_SESSION["db_user"];
-$db_pass            = $_SESSION["db_pass"];
-$db_source_history  = $_SESSION["db_source_history"];
+$db_server     = $_SESSION["db_server"];
+$db_user       = $_SESSION["db_user"];
+$db_pass       = $_SESSION["db_pass"];
+$db_source_rh  = $_SESSION["db_source_rh"];
 // settings
-$timeperiod_history         = $_SESSION["timeperiod_history"];
-$timeperiod_format_history  = $_SESSION["timeperiod_format_history"];
-$showwlan_history           = $_SESSION["showwlan_history"];
-$showbt_history             = $_SESSION["showbt_history"];
-$time_from                  = $_SESSION["time_from"];
-$time_to                    = $_SESSION["time_to"];
-$time_step                  = $_SESSION["time_step"];
-$time_step_format           = $_SESSION["time_step_format"];
+$time_period_rh         = $_SESSION["time_period_rh"];
+$time_period_format_rh  = $_SESSION["time_period_format_rh"];
+$show_wlan_rh            = $_SESSION["show_wlan_rh"];
+$show_bt_rh              = $_SESSION["show_bt_rh"];
+$time_from_rh           = $_SESSION["time_from_rh"];
+$time_to_rh             = $_SESSION["time_to_rh"];
+$time_step_rh           = $_SESSION["time_step_rh"];
+$time_step_format_rh    = $_SESSION["time_step_format_rh"];
 
 // functions
 function is_anagram($string1, $string2) {
@@ -31,17 +31,17 @@ function is_anagram($string1, $string2) {
 }
 
 // check if user input is correct
-if ($db_source_history == NULL) {
+if ($db_source_rh == NULL) {
   echo "<p class=\"warning\">Source database(s) not selected.</p>";
-} elseif ($timeperiod_format_history == NULL) {
+} elseif ($time_period_format_rh == NULL) {
   echo "<p class=\"warning\">Time Period format Minute(s)/Hour(s) not selected.</p>";
-} elseif ($timeperiod_history == NULL) {
+} elseif ($time_period_rh == NULL) {
   echo "<p class=\"warning\">Invalid time period.</p>";
-} elseif ((!($showwlan_history == "1")) and (!($showbt_history == "1"))) {
+} elseif ((!($show_wlan_rh == "1")) and (!($show_bt_rh == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
-} elseif (strtotime($time_from) > strtotime($time_to)) {
+} elseif (strtotime($time_from_rh) > strtotime($time_to_rh)) {
   echo "<p class=\"warning\">Time range \"From\" is later in time than \"To\".</p>";
-} elseif (strtotime($time_to) > time()) {
+} elseif (strtotime($time_to_rh) > time()) {
   echo "<p class=\"warning\">Time range \"To\" is in the future.</p>";
 } else {
 
@@ -55,36 +55,36 @@ if ($db_source_history == NULL) {
   $fingerprints_count = 0;
 
   // calculate time increment
-  switch ($time_step_format) {
+  switch ($time_step_format_rh) {
   case "SECOND":
-    $time_increment = $time_step;
+    $time_increment = $time_step_rh;
     break;
   case "MINUTE":
-    $time_increment = $time_step*60;
+    $time_increment = $time_step_rh*60;
     break;
   case "HOUR":
-    $time_increment = $time_step*3600;
+    $time_increment = $time_step_rh*3600;
     break;
   }    
   
   // text output
-  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from)) . "</b>" .
-    " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to)) . "</b>" .
-    " with period of " . "<b>" . $timeperiod_history . " " . strtolower($timeperiod_format_history) . "(s)" . "</b>" . "<br><br>";
+  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_rh)) . "</b>" .
+    " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_rh)) . "</b>" .
+    " with period of " . "<b>" . $time_period_rh . " " . strtolower($time_period_format_rh) . "(s)" . "</b>" . "<br><br>";
 
-    foreach ($db_source_history as $key => $value) {
+    foreach ($db_source_rh as $key => $value) {
 
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
       // ---------------------------------------------------------------------- WIFI
-      if ($showwlan_history == "1") {
+      if ($show_wlan_rh == "1") {
 
         // GLOBAL MAC LOOP
         
         // prepare MySQL statement
         $stmt = mysqli_stmt_init($db_conn_s);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod_history . " " . $timeperiod_format_history . ")) AND ?) AND
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND
                                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                                     station_MAC LIKE '_4:__:__:__:__:__' OR
                                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -94,10 +94,10 @@ if ($db_source_history == NULL) {
 
         // reset counters
         $i = 0;
-        $time_actual = $time_from;
+        $time_actual = $time_from_rh;
         
         // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_to)) {
+        while (strtotime($time_actual) <= strtotime($time_to_rh)) {
 
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);
@@ -120,7 +120,7 @@ if ($db_source_history == NULL) {
         $stmt = mysqli_stmt_init($db_conn_s);
         mysqli_stmt_prepare($stmt, "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
                                    (LENGTH(probed_ESSIDs) > 18) AND
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod_history . " " . $timeperiod_format_history . ")) AND ?) AND NOT
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND NOT
                                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                                     station_MAC LIKE '_4:__:__:__:__:__' OR
                                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -130,10 +130,10 @@ if ($db_source_history == NULL) {
 
         // reset counters
         $i = 0;
-        $time_actual = $time_from;
+        $time_actual = $time_from_rh;
         
         // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_to)) {
+        while (strtotime($time_actual) <= strtotime($time_to_rh)) {
           
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);
@@ -170,24 +170,24 @@ if ($db_source_history == NULL) {
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
         } // end of local MAC while
         mysqli_stmt_close($stmt);
-      } // end of showwlan_history
+      } // end of show_wlan_rh
 
       // ----------------------------------------------------------------- Bluetooth
-      if ($showbt_history == "1") {
+      if ($show_bt_rh == "1") {
           
         // prepare MySQL statement
         $stmt = mysqli_stmt_init($db_conn_s);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT BD_ADDR) AS TotalRows FROM Bluetooth WHERE
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $timeperiod_history . " " . $timeperiod_format_history . ")) AND ?);");
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?);");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
         mysqli_stmt_bind_result($stmt, $bt_total);
 
         // reset counters
         $i = 0;
-        $time_actual = $time_from;
+        $time_actual = $time_from_rh;
         
         // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_to)) {
+        while (strtotime($time_actual) <= strtotime($time_to_rh)) {
 
           // execute prepared MySQL statement
           mysqli_stmt_execute($stmt);
@@ -203,7 +203,7 @@ if ($db_source_history == NULL) {
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
         } // end of Bluetooth while
         mysqli_stmt_close($stmt);
-      } // end of showbt_history
+      } // end of show_bt_rh
     } // end of foreach DB
 
   // write completed chart arrays to json files

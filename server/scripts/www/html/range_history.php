@@ -142,8 +142,8 @@ if (file_exists("var/bt_amnesia")) {
                 $settingsok="0";
                 include 'inc/range/settings_history.php';
                 // variables for common settings PHP script
-                $_SESSION["common_settings_input_name"] = "db_source_history[]";
-                $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_history"]);
+                $_SESSION["common_settings_input_name"] = "db_source_rh[]";
+                $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_rh"]);
                 include 'inc/common/settings.php';
                 if(!$settingsok == "1") {
                   echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";
@@ -155,9 +155,9 @@ if (file_exists("var/bt_amnesia")) {
               <b>Time Range</b><br>
               <table class="form">
               <tr><td>From</td></tr>
-              <tr><td><input type="text" name="time_from" value="<?php echo $time_from?>" style="width:150px;text-align:center;"></td></tr>
+              <tr><td><input type="text" name="time_from_rh" value="<?php echo $time_from_rh?>" style="width:150px;text-align:center;"></td></tr>
               <tr><td>To</td></tr>
-              <tr><td><input type="text" name="time_to" value="<?php echo $time_to?>" style="width:150px;text-align:center;"></td></tr>
+              <tr><td><input type="text" name="time_to_rh" value="<?php echo $time_to_rh?>" style="width:150px;text-align:center;"></td></tr>
 
               </table>
             </div>
@@ -165,27 +165,27 @@ if (file_exists("var/bt_amnesia")) {
             <div class="div_subcontent">
               <b>Time Step</b><br>
               <table class="form">
-              <tr><td><input type="number" name="time_step" value="<?php echo $time_step?>" min="1" style="width:100px;text-align:center;"></td></tr>
-              <tr><td><input type="radio" name="time_step_format" value="SECOND" <?php if ($time_step_format == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
-              <tr><td><input type="radio" name="time_step_format" value="MINUTE" <?php if ($time_step_format == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-              <tr><td><input type="radio" name="time_step_format" value="HOUR"   <?php if ($time_step_format == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+              <tr><td><input type="number" name="time_step_rh" value="<?php echo $time_step_rh?>" min="1" style="width:100px;text-align:center;"></td></tr>
+              <tr><td><input type="radio" name="time_step_format_rh" value="SECOND" <?php if ($time_step_format_rh == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
+              <tr><td><input type="radio" name="time_step_format_rh" value="MINUTE" <?php if ($time_step_format_rh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+              <tr><td><input type="radio" name="time_step_format_rh" value="HOUR"   <?php if ($time_step_format_rh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
-              <tr><td><input type="number" name="timeperiod_history" value="<?php echo $timeperiod_history?>" min="1" style="width:100px;text-align:center;"></td></tr>
-              <tr><td><input type="radio" name="timeperiod_format_history" value="MINUTE" <?php if ($timeperiod_format_history == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-              <tr><td><input type="radio" name="timeperiod_format_history" value="HOUR"   <?php if ($timeperiod_format_history == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+              <tr><td><input type="number" name="time_period_rh" value="<?php echo $time_period_rh?>" min="1" style="width:100px;text-align:center;"></td></tr>
+              <tr><td><input type="radio" name="time_period_format_rh" value="MINUTE" <?php if ($time_period_format_rh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+              <tr><td><input type="radio" name="time_period_format_rh" value="HOUR"   <?php if ($time_period_format_rh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Show Data</b><br>
               <table class="form">
-              <tr><td><input type="checkbox" name="showwlan_history" value="1" <?php if ($showwlan_history == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-              <tr><td><input type="checkbox" name="showbt_history"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($showbt_history == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+              <tr><td><input type="checkbox" name="show_wlan_rh" value="1" <?php if ($show_wlan_rh == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
+              <tr><td><input type="checkbox" name="show_bt_rh"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($show_bt_rh == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
 

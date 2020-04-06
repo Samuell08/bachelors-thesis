@@ -151,8 +151,8 @@ $_SESSION["updateInterval"] = 30000;
               <?php
                 $settingsok="0";
                 include 'inc/range/settings_live.php';
-                $_SESSION["common_settings_input_name"] = "db_source_live[]";
-                $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_live"]);
+                $_SESSION["common_settings_input_name"] = "db_source_rl[]";
+                $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_rl"]);
                 include 'inc/common/settings.php';
                 if(!$settingsok == "1") {
                   echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";
@@ -163,17 +163,17 @@ $_SESSION["updateInterval"] = 30000;
             <div class="div_subcontent">
               <b>Time Period</b><br>
               <table class="form">
-              <tr><td><input type="number" name="timeperiod_live" value="<?php echo $timeperiod_live?>" min="1" style="width:100px;text-align:center;"></td></tr>
-              <tr><td><input type="radio" name="timeperiod_format_live" value="MINUTE" <?php if ($timeperiod_format_live == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-              <tr><td><input type="radio" name="timeperiod_format_live" value="HOUR"   <?php if ($timeperiod_format_live == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+              <tr><td><input type="number" name="time_period_rl" value="<?php echo $time_period_rl?>" min="1" style="width:100px;text-align:center;"></td></tr>
+              <tr><td><input type="radio" name="time_period_format_rl" value="MINUTE" <?php if ($time_period_format_rl == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+              <tr><td><input type="radio" name="time_period_format_rl" value="HOUR"   <?php if ($time_period_format_rl == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Show Data</b><br>
               <table class="form">
-              <tr><td><input type="checkbox" name="showwlan_live" value="1" <?php if ($showwlan_live == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-              <tr><td><input type="checkbox" name="showbt_live"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($showbt_live == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+              <tr><td><input type="checkbox" name="show_wlan_rl" value="1" <?php if ($show_wlan_rl == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
+              <tr><td><input type="checkbox" name="show_bt_rl"   value="1" id="chckb_bt_data" onclick="toggle_ib_bt_data()" <?php if ($show_bt_rl == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
 

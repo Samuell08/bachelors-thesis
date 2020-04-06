@@ -4,29 +4,29 @@
 $settingsok = "1";
 
 // form variables
-$db_source_live         = "";
-$timeperiod_live        = "";
-$timeperiod_format_live = "";
-$showwlan_live          = "";
-$showbt_live            = "";
+$db_source_rl           = "";
+$time_period_rl         = "";
+$time_period_format_rl  = "";
+$show_wlan_rl           = "";
+$show_bt_rl             = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-  $db_source_live          = $_GET["db_source_live"];
-  $timeperiod_live         = filter_var($_GET["timeperiod_live"], FILTER_VALIDATE_INT);
-  $timeperiod_format_live  = $_GET["timeperiod_format_live"];
-  $showwlan_live           = $_GET["showwlan_live"];
-  $showbt_live             = $_GET["showbt_live"];
+  $db_source_rl           = $_GET["db_source_rl"];
+  $time_period_rl         = filter_var($_GET["time_period_rl"], FILTER_VALIDATE_INT);
+  $time_period_format_rl  = $_GET["time_period_format_rl"];
+  $show_wlan_rl           = $_GET["show_wlan_rl"];
+  $show_bt_rl             = $_GET["show_bt_rl"];
   
   // default values
-  if ($timeperiod_live == "")        { $timeperiod_live = 15; }
-  if ($timeperiod_format_live == "") { $timeperiod_format_live = "MINUTE"; }
+  if ($time_period_rl == "")        { $time_period_rl = 15; }
+  if ($time_period_format_rl == "") { $time_period_format_rl = "MINUTE"; }
   
   // store variables in session
-  $_SESSION["db_source_live"]          = $db_source_live;
-  $_SESSION["timeperiod_live"]         = $timeperiod_live;
-  $_SESSION["timeperiod_format_live"]  = $timeperiod_format_live;
-  $_SESSION["showwlan_live"]           = $showwlan_live;
-  $_SESSION["showbt_live"]             = $showbt_live;
+  $_SESSION["db_source_rl"]           = $db_source_rl;
+  $_SESSION["time_period_rl"]         = $time_period_rl;
+  $_SESSION["time_period_format_rl"]  = $time_period_format_rl;
+  $_SESSION["show_wlan_rl"]           = $show_wlan_rl;
+  $_SESSION["show_bt_rl"]             = $show_bt_rl;
 }
 ?>

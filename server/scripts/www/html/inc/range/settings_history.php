@@ -4,47 +4,47 @@
 $settingsok = "1";
 
 // form variables
-$db_source_history          = "";
-$time_from                  = "";
-$time_to                    = "";
-$time_step                  = "";
-$time_step_format           = "";
-$timeperiod_history         = "";
-$timeperiod_format_history  = "";
-$showwlan_history           = "";
-$showbt_history             = "";
+$db_source_rh          = "";
+$time_from_rh          = "";
+$time_to_rh            = "";
+$time_step_rh          = "";
+$time_step_format_rh   = "";
+$time_period_rh        = "";
+$time_period_format_rh = "";
+$show_wlan_rh           = "";
+$show_bt_rh             = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-  $db_source_history          = $_GET["db_source_history"];
-  $time_from                  = filter_var($_GET["time_from"], FILTER_SANITIZE_STRING);
-  $time_to                    = filter_var($_GET["time_to"], FILTER_SANITIZE_STRING);
-  $time_step                  = filter_var($_GET["time_step"], FILTER_VALIDATE_INT);
-  $time_step_format           = $_GET["time_step_format"];
-  $timeperiod_history         = filter_var($_GET["timeperiod_history"], FILTER_VALIDATE_INT);
-  $timeperiod_format_history  = $_GET["timeperiod_format_history"];
-  $showwlan_history           = $_GET["showwlan_history"];
-  $showbt_history             = $_GET["showbt_history"];
+  $db_source_rh          = $_GET["db_source_rh"];
+  $time_from_rh          = filter_var($_GET["time_from_rh"], FILTER_SANITIZE_STRING);
+  $time_to_rh            = filter_var($_GET["time_to_rh"], FILTER_SANITIZE_STRING);
+  $time_step_rh          = filter_var($_GET["time_step_rh"], FILTER_VALIDATE_INT);
+  $time_step_format_rh   = $_GET["time_step_format_rh"];
+  $time_period_rh        = filter_var($_GET["time_period_rh"], FILTER_VALIDATE_INT);
+  $time_period_format_rh = $_GET["time_period_format_rh"];
+  $show_wlan_rh           = $_GET["show_wlan_rh"];
+  $show_bt_rh             = $_GET["show_bt_rh"];
 
   // default values
   $today = date('Y-m-d');
   $now   = date('H:i:s');
-  if ($time_from == "")                 { $time_from = "$today" . " 04:00:00"; }
-  if ($time_to == "")                   { $time_to = "$today" . " $now"; }
-  if ($time_step == "")                 { $time_step = 5; }
-  if ($time_step_format == "")          { $time_step_format = "MINUTE"; }
-  if ($timeperiod_history == "")        { $timeperiod_history = 15; }
-  if ($timeperiod_format_history == "") { $timeperiod_format_history = "MINUTE"; }
+  if ($time_from_rh == "")          { $time_from_rh = "$today" . " 00:00:00"; }
+  if ($time_to_rh == "")            { $time_to_rh = "$today" . " $now"; }
+  if ($time_step_rh == "")          { $time_step_rh = 5; }
+  if ($time_step_format_rh == "")   { $time_step_format_rh = "MINUTE"; }
+  if ($time_period_rh == "")        { $time_period_rh = 15; }
+  if ($time_period_format_rh == "") { $time_period_format_rh = "MINUTE"; }
   
   // store variables in session
-  $_SESSION["db_source_history"]          = $db_source_history;
-  $_SESSION["time_from"]                  = $time_from;
-  $_SESSION["time_to"]                    = $time_to;
-  $_SESSION["time_step"]                  = $time_step;
-  $_SESSION["time_step_format"]           = $time_step_format;
-  $_SESSION["timeperiod_history"]         = $timeperiod_history;
-  $_SESSION["timeperiod_format_history"]  = $timeperiod_format_history;
-  $_SESSION["showwlan_history"]           = $showwlan_history;
-  $_SESSION["showbt_history"]             = $showbt_history;
+  $_SESSION["db_source_rh"]          = $db_source_rh;
+  $_SESSION["time_from_rh"]          = $time_from_rh;
+  $_SESSION["time_to_rh"]            = $time_to_rh;
+  $_SESSION["time_step_rh"]          = $time_step_rh;
+  $_SESSION["time_step_format_rh"]   = $time_step_format_rh;
+  $_SESSION["time_period_rh"]        = $time_period_rh;
+  $_SESSION["time_period_format_rh"] = $time_period_format_rh;
+  $_SESSION["show_wlan_rh"]           = $show_wlan_rh;
+  $_SESSION["show_bt_rh"]             = $show_bt_rh;
 }
 ?>

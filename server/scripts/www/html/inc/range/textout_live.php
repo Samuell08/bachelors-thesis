@@ -8,19 +8,19 @@ $session_id = session_id();
 
 // get session variables
 // database connection
-$db_server          = $_SESSION["db_server"];
-$db_user            = $_SESSION["db_user"];
-$db_pass            = $_SESSION["db_pass"];
-$db_source_live     = $_SESSION["db_source_live"];
+$db_server    = $_SESSION["db_server"];
+$db_user      = $_SESSION["db_user"];
+$db_pass      = $_SESSION["db_pass"];
+$db_source_rl = $_SESSION["db_source_rl"];
 // settings
-$timeperiod_live         = $_SESSION["timeperiod_live"];
-$timeperiod_format_live  = $_SESSION["timeperiod_format_live"];
-$showwlan_live           = $_SESSION["showwlan_live"];
-$showbt_live             = $_SESSION["showbt_live"];
+$time_period_rl         = $_SESSION["time_period_rl"];
+$time_period_format_rl  = $_SESSION["time_period_format_rl"];
+$show_wlan_rl           = $_SESSION["show_wlan_rl"];
+$show_bt_rl             = $_SESSION["show_bt_rl"];
 // chart arrays
-$chart_wifi_bot     = $_SESSION["chart_wifi_bot"];
-$chart_wifi_top     = $_SESSION["chart_wifi_top"];
-$chart_bt           = $_SESSION["chart_bt"];
+$chart_wifi_bot = $_SESSION["chart_wifi_bot"];
+$chart_wifi_top = $_SESSION["chart_wifi_top"];
+$chart_bt       = $_SESSION["chart_bt"];
 
 // functions
 function is_anagram($string1, $string2) {
@@ -31,13 +31,13 @@ function is_anagram($string1, $string2) {
 }
 
 // check if user input is correct
-if ($db_source_live == NULL) {
+if ($db_source_rl == NULL) {
   echo "<p class=\"warning\">Source database(s) not selected.</p>";
-} elseif ($timeperiod_format_live == NULL) {
+} elseif ($time_period_format_rl == NULL) {
   echo "<p class=\"warning\">Time Period format Minute(s)/Hour(s) not selected.</p>";
-} elseif ($timeperiod_live == NULL) {
+} elseif ($time_period_rl == NULL) {
   echo "<p class=\"warning\">Invalid time period.</p>";
-} elseif ((!($showwlan_live == "1")) and (!($showbt_live == "1"))) {
+} elseif ((!($show_wlan_rl == "1")) and (!($show_bt_rl == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
 } else {
 
@@ -49,22 +49,22 @@ if ($db_source_live == NULL) {
   
   // text output
   echo date('G:i:s (j.n.Y)') . "<br>";
-  echo "Showing results of last " . $timeperiod_live . " " . strtolower($timeperiod_format_live) . "(s) ";
+  echo "Showing results of last " . $time_period_rl . " " . strtolower($time_period_format_rl) . "(s) ";
   echo "updated every " . $_SESSION["updateInterval"]/1000 . " seconds" . "<br><br>"; 
 
   // ---------------------------------------------------------------------- WIFI
   // check if user selected to show wlan
-  if ($showwlan_live == "1") {
+  if ($show_wlan_rl == "1") {
   
     // loop every source DB
-    foreach ($db_source_live as $key => $value) {
+    foreach ($db_source_rl as $key => $value) {
 
       // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
-      // global MAC within last $timeperiod_live
+      // global MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod_live . " " . $timeperiod_format_live . "))) AND
+                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -73,9 +73,9 @@ if ($db_source_live == NULL) {
       $db_result = mysqli_query($db_conn_s, $db_q);
       $mac_glbl  += mysqli_num_rows($db_result);
 
-      // local MAC within last $timeperiod_live
+      // local MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod_live . " " . $timeperiod_format_live . "))) AND NOT
+                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -84,10 +84,10 @@ if ($db_source_live == NULL) {
       $db_result = mysqli_query($db_conn_s, $db_q);
       $mac_local += mysqli_num_rows($db_result);
 
-      // local MAC unique probe request fingerprints assoc array within last $timeperiod_live time
+      // local MAC unique probe request fingerprints assoc array within last $time_period_rl time
       $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
                    (LENGTH(probed_ESSIDs) > 18) AND
-                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod_live . " " . $timeperiod_format_live . "))) AND NOT
+                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -132,17 +132,17 @@ if ($db_source_live == NULL) {
 
   // ----------------------------------------------------------------- Bluetooth
   // check if user selected to show bt
-  if ($showbt_live == "1") {
+  if ($show_bt_rl == "1") {
 
     // loop every source DB
-    foreach ($db_source_live as $key => $value) {
+    foreach ($db_source_rl as $key => $value) {
 
       // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
-      // Bluetooth within last $timeperiod_live time
+      // Bluetooth within last $time_period_rl time
       $db_q      = "SELECT BD_ADDR FROM Bluetooth
-                    WHERE last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $timeperiod_live . " " . $timeperiod_format_live . "))
+                    WHERE last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
                     GROUP BY BD_ADDR;";
 
       $db_result = mysqli_query($db_conn_s, $db_q);
