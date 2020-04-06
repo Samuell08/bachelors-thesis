@@ -14,22 +14,6 @@ if(!$db_conn){
   $_SESSION["warn"] = "Database connection lost! Please login again.";
   header("Location: index.php");
 }
-
-// read variables var/...
-// bt_amnesia
-if (file_exists("var/bt_amnesia")) {
-  $f_bt_amnesia = fopen("var/bt_amnesia", "r");
-  $var_bt_amnesia = fgets($f_bt_amnesia);
-  fclose($f_bt_amnesia);
-  $p_bt_amnesia= "Bluetooth monitoring is running with amnesia mode <b>enabled</b>. 
-                  Time Period <b>must</b> be set to same time to display correct results
-                  of Bluetooth monitoring data.<br>Amnesia is set to <b>"
-                  . $var_bt_amnesia . " minutes</b>.";
-} else {
-  $p_bt_amnesia= "Bluetooth monitoring is running <b>without</b> amnesia mode enabled. 
-                  Bluetooth monitoring data will show only <b>newly discovered</b> Bluetooth
-                  devices within set Time Period.";
-}
 ?>
 
 <!DOCTYPE html>
@@ -195,7 +179,11 @@ if (file_exists("var/bt_amnesia")) {
 
           <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
-          <p class="info_box" id="ib_bt_data" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
+          <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
+                                                                    <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
+                                                                    (Time Period <b>must</b> be set to same time as amnesia)<br>
+                                                                    <b>&nbsp;&nbsp;&nbsp;disabled - </b>number of newly discovered devices within Time Period
+                                                                    </p>
 
         </div>
       </div>

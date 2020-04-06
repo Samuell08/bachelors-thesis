@@ -120,26 +120,28 @@ EOF
 
 function write_service_bt() {
 
-  # amnesia?
+  # no amnesia?
   if [[ "$bt_amnesia" == "" ]];
   then
     
     ExecStart="ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt}";
-    # remove bt_amnesia in HTML var
-    if [[ -f ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA} ]];
-    then
-      echo "Removing old entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
-      rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
-    fi
+    
+    ## remove bt_amnesia in HTML var
+    #if [[ -f ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA} ]];
+    #then
+    #  echo "Removing old entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
+    #  rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
+    #fi
 
   else
     
     ExecStart="ExecStart=${DIR_NODE_SCRIPTS}/node_dump -b ${intf_bt} ${bt_amnesia}";
     echo "Bluelog amnesia set to ${bt_amnesia} minutes!"
-    # write bt_amnesia to HTML var
-    echo "Writing Bluelog amnesia setting to ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
-    mkdir -p ${DIR_HTML_VAR}
-    echo "${bt_amnesia}" > "${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
+    
+    ## write bt_amnesia to HTML var
+    #echo "Writing Bluelog amnesia setting to ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
+    #mkdir -p ${DIR_HTML_VAR}
+    #echo "${bt_amnesia}" > "${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}"
 
   fi
 
@@ -309,9 +311,10 @@ do
       then
 
         remove_service $SERVICE_NODE_BT
-        # remove bt_amnesia HTML var entry
-        echo "Removing entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
-        rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
+        
+        ## remove bt_amnesia HTML var entry
+        #echo "Removing entry of Bluelog amnesia setting in ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}..."
+        #rm ${DIR_HTML_VAR}/${HTML_VAR_AMNESIA}
 
       else
 

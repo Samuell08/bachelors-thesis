@@ -15,22 +15,6 @@ if(!$db_conn){
   header("Location: index.php");
 }
 
-// read variables var/...
-// bt_amnesia
-if (file_exists("var/bt_amnesia")) {
-  $f_bt_amnesia = fopen("var/bt_amnesia", "r");
-  $var_bt_amnesia = fgets($f_bt_amnesia);
-  fclose($f_bt_amnesia);
-  $p_bt_amnesia= "Bluetooth monitoring is running with amnesia mode <b>enabled</b>. 
-                  Time Period <b>must</b> be set to same time to display correct results
-                  of Bluetooth monitoring data.<br>Amnesia is set to <b>"
-                  . $var_bt_amnesia . " minutes</b>.";
-} else {
-  $p_bt_amnesia= "Bluetooth monitoring is running <b>without</b> amnesia mode enabled. 
-                  Bluetooth monitoring data will show only <b>newly discovered</b> Bluetooth
-                  devices within set Time Period.";
-}
-
 // reset and initialize live chart arrays
 $_SESSION["chart_wifi_bot"] = array();
 $_SESSION["chart_wifi_top"] = array();
@@ -181,7 +165,11 @@ $_SESSION["updateInterval"] = 30000;
 
           </form>
 
-          <p id="ib_bt_data" class="info_box" style="display:none"> <?php echo $p_bt_amnesia ?> </p>
+          <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
+                                                                    <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
+                                                                    (Time Period <b>must</b> be set to same time as amnesia)<br>
+                                                                    <b>&nbsp;&nbsp;&nbsp;disabled - </b>number of newly discovered devices within Time Period
+                                                                    </p>
 
         </div>
       </div>
