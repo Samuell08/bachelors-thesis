@@ -92,10 +92,7 @@ $_SESSION["updateInterval"] = 30000;
     
       <!-- HEADER -->
       <div class="div_h1">
-        <a href="<?php echo $_SERVER['PHP_SELF']?>">
-        <h1>Raspberry Pi <?php if (isset($hostname)){ echo "(" . $hostname . ")"; } ?></h1>
-        <h3>monitoring server visualization interface</h3></a>
-        <hr>
+        <?php include 'inc/common/header.php' ?>
       </div>
     
       <!-- MENU -->
@@ -193,8 +190,7 @@ $_SESSION["updateInterval"] = 30000;
       
       <!-- FOOTER -->
       <div class="div_foot">
-        <hr>
-        <p>Samuel Petráš (203317) - Bakalárska práca - VUT FEKT - 2020</p>
+        <?php include 'inc/common/footer.php' ?>
       </div>
     </div>
   </body>

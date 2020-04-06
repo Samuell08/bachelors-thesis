@@ -39,10 +39,7 @@ $db_delete_all  = $_POST["db_delete_all"];
     
       <!-- HEADER -->
       <div class="div_h1">
-        <a href="<?php echo $_SERVER['HTTP_REFERER']?>">
-        <h1>Raspberry Pi <?php if (isset($hostname)){ echo "(" . $hostname . ")"; } ?></h1>
-        <h3>monitoring server visualization interface</h3></a>
-        <hr>
+        <?php include 'inc/common/header.php' ?>
       </div>
 
       <!-- CONFIRM -->
@@ -70,8 +67,7 @@ $db_delete_all  = $_POST["db_delete_all"];
       
       <!-- FOOTER -->
       <div class="div_foot">
-        <hr>
-        <p>Samuel Petráš (203317) - Bakalárska práca - VUT FEKT - 2020</p>
+        <?php include 'inc/common/footer.php' ?>
       </div>
     </div>
   </body>
