@@ -8,9 +8,6 @@ $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
 $hostname   = $_SESSION["hostname"];
 
-$db_source_live  = $_SESSION["db_source_live"];
-$timeperiod_live = $_SESSION["timeperiod_live"];
-
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
 if(!$db_conn){

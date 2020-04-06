@@ -1,5 +1,5 @@
 <?php
-// DYNAMIC PART OF LIVE SETTINGS FORM
+// DYNAMIC PART OF HISTORY SETTINGS FORM
 // Select Source Database(s)
 echo "<b>Select Source Database(s)</b><br>";
 echo "<table class=\"form\">";

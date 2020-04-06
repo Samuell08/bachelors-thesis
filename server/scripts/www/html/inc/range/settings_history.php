@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $now   = date('H:i:s');
   if ($time_from == "")                 { $time_from = "$today" . " 04:00:00"; }
   if ($time_to == "")                   { $time_to = "$today" . " $now"; }
-  if ($time_step == "")                 { $time_step = 1; }
+  if ($time_step == "")                 { $time_step = 5; }
   if ($time_step_format == "")          { $time_step_format = "MINUTE"; }
   if ($timeperiod_history == "")        { $timeperiod_history = 15; }
   if ($timeperiod_format_history == "") { $timeperiod_format_history = "MINUTE"; }

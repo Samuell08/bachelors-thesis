@@ -8,13 +8,6 @@ $db_user    = $_SESSION["db_user"];
 $db_pass    = $_SESSION["db_pass"];
 $hostname   = $_SESSION["hostname"];
 
-$db_source_history  = $_SESSION["db_source_history"];
-$time_from          = $_SESSION["time_from"];
-$time_to            = $_SESSION["time_to"];
-$time_step          = $_SESSION["time_step"];
-$time_step_format   = $_SESSION["time_step_format"];
-$timeperiod_history = $_SESSION["timeperiod_history"];
-
 $db_conn    = mysqli_connect("p:" . $db_server, $db_user, $db_pass);
 
 if(!$db_conn){
