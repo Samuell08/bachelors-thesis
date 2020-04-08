@@ -7,7 +7,7 @@ node/logs
 server/logs
 common/logs
 # www interface temp folders
-server/scripts/www/html/var
+server/scripts/www/var
 server/scripts/www/html/json
 
 .commit_info

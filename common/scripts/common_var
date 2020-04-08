@@ -19,7 +19,9 @@ DIR_NODE_BLUELOG="${DIR_NODE}/Bluelog"
 DIR_SERVER="${DIR_MON}/server"
 DIR_SERVER_LOGS="${DIR_SERVER}/logs"
 DIR_SERVER_SCRIPTS="${DIR_SERVER}/scripts"
-DIR_SERVER_WEBUI="${DIR_SERVER_SCRIPTS}/www/html"
+DIR_SERVER_WWW="${DIR_SERVER_SCRIPTS}/www"
+DIR_SERVER_WEBUI="${DIR_SERVER_WWW}/html"
+DIR_SERVER_HTML_VAR="${DIR_SERVER_WWW}/var"
 
 # system directories
 DIR_SYSTEMD_SERVICE="/etc/systemd/system"
@@ -31,8 +33,6 @@ DIR_MYSQL="/var/lib/mysql"
 DIR_APACHE="/etc/apache2"
 DIR_PHP="/etc/php"
 DIR_HTML="/var/www/html"
-DIR_HTML_INC="${DIR_HTML}/inc"
-DIR_HTML_VAR="${DIR_HTML}/var"
 
 ########################################################### log
 # names of log files dumped in logs directory
@@ -68,5 +68,4 @@ SERVER_DB_MON_USER="mon"
 # apache web server user
 HTML_USER="www-data"
 # HTML var filenames
-HTML_VAR_AMNESIA="bt_amnesia"
 HTML_VAR_SERVER_IMPORT="server_import"

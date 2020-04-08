@@ -43,8 +43,9 @@ echo "<form method=\"post\" action=\"confirm.php\">";
       while ($db_row = mysqli_fetch_assoc($db_result)) {
 
         // read Import period from var file
+        $rootpath = "../../../../..";
         $filename = $db_row["DB_name"] . "_server_import";
-        $filepath = "../../var/" . $filename;
+        $filepath = $rootpath . "/home/pi/monitoring/server/scripts/www/var/" . $filename;
         $var_import_period = "unknown";
         if (file_exists($filepath)) {
           $f_import_period = fopen($filepath, "r");
