@@ -131,6 +131,14 @@ if(!$db_conn){
               </table>
             </div>
 
+            <div class="div_subcontent">
+              <b>Specific MAC/BD_ADDR</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="specific_addr_chk_rh" value="1" <?php if ($specific_addr_chk_rh == "1") { echo "checked";} ?>> Look only for this address </td></tr>
+                <tr><td><input type="text" name="specific_addr_rh" value="<?php echo $specific_addr_rh?>" style="width:150px;text-align:center;"></td></tr>
+              </table>
+            </div>
+
             <br><button type="submit">Submit</button>
 
           </form>

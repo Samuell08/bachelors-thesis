@@ -15,12 +15,14 @@ $db_source_rh  = $_SESSION["db_source_rh"];
 // settings
 $time_period_rh         = $_SESSION["time_period_rh"];
 $time_period_format_rh  = $_SESSION["time_period_format_rh"];
-$show_wlan_rh            = $_SESSION["show_wlan_rh"];
-$show_bt_rh              = $_SESSION["show_bt_rh"];
+$show_wlan_rh           = $_SESSION["show_wlan_rh"];
+$show_bt_rh             = $_SESSION["show_bt_rh"];
 $time_from_rh           = $_SESSION["time_from_rh"];
 $time_to_rh             = $_SESSION["time_to_rh"];
 $time_step_rh           = $_SESSION["time_step_rh"];
 $time_step_format_rh    = $_SESSION["time_step_format_rh"];
+$specific_addr_chk_rh   = $_SESSION["specific_addr_chk_rh"];
+$specific_addr_rh       = $_SESSION["specific_addr_rh"];
 
 // functions
 function is_anagram($string1, $string2) {
@@ -72,6 +74,93 @@ if ($db_source_rh == NULL) {
     " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_rh)) . "</b>" .
     " with period of " . "<b>" . $time_period_rh . " " . strtolower($time_period_format_rh) . "(s)" . "</b>" . "<br><br>";
 
+  if ($specific_addr_chk_rh == 1) {
+   
+    // look only for specific MAC/BD_ADDR address
+    
+    echo "Looked only for this MAC/BD_ADDR address: " . $specific_addr_rh . "<br><br>";
+
+    foreach ($db_source_rh as $key => $value) {
+
+      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+
+      // ---------------------------------------------------------------------- WIFI
+      if ($show_wlan_rh == "1") {
+
+        // prepare MySQL statement
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND
+                                   (station_MAC = '" . $specific_addr_rh . "');");
+        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
+        mysqli_stmt_bind_result($stmt, $mac_glbl);
+
+        // reset counters
+        $i = 0;
+        $time_actual = $time_from_rh;
+        
+        // loop whole time range
+        while (strtotime($time_actual) <= strtotime($time_to_rh)) {
+
+          // execute prepared MySQL statement
+          mysqli_stmt_execute($stmt);
+          // save MySQL query result to mac_glbl
+          mysqli_stmt_fetch($stmt);
+
+          // push new data into chart arrays
+          $chart_wifi_bot_history[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_bot_history[$i]["y"] += $mac_glbl;
+
+          // increment counters
+          $i += 1;
+          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+        } // end of global MAC while
+        mysqli_stmt_close($stmt);
+      } // end of show_wlan_rh
+
+      // ----------------------------------------------------------------- Bluetooth
+      if ($show_bt_rh == "1") {
+          
+        // prepare MySQL statement
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT BD_ADDR) AS TotalRows FROM Bluetooth WHERE
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND
+                                   (BD_ADDR = '" . $specific_addr_rh . "');");
+        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
+        mysqli_stmt_bind_result($stmt, $bt_total);
+
+        // reset counters
+        $i = 0;
+        $time_actual = $time_from_rh;
+        
+        // loop whole time range
+        while (strtotime($time_actual) <= strtotime($time_to_rh)) {
+
+          // execute prepared MySQL statement
+          mysqli_stmt_execute($stmt);
+          // save MySQL query result to bt_total
+          mysqli_stmt_fetch($stmt);
+
+          // push new data into chart arrays
+          $chart_bt_history[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_bt_history[$i]["y"] += $bt_total;
+
+          // increment counters
+          $i += 1;
+          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+        } // end of Bluetooth while
+        mysqli_stmt_close($stmt);
+      } // end of show_bt_rh
+    } // end of foreach DB
+
+
+
+  } else {
+
+
+
+    // look for any MAC/BD_ADDR address
+    
     foreach ($db_source_rh as $key => $value) {
 
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
@@ -205,6 +294,7 @@ if ($db_source_rh == NULL) {
         mysqli_stmt_close($stmt);
       } // end of show_bt_rh
     } // end of foreach DB
+  } // end of if specific_addr
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
