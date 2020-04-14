@@ -30,6 +30,7 @@ if(!$db_conn){
     <!-- JavaScript -->
     <script src="inc/common/js/scripts.js"></script>
     <script src="inc/pass/js/scripts_history.js"></script>
+    <script src="inc/pass/js/chart.js"></script>
     <script src="inc/pass/js/chart_history.js"></script>
     <script>
       function updateAll(){
@@ -37,6 +38,7 @@ if(!$db_conn){
         updateTextout();
         toggleIbBtData();
         buildChart();
+        customizeChart();
       }
     </script>
   

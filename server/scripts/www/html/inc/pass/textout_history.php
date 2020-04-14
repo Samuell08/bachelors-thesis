@@ -15,8 +15,8 @@ $db_source_ph  = $_SESSION["db_source_ph"];
 // settings
 $time_period_ph         = $_SESSION["time_period_ph"];
 $time_period_format_ph  = $_SESSION["time_period_format_ph"];
-$show_wlan_ph            = $_SESSION["show_wlan_ph"];
-$show_bt_ph              = $_SESSION["show_bt_ph"];
+$show_wlan_ph           = $_SESSION["show_wlan_ph"];
+$show_bt_ph             = $_SESSION["show_bt_ph"];
 $time_from_ph           = $_SESSION["time_from_ph"];
 $time_to_ph             = $_SESSION["time_to_ph"];
 $time_step_ph           = $_SESSION["time_step_ph"];

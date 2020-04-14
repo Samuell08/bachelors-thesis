@@ -37,6 +37,7 @@ $_SESSION["updateInterval"] = 30000;
     <!-- JavaScript -->
     <script src="inc/common/js/scripts.js"></script>
     <script src="inc/pass/js/scripts_live.js"></script>
+    <script src="inc/pass/js/chart.js"></script>
     <script src="inc/pass/js/chart_live.js"></script>
     <script>
       function updateAll(){
@@ -44,6 +45,7 @@ $_SESSION["updateInterval"] = 30000;
         updateTextout();
         toggleIbBtData();
         buildChart();
+        customizeChart();
       }
       var updateInterval = <?php echo $_SESSION["updateInterval"]?>; 
       setInterval(function(){updateTextout();}, updateInterval);
