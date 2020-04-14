@@ -2,6 +2,10 @@ function buildChart() {
  
   session_id = /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 
+  nameWifi = "Global MAC";
+  nameWifiLocal = "Local MAC unique";
+  nameBluetooth = "Bluetooth";
+
   colorWifi = "#1b81e5";
   colorWifiLocal = "#78bcff";
   colorBluetooth = "#061c33";
@@ -37,7 +41,39 @@ function buildChart() {
     },
     toolTip: {
       shared: true,
-      cornerRadius: 15
+      cornerRadius: 15,
+      fontWeight: "bold",
+      contentFormatter: function (e) {
+
+          var timestamp = new Date(e.entries[0].dataPoint.x);
+          var YYYY = timestamp.getFullYear();
+          var MM = timestamp.getMonth(); MM++; MM = "0" + MM; MM = MM.substr(-2);
+          var DD = "0" + timestamp.getDate(); DD = DD.substr(-2);
+          var HOD = "0" + timestamp.getHours(); HOD = HOD.substr(-2);
+          var MIN = "0" + timestamp.getMinutes(); MIN = MIN.substr(-2);
+          var SEC = "0" + timestamp.getSeconds(); SEC = SEC.substr(-2);
+
+          var content = YYYY + "-" + MM + "-" + DD + " " + HOD + ":" + MIN + ":" + SEC + "<hr>";
+          var totalWifi = -1;
+          
+          for (var i = 0; i < e.entries.length; i++) {
+            var color;
+            switch (e.entries[i].dataSeries.name) {
+              case nameWifi:      color = colorWifi;      totalWifi += e.entries[i].dataPoint.y; break;
+              case nameWifiLocal: color = colorWifiLocal; totalWifi += e.entries[i].dataPoint.y; break;
+              case nameBluetooth: color = colorBluetooth; break;
+              default:            color = "#000000"; break;
+            }
+            content += "<span style='color:" + color + "'>" + e.entries[i].dataSeries.name + ": " + e.entries[i].dataPoint.y + "</span>";
+            content += "<br/>";
+          }
+
+          totalWifi++; // init na -1
+          if (totalWifi > 0) {
+            content += "<hr>" + "total Wi-Fi: " + totalWifi;
+          }
+          return content;
+        }
     },
     legend: {
       cursor: "pointer",
@@ -45,31 +81,28 @@ function buildChart() {
     },
     data: [{
       type: "stackedArea",
-      name: "Global MAC",
+      name: nameWifi,
       color: colorWifi,
       showInLegend: true,
-      toolTipContent: "{x} <hr> <span style=\"color:" + colorWifi + "\"><b>{name}: </b></span> {y}",
       xValueType: "dateTime",
       xValueFormatString: "D.M H:mm:ss",
       yValueFormatString: "#",
       dataPoints: [{"x":1000,"y":0}]
     },{
       type: "stackedArea",
-      name: "Local MAC unique",
+      name: nameWifiLocal,
       color: colorWifiLocal,
       showInLegend: true,
-      toolTipContent: "<span style=\"color:" + colorWifiLocal + "\"><b>{name}: </b></span> {y} <br> <b>Total estimated: #total</b>",
       xValueType: "dateTime",
       yValueFormatString: "#",
       dataPoints: [{"x":1000,"y":0}]
     },{
       type: "line",
       axisYType: "secondary",
-      name: "Bluetooth",
+      name: nameBluetooth,
       color: colorBluetooth,
       markerType: "square",
       showInLegend: true,
-      toolTipContent: "<hr> <span style=\"color:" + colorBluetooth + "\"><b>{name}: </b></span> {y}",
       xValueType: "dateTime",
       yValueFormatString: "#",
       dataPoints: [{"x":1000,"y":0}]
