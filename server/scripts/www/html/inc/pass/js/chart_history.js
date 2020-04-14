@@ -1,10 +1,10 @@
 function updateChart() {
-  var dps_wifi_bot = readTextFile("json/chart_wifi_bot_history_" + session_id);
-  var dps_wifi_top = readTextFile("json/chart_wifi_top_history_" + session_id);
-  var dps_bt = readTextFile("json/chart_bt_history_" + session_id);
-  chart.options.data[0].dataPoints = JSON.parse(dps_wifi_bot); 
-  chart.options.data[1].dataPoints = JSON.parse(dps_wifi_top);
-  chart.options.data[2].dataPoints = JSON.parse(dps_bt);
+  var dps_wifi_unique = readTextFile("json/chart_wifi_unique_history_" + session_id);
+  var dps_wifi_total  = readTextFile("json/chart_wifi_total_history_" + session_id);
+  //var dps_bt = readTextFile("json/chart_bt_history_" + session_id);
+  chart.options.data[0].dataPoints = JSON.parse(dps_wifi_unique); 
+  chart.options.data[1].dataPoints = JSON.parse(dps_wifi_total);
+  //chart.options.data[2].dataPoints = JSON.parse(dps_bt);
   chart.render();
 }
 

@@ -105,8 +105,8 @@ if ($db_source_ph == NULL) {
           mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
-          $chart_wifi_bot_history[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_bot_history[$i]["y"] += $mac_glbl;
+          $chart_wifi_unique_history[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_unique_history[$i]["y"] += $mac_glbl;
 
           // increment counters
           $i += 1;
@@ -162,8 +162,8 @@ if ($db_source_ph == NULL) {
           $fingerprints_count = (count($fingerprints) > 0) ? count($fingerprints) : 0;
 
           // push new data into chart arrays
-          $chart_wifi_top_history[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_top_history[$i]["y"] += $fingerprints_count;
+          $chart_wifi_unique_history[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_unique_history[$i]["y"] += $fingerprints_count;
 
           // increment counters
           $i += 1;
@@ -209,14 +209,14 @@ if ($db_source_ph == NULL) {
   // write completed chart arrays to json files
   $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
-  $f_bot_history = fopen($json_dir . "/chart_wifi_bot_history_" . $session_id, "w");
-  $f_top_history = fopen($json_dir . "/chart_wifi_top_history_" . $session_id, "w");
+  $f_wifi_unique_history = fopen($json_dir . "/chart_wifi_unique_history_" . $session_id, "w");
+  $f_wifi_total_history = fopen($json_dir . "/chart_wifi_total_history_" . $session_id, "w");
   $f_bt_history  = fopen($json_dir . "/chart_bt_history_" . $session_id, "w");
-  fwrite($f_bot_history, json_encode($chart_wifi_bot_history));
-  fwrite($f_top_history, json_encode($chart_wifi_top_history));
+  fwrite($f_wifi_unique_history, json_encode($chart_wifi_unique_history));
+  fwrite($f_wifi_total_history, json_encode($chart_wifi_unique_history)); // ONLY FOR DEBUGGING - RENAME TO wifi_total TO WORK AS INTENDED
   fwrite($f_bt_history, json_encode($chart_bt_history));
-  fclose($f_bot_history);
-  fclose($f_top_history);
+  fclose($f_wifi_unique_history);
+  fclose($f_wifi_total_history);
   fclose($f_bt_history);
 
   // algorithm execution end

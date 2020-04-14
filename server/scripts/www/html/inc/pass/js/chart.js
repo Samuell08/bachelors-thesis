@@ -2,13 +2,13 @@ function buildChart() {
  
   session_id = /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 
-  nameWifi = "Global MAC";
-  nameWifiLocal = "Local MAC unique";
-  nameBluetooth = "Bluetooth";
+  nameWifiUnique = "Unique";
+  nameWifiTotal  = "Total";
+  //nameBluetooth = "Bluetooth";
 
-  colorWifi = "#1b81e5";
-  colorWifiLocal = "#78bcff";
-  colorBluetooth = "#061c33";
+  colorWifiUnique = "#1b81e5";
+  colorWifiTotal  = "#e57f1b";
+  //colorBluetooth = "#061c33";
 
   chart = new CanvasJS.Chart("chartContainer", {
 
@@ -27,18 +27,18 @@ function buildChart() {
     },
     axisY: {
       title: "Wi-Fi devices",
-      titleFontColor: colorWifi,
-      labelFontColor: colorWifi,
+      titleFontColor: colorWifiUnique,
+      labelFontColor: colorWifiUnique,
       gridDashType: "dash",
       tickThickness: 0
     },
-    axisY2: {
-      title: "Bluetooth devices",
-      titleFontColor: colorBluetooth,
-      labelFontColor: colorBluetooth,
-      gridDashType: "dash",
-      tickThickness: 0
-    },
+    //axisY2: {
+    //  title: "Bluetooth devices",
+    //  titleFontColor: colorBluetooth,
+    //  labelFontColor: colorBluetooth,
+    //  gridDashType: "dash",
+    //  tickThickness: 0
+    //},
     toolTip: {
       shared: true,
       cornerRadius: 15,
@@ -54,23 +54,17 @@ function buildChart() {
           var SEC = "0" + timestamp.getSeconds(); SEC = SEC.substr(-2);
 
           var content = YYYY + "-" + MM + "-" + DD + " " + HOD + ":" + MIN + ":" + SEC + "<hr>";
-          var totalWifi = -1;
           
           for (var i = 0; i < e.entries.length; i++) {
             var color;
             switch (e.entries[i].dataSeries.name) {
-              case nameWifi:      color = colorWifi;      totalWifi += e.entries[i].dataPoint.y; break;
-              case nameWifiLocal: color = colorWifiLocal; totalWifi += e.entries[i].dataPoint.y; break;
-              case nameBluetooth: color = colorBluetooth; break;
-              default:            color = "#000000"; break;
+              case nameWifiUnique: color = colorWifiUnique; break;
+              case nameWifiTotal:  color = colorWifiTotal; break;
+              //case nameBluetooth:  color = colorBluetooth; break;
+              default:             color = "#000000"; break;
             }
             content += "<span style='color:" + color + "'>" + e.entries[i].dataSeries.name + ": " + e.entries[i].dataPoint.y + "</span>";
             content += "<br/>";
-          }
-
-          totalWifi++; // init na -1
-          if (totalWifi > 0) {
-            content += "<hr>" + "total Wi-Fi: " + totalWifi;
           }
           return content;
         }
@@ -80,33 +74,35 @@ function buildChart() {
       itemclick: toggleDataSeries
     },
     data: [{
-      type: "stackedColumn",
-      name: nameWifi,
-      color: colorWifi,
+      type: "column",
+      name: nameWifiUnique,
+      color: colorWifiUnique,
       showInLegend: true,
       xValueType: "dateTime",
       xValueFormatString: "D.M H:mm:ss",
       yValueFormatString: "#",
       dataPoints: [{"x":1000,"y":0}]
     },{
-      type: "stackedColumn",
-      name: nameWifiLocal,
-      color: colorWifiLocal,
+      type: "column",
+      name: nameWifiTotal,
+      color: colorWifiTotal,
       showInLegend: true,
       xValueType: "dateTime",
       yValueFormatString: "#",
       dataPoints: [{"x":1000,"y":0}]
-    },{
-      type: "stackedColumn",
-      axisYType: "secondary",
-      name: nameBluetooth,
-      color: colorBluetooth,
-      markerType: "square",
-      showInLegend: true,
-      xValueType: "dateTime",
-      yValueFormatString: "#",
-      dataPoints: [{"x":1000,"y":0}]
-    }]
+    }
+    //,{
+    //  type: "stackedColumn",
+    //  axisYType: "secondary",
+    //  name: nameBluetooth,
+    //  color: colorBluetooth,
+    //  markerType: "square",
+    //  showInLegend: true,
+    //  xValueType: "dateTime",
+    //  yValueFormatString: "#",
+    //  dataPoints: [{"x":1000,"y":0}]
+    //}
+    ]
   });
 
   chart.render();
