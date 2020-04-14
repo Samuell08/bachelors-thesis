@@ -18,9 +18,9 @@ $time_period_format_pl  = $_SESSION["time_period_format_pl"];
 $show_wlan_pl           = $_SESSION["show_wlan_pl"];
 $show_bt_pl             = $_SESSION["show_bt_pl"];
 // chart arrays
-$chart_wifi_bot = $_SESSION["chart_wifi_bot"];
-$chart_wifi_top = $_SESSION["chart_wifi_top"];
-$chart_bt       = $_SESSION["chart_bt"];
+$chart_wifi_unique_pl = $_SESSION["chart_wifi_unique_pl"];
+$chart_wifi_total_pl  = $_SESSION["chart_wifi_total_pl"];
+$chart_bt_pl          = $_SESSION["chart_bt_pl"];
 
 // functions
 function is_anagram($string1, $string2) {
@@ -159,27 +159,27 @@ if ($db_source_pl == NULL) {
   // -------------------------------------------------------------- chart arrays
   // push new data into chart arrays
   $current_time = time()*1000;
-  array_push($chart_wifi_bot, array("x" => $current_time, "y" => $mac_glbl));
-  array_push($chart_wifi_top, array("x" => $current_time, "y" => $fingerprints_count));
-  array_push($chart_bt, array("x" => $current_time, "y" => $bt_total));
+  array_push($chart_wifi_unique_pl, array("x" => $current_time, "y" => $mac_glbl));
+  array_push($chart_wifi_total_pl,  array("x" => $current_time, "y" => $fingerprints_count));
+  array_push($chart_bt_pl,          array("x" => $current_time, "y" => $bt_total));
 
   // write updated chart arrays to json files
   $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
-  $f_bot = fopen($json_dir . "/chart_wifi_bot_" . $session_id, "w");
-  $f_top = fopen($json_dir . "/chart_wifi_top_" . $session_id, "w");
-  $f_bt  = fopen($json_dir . "/chart_bt_" . $session_id, "w");
-  fwrite($f_bot, json_encode($chart_wifi_bot));
-  fwrite($f_top, json_encode($chart_wifi_top));
-  fwrite($f_bt, json_encode($chart_bt));
+  $f_bot = fopen($json_dir . "/chart_wifi_unique_pl_" . $session_id, "w");
+  $f_top = fopen($json_dir . "/chart_wifi_total_pl_" . $session_id, "w");
+  $f_bt  = fopen($json_dir . "/chart_bt_pl_" . $session_id, "w");
+  fwrite($f_bot, json_encode($chart_wifi_unique_pl));
+  fwrite($f_top, json_encode($chart_wifi_total_pl));
+  fwrite($f_bt,  json_encode($chart_bt_pl));
   fclose($f_bot);
   fclose($f_top);
   fclose($f_bt);
   
   // save updated chart arrays to session
-  $_SESSION["chart_wifi_bot"] = $chart_wifi_bot;
-  $_SESSION["chart_wifi_top"] = $chart_wifi_top;
-  $_SESSION["chart_bt"] = $chart_bt;
+  $_SESSION["chart_wifi_unique_pl"] = $chart_wifi_unique_pl;
+  $_SESSION["chart_wifi_total_pl"]  = $chart_wifi_total_pl;
+  $_SESSION["chart_bt_pl"]          = $chart_bt_pl;
 }
 
 ?>

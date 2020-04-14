@@ -14,9 +14,9 @@ if(!$db_conn){
 }
 
 // reset and initialize live chart arrays
-$_SESSION["chart_wifi_bot"] = array();
-$_SESSION["chart_wifi_top"] = array();
-$_SESSION["chart_bt"] = array();
+$_SESSION["chart_wifi_bot_rl"] = array();
+$_SESSION["chart_wifi_top_rl"] = array();
+$_SESSION["chart_bt_rl"] = array();
 
 $_SESSION["updateInterval"] = 30000;
 ?>

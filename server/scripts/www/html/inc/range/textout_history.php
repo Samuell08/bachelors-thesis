@@ -108,8 +108,8 @@ if ($db_source_rh == NULL) {
           mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
-          $chart_wifi_bot_history[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_bot_history[$i]["y"] += $mac_glbl;
+          $chart_wifi_bot_rh[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_bot_rh[$i]["y"] += $mac_glbl;
 
           // increment counters
           $i += 1;
@@ -142,8 +142,8 @@ if ($db_source_rh == NULL) {
           mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
-          $chart_bt_history[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_bt_history[$i]["y"] += $bt_total;
+          $chart_bt_rh[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_bt_rh[$i]["y"] += $bt_total;
 
           // increment counters
           $i += 1;
@@ -194,8 +194,8 @@ if ($db_source_rh == NULL) {
           mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
-          $chart_wifi_bot_history[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_bot_history[$i]["y"] += $mac_glbl;
+          $chart_wifi_bot_rh[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_bot_rh[$i]["y"] += $mac_glbl;
 
           // increment counters
           $i += 1;
@@ -251,8 +251,8 @@ if ($db_source_rh == NULL) {
           $fingerprints_count = (count($fingerprints) > 0) ? count($fingerprints) : 0;
 
           // push new data into chart arrays
-          $chart_wifi_top_history[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_top_history[$i]["y"] += $fingerprints_count;
+          $chart_wifi_top_rh[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_top_rh[$i]["y"] += $fingerprints_count;
 
           // increment counters
           $i += 1;
@@ -284,8 +284,8 @@ if ($db_source_rh == NULL) {
           mysqli_stmt_fetch($stmt);
 
           // push new data into chart arrays
-          $chart_bt_history[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_bt_history[$i]["y"] += $bt_total;
+          $chart_bt_rh[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_bt_rh[$i]["y"] += $bt_total;
 
           // increment counters
           $i += 1;
@@ -299,15 +299,15 @@ if ($db_source_rh == NULL) {
   // write completed chart arrays to json files
   $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
-  $f_bot_history = fopen($json_dir . "/chart_wifi_bot_history_" . $session_id, "w");
-  $f_top_history = fopen($json_dir . "/chart_wifi_top_history_" . $session_id, "w");
-  $f_bt_history  = fopen($json_dir . "/chart_bt_history_" . $session_id, "w");
-  fwrite($f_bot_history, json_encode($chart_wifi_bot_history));
-  fwrite($f_top_history, json_encode($chart_wifi_top_history));
-  fwrite($f_bt_history, json_encode($chart_bt_history));
-  fclose($f_bot_history);
-  fclose($f_top_history);
-  fclose($f_bt_history);
+  $f_bot_rh = fopen($json_dir . "/chart_wifi_bot_rh_" . $session_id, "w");
+  $f_top_rh = fopen($json_dir . "/chart_wifi_top_rh_" . $session_id, "w");
+  $f_bt_rh  = fopen($json_dir . "/chart_bt_rh_" . $session_id, "w");
+  fwrite($f_bot_rh, json_encode($chart_wifi_bot_rh));
+  fwrite($f_top_rh, json_encode($chart_wifi_top_rh));
+  fwrite($f_bt_rh, json_encode($chart_bt_rh));
+  fclose($f_bot_rh);
+  fclose($f_top_rh);
+  fclose($f_bt_rh);
 
   // algorithm execution end
   $alg_end = time();
