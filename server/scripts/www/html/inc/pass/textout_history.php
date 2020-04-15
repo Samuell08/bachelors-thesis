@@ -13,14 +13,16 @@ $db_user       = $_SESSION["db_user"];
 $db_pass       = $_SESSION["db_pass"];
 $db_source_ph  = $_SESSION["db_source_ph"];
 // settings
-$time_period_ph         = $_SESSION["time_period_ph"];
-$time_period_format_ph  = $_SESSION["time_period_format_ph"];
-$show_wlan_ph           = $_SESSION["show_wlan_ph"];
-$show_bt_ph             = $_SESSION["show_bt_ph"];
 $time_from_ph           = $_SESSION["time_from_ph"];
 $time_to_ph             = $_SESSION["time_to_ph"];
 $time_step_ph           = $_SESSION["time_step_ph"];
 $time_step_format_ph    = $_SESSION["time_step_format_ph"];
+$time_period_ph         = $_SESSION["time_period_ph"];
+$time_period_format_ph  = $_SESSION["time_period_format_ph"];
+$threshold_ph           = $_SESSION["threshold_ph"];
+$threshold_format_ph    = $_SESSION["threshold_format_ph"];
+$show_wlan_ph           = $_SESSION["show_wlan_ph"];
+$show_bt_ph             = $_SESSION["show_bt_ph"];
 
 // functions
 function is_anagram($string1, $string2) {
@@ -43,6 +45,10 @@ if ($db_source_ph == NULL) {
   echo "<p class=\"warning\">Time range \"From\" is later in time than \"To\".</p>";
 } elseif (strtotime($time_to_ph) > time()) {
   echo "<p class=\"warning\">Time range \"To\" is in the future.</p>";
+} elseif ($threshold_ph == NULL) {
+  echo "<p class=\"warning\">Invalid threshold.</p>";
+} elseif ($threshold_format_ph == NULL) {
+  echo "<p class=\"warning\">Threshold format Minute(s)/Hour(s) not selected.</p>";
 } else {
 
   // algorithm execution start
@@ -79,7 +85,8 @@ if ($db_source_ph == NULL) {
       // ---------------------------------------------------------------------- WIFI
       if ($show_wlan_ph == "1") {
 
-        // GLOBAL MAC LOOP
+        // ------------------------------------------------------------- UNIQUE
+        // GLOBAL MAC LOOP (UNIQUE)
         
         // prepare MySQL statement
         $stmt = mysqli_stmt_init($db_conn_s);
@@ -111,10 +118,10 @@ if ($db_source_ph == NULL) {
           // increment counters
           $i += 1;
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        } // end of global MAC while
+        } // end of global MAC while (unique)
         mysqli_stmt_close($stmt);
 
-        // LOCAL MAC LOOP
+        // LOCAL MAC LOOP (UNIQUE)
         
         // prepare MySQL statement
         $stmt = mysqli_stmt_init($db_conn_s);
@@ -168,8 +175,47 @@ if ($db_source_ph == NULL) {
           // increment counters
           $i += 1;
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        } // end of local MAC while
+        } // end of local MAC while (unique)
         mysqli_stmt_close($stmt);
+
+        // ------------------------------------------------------------- TOTAL
+        // GLOBAL MAC LOOP (TOTAL)
+        
+        // prepare MySQL statement
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_ph . " " . $time_period_format_ph . ")) AND ?) AND
+                                   (station_MAC LIKE '_0:__:__:__:__:__' OR
+                                    station_MAC LIKE '_4:__:__:__:__:__' OR
+                                    station_MAC LIKE '_8:__:__:__:__:__' OR
+                                    station_MAC LIKE '_C:__:__:__:__:__');");
+        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
+        mysqli_stmt_bind_result($stmt, $mac_glbl);
+
+        // reset counters
+        $i = 0;
+        $time_actual = $time_from_ph;
+        
+        // loop whole time range
+        while (strtotime($time_actual) <= strtotime($time_to_ph)) {
+
+          // execute prepared MySQL statement
+          mysqli_stmt_execute($stmt);
+          // save MySQL query result to mac_glbl
+          mysqli_stmt_fetch($stmt);
+
+          // push new data into chart arrays
+          $chart_wifi_unique_ph[$i]["x"]  = strtotime($time_actual)*1000;
+          $chart_wifi_unique_ph[$i]["y"] += $mac_glbl;
+
+          // increment counters
+          $i += 1;
+          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+        } // end of global MAC while (total)
+        mysqli_stmt_close($stmt);
+
+        // LOCAL MAC LOOP (TOTAL)
+
       } // end of show_wlan_ph
 
       // ----------------------------------------------------------------- Bluetooth

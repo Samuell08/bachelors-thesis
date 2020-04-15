@@ -125,6 +125,15 @@ if(!$db_conn){
             </div>
 
             <div class="div_subcontent">
+              <b>Threshold</b><br>
+              <table class="form">
+                <tr><td><input type="number" name="threshold_ph" value="<?php echo $threshold_ph?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="threshold_format_ph" value="MINUTE" <?php if ($threshold_format_ph == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+                <tr><td><input type="radio" name="threshold_format_ph" value="HOUR"   <?php if ($threshold_format_ph == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+              </table>
+            </div>
+
+            <div class="div_subcontent">
               <b>Show Data</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="show_wlan_ph" value="1" <?php if ($show_wlan_ph == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
@@ -138,6 +147,7 @@ if(!$db_conn){
 
           <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
+          <p class="info_box">Threshold specifies how long device needs to be undetected before counting its discovery as another passage.</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
                                                                     <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
                                                                     (Time Period <b>must</b> be set to same time as amnesia)<br>
