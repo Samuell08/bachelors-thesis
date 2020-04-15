@@ -180,17 +180,58 @@ if ($db_source_ph == NULL) {
 
         // ------------------------------------------------------------- TOTAL
         // GLOBAL MAC LOOP (TOTAL)
+
+        // every unique global MAC saved to PHP array $macs
+        $db_q = "SELECT station_MAC FROM Clients WHERE
+                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
+                (station_MAC LIKE '_0:__:__:__:__:__' OR
+                 station_MAC LIKE '_4:__:__:__:__:__' OR
+                 station_MAC LIKE '_8:__:__:__:__:__' OR
+                 station_MAC LIKE '_C:__:__:__:__:__')
+                 GROUP BY station_MAC;";
+        $db_result = mysqli_query($db_conn_s, $db_q);
+
+        unset($macs);
+        // fill macs array
+        if (mysqli_num_rows($db_result) > 0) {
+          while ($db_row = mysqli_fetch_assoc($db_result)) {
+            $macs[] = $db_row["station_MAC"];
+          }
+        }
+
+        // loop every MAC from last query
+        echo "<br>Wi-Fi devices with global MAC addresses:<br>";
+        echo "<table style=\"border-collapse:collapse\">";
+        foreach ($macs as $macs_key => $macs_value) {
+
+          echo "<tr class=\"info\">";
+          echo "<td><tt>" . $macs_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+
+          // every timestamp for given MAC in time from From to To
+          $db_q = "SELECT last_time_seen FROM Clients WHERE
+                  (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND (station_MAC = '" . $macs_value . "');";
+          $db_result = mysqli_query($db_conn_s, $db_q);
+
+          unset($mac_timestamps);
+          // fill mac_timestamps array
+          if (mysqli_num_rows($db_result) > 0) {
+            while ($db_row = mysqli_fetch_assoc($db_result)) {
+              $mac_timestamps[] = $db_row["last_time_seen"];
+            }
+          }
+
+          echo "<td><tt>";
+          foreach ($mac_timestamps as $mac_ts_key => $mac_ts_value) {
+            echo $mac_ts_value . " | ";
+          }
+          echo "</tt></td>";
+
+          echo "</tr>";
+
+        }
+        echo "</table><br>";
+
         
-        // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_ph . " " . $time_period_format_ph . ")) AND ?) AND
-                                   (station_MAC LIKE '_0:__:__:__:__:__' OR
-                                    station_MAC LIKE '_4:__:__:__:__:__' OR
-                                    station_MAC LIKE '_8:__:__:__:__:__' OR
-                                    station_MAC LIKE '_C:__:__:__:__:__');");
-        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
-        mysqli_stmt_bind_result($stmt, $mac_glbl);
 
         // reset counters
         $i = 0;
