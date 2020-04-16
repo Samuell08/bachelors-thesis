@@ -89,12 +89,14 @@ if ($db_source_ph == NULL) {
       // ---------------------------------------------------------------------- WIFI
       if ($show_wlan_ph == "1") {
 
-        // build total array
+        // build total and unique arrays
         // reset counters
         $i = 0;
         $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
         while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-          // initialize whole array to 0 with correct timestamps
+          // initialize whole arrays to 0 with correct timestamps
+          $chart_wifi_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
+          $chart_wifi_unique_ph[$i]["y"] = 0;
           $chart_wifi_total_ph[$i]["x"] = strtotime($time_actual)*1000;
           $chart_wifi_total_ph[$i]["y"] = 0;
           // increment counters
@@ -166,7 +168,8 @@ if ($db_source_ph == NULL) {
           echo "</tt></td>"; // close timestamps <td>
           echo "</tr>";
 
-          // fill total passages array based on passages subarray
+          // fill total and unique passages arrays based on passages subarray
+          $unique = 1;
           // reset counters
           $i = 0;
           $time_actual = $time_from_ph;
@@ -184,6 +187,8 @@ if ($db_source_ph == NULL) {
               }
             }
 
+            // moving to next time step
+            $unique = 1;
             // increment counters
             $i += 1;
             $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
