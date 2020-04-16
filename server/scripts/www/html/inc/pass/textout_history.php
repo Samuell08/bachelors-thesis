@@ -17,8 +17,6 @@ $time_from_ph           = $_SESSION["time_from_ph"];
 $time_to_ph             = $_SESSION["time_to_ph"];
 $time_step_ph           = $_SESSION["time_step_ph"];
 $time_step_format_ph    = $_SESSION["time_step_format_ph"];
-$time_period_ph         = $_SESSION["time_period_ph"];
-$time_period_format_ph  = $_SESSION["time_period_format_ph"];
 $threshold_ph           = $_SESSION["threshold_ph"];
 $threshold_format_ph    = $_SESSION["threshold_format_ph"];
 $show_wlan_ph           = $_SESSION["show_wlan_ph"];
@@ -35,10 +33,6 @@ function is_anagram($string1, $string2) {
 // check if user input is correct
 if ($db_source_ph == NULL) {
   echo "<p class=\"warning\">Source database(s) not selected.</p>";
-} elseif ($time_period_format_ph == NULL) {
-  echo "<p class=\"warning\">Time Period format Minute(s)/Hour(s) not selected.</p>";
-} elseif ($time_period_ph == NULL) {
-  echo "<p class=\"warning\">Invalid time period.</p>";
 } elseif ((!($show_wlan_ph == "1")) and (!($show_bt_ph == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
 } elseif (strtotime($time_from_ph) > strtotime($time_to_ph)) {
@@ -85,8 +79,8 @@ if ($db_source_ph == NULL) {
   
   // text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_ph)) . "</b>" .
-    " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
-    " with period of " . "<b>" . $time_period_ph . " " . strtolower($time_period_format_ph) . "(s)" . "</b>" . "<br><br>";
+        " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
+        " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" . "<br><br>";
 
     foreach ($db_source_ph as $key => $value) {
 
@@ -95,105 +89,10 @@ if ($db_source_ph == NULL) {
       // ---------------------------------------------------------------------- WIFI
       if ($show_wlan_ph == "1") {
 
-        // ------------------------------------------------------------- UNIQUE
-        // GLOBAL MAC LOOP (UNIQUE)
-        
-        // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_ph . " " . $time_period_format_ph . ")) AND ?) AND
-                                   (station_MAC LIKE '_0:__:__:__:__:__' OR
-                                    station_MAC LIKE '_4:__:__:__:__:__' OR
-                                    station_MAC LIKE '_8:__:__:__:__:__' OR
-                                    station_MAC LIKE '_C:__:__:__:__:__');");
-        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
-        mysqli_stmt_bind_result($stmt, $mac_glbl);
-
-        // reset counters
-        $i = 0;
-        $time_actual = $time_from_ph;
-        
-        // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-
-          // execute prepared MySQL statement
-          mysqli_stmt_execute($stmt);
-          // save MySQL query result to mac_glbl
-          mysqli_stmt_fetch($stmt);
-
-          // push new data into chart arrays
-          $chart_wifi_unique_ph[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_unique_ph[$i]["y"] += $mac_glbl;
-
-          // increment counters
-          $i += 1;
-          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        } // end of global MAC while (unique)
-        mysqli_stmt_close($stmt);
-
-        // LOCAL MAC LOOP (UNIQUE)
-        
-        // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
-                                   (LENGTH(probed_ESSIDs) > 18) AND
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_ph . " " . $time_period_format_ph . ")) AND ?) AND NOT
-                                   (station_MAC LIKE '_0:__:__:__:__:__' OR
-                                    station_MAC LIKE '_4:__:__:__:__:__' OR
-                                    station_MAC LIKE '_8:__:__:__:__:__' OR
-                                    station_MAC LIKE '_C:__:__:__:__:__')
-                                    GROUP BY station_MAC;");
-        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
-
-        // reset counters
-        $i = 0;
-        $time_actual = $time_from_ph;
-        
-        // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-          
-          // execute prepared MySQL statement
-          mysqli_stmt_execute($stmt);
-
-          $db_result = mysqli_stmt_get_result($stmt);
-
-          unset($fingerprints);
-          // fill (append to) fingerprints array
-          if (mysqli_num_rows($db_result) > 0) {
-            while ($db_row = mysqli_fetch_assoc($db_result)) {
-              $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
-            }
-            // delete fingerprint anagrams
-            foreach ($fingerprints as $master_key => &$master_value) {
-              foreach ($fingerprints as $search_key => &$search_value) {
-                if ($master_key != $search_key){
-                  if(is_anagram($master_value, $search_value)){
-                    // delete anagram from fingerprints array
-                    unset($fingerprints[$search_key]);
-                  }
-                }
-              }
-            }
-          } 
-
-          $fingerprints_count = (count($fingerprints) > 0) ? count($fingerprints) : 0;
-
-          // push new data into chart arrays
-          //$chart_wifi_unique_ph[$i]["x"]  = strtotime($time_actual)*1000;
-          //$chart_wifi_unique_ph[$i]["y"] += $fingerprints_count;
-
-          // increment counters
-          $i += 1;
-          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        } // end of local MAC while (unique)
-        mysqli_stmt_close($stmt);
-
-        // ------------------------------------------------------------- TOTAL
-
         // build total array
         // reset counters
         $i = 0;
-        $time_actual = $time_from_ph;
+        $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
         while (strtotime($time_actual) <= strtotime($time_to_ph)) {
           // initialize whole array to 0 with correct timestamps
           $chart_wifi_total_ph[$i]["x"] = strtotime($time_actual)*1000;
@@ -278,6 +177,10 @@ if ($db_source_ph == NULL) {
             foreach ($mac_pass_subarray as $key => $value){
               if ((strtotime($value) > strtotime($time_actual)) && (strtotime($value) <= $time_next)){
                 $chart_wifi_total_ph[$i]["y"] += 1;
+                if ($unique) {
+                  $chart_wifi_unique_ph[$i]["y"] += 1;
+                  $unique = 0;
+                }
               }
             }
 
@@ -302,7 +205,7 @@ if ($db_source_ph == NULL) {
         // prepare MySQL statement
         $stmt = mysqli_stmt_init($db_conn_s);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT BD_ADDR) AS TotalRows FROM Bluetooth WHERE
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_ph . " " . $time_period_format_ph . ")) AND ?);");
+                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_step_ph . " " . $time_step_format_ph . ")) AND ?);");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
         mysqli_stmt_bind_result($stmt, $bt_total);
 

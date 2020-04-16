@@ -116,15 +116,6 @@ if(!$db_conn){
             </div>
 
             <div class="div_subcontent">
-              <b>Time Period</b><br>
-              <table class="form">
-                <tr><td><input type="number" name="time_period_ph" value="<?php echo $time_period_ph?>" min="1" style="width:100px;text-align:center;"></td></tr>
-                <tr><td><input type="radio" name="time_period_format_ph" value="MINUTE" <?php if ($time_period_format_ph == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-                <tr><td><input type="radio" name="time_period_format_ph" value="HOUR"   <?php if ($time_period_format_ph == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
-              </table>
-            </div>
-
-            <div class="div_subcontent">
               <b>Threshold</b><br>
               <table class="form">
                 <tr><td><input type="number" name="threshold_ph" value="<?php echo $threshold_ph?>" min="1" style="width:100px;text-align:center;"></td></tr>

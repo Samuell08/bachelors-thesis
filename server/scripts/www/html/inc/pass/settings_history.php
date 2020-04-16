@@ -9,8 +9,6 @@ $time_from_ph           = "";
 $time_to_ph             = "";
 $time_step_ph           = "";
 $time_step_format_ph    = "";
-$time_period_ph         = "";
-$time_period_format_ph  = "";
 $threshold_ph           = "";
 $threshold_format_ph    = "";
 $show_wlan_ph           = "";
@@ -23,8 +21,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_to_ph             = filter_var($_GET["time_to_ph"], FILTER_SANITIZE_STRING);
   $time_step_ph           = filter_var($_GET["time_step_ph"], FILTER_VALIDATE_INT);
   $time_step_format_ph    = $_GET["time_step_format_ph"];
-  $time_period_ph         = filter_var($_GET["time_period_ph"], FILTER_VALIDATE_INT);
-  $time_period_format_ph  = $_GET["time_period_format_ph"];
   $threshold_ph           = filter_var($_GET["threshold_ph"], FILTER_VALIDATE_INT);
   $threshold_format_ph    = $_GET["threshold_format_ph"];
   $show_wlan_ph           = $_GET["show_wlan_ph"];
@@ -37,8 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($time_to_ph == "")            { $time_to_ph = "$today" . " $now"; }
   if ($time_step_ph == "")          { $time_step_ph = 5; }
   if ($time_step_format_ph == "")   { $time_step_format_ph = "MINUTE"; }
-  if ($time_period_ph == "")        { $time_period_ph = 15; }
-  if ($time_period_format_ph == "") { $time_period_format_ph = "MINUTE"; }
   if ($threshold_ph == "")          { $threshold_ph = 10; }
   if ($threshold_format_ph == "")   { $threshold_format_ph = "MINUTE"; }
   
@@ -48,8 +42,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_to_ph"]             = $time_to_ph;
   $_SESSION["time_step_ph"]           = $time_step_ph;
   $_SESSION["time_step_format_ph"]    = $time_step_format_ph;
-  $_SESSION["time_period_ph"]         = $time_period_ph;
-  $_SESSION["time_period_format_ph"]  = $time_period_format_ph;
   $_SESSION["threshold_ph"]           = $threshold_ph;
   $_SESSION["threshold_format_ph"]    = $threshold_format_ph;
   $_SESSION["show_wlan_ph"]           = $show_wlan_ph;
