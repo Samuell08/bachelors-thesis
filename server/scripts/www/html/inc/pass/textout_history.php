@@ -72,6 +72,16 @@ if ($db_source_ph == NULL) {
     $time_increment = $time_step_ph*3600;
     break;
   }    
+
+  // calculate threshold seconds
+  switch ($threshold_format_ph) {
+  case "MINUTE":
+    $threshold_seconds = $threshold_ph*60;
+    break;
+  case "HOUR":
+    $threshold_seconds = $threshold_ph*3600;
+    break;
+  }    
   
   // text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_ph)) . "</b>" .
@@ -169,8 +179,8 @@ if ($db_source_ph == NULL) {
           $fingerprints_count = (count($fingerprints) > 0) ? count($fingerprints) : 0;
 
           // push new data into chart arrays
-          $chart_wifi_unique_ph[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_unique_ph[$i]["y"] += $fingerprints_count;
+          //$chart_wifi_unique_ph[$i]["x"]  = strtotime($time_actual)*1000;
+          //$chart_wifi_unique_ph[$i]["y"] += $fingerprints_count;
 
           // increment counters
           $i += 1;
@@ -179,6 +189,20 @@ if ($db_source_ph == NULL) {
         mysqli_stmt_close($stmt);
 
         // ------------------------------------------------------------- TOTAL
+
+        // build total array
+        // reset counters
+        $i = 0;
+        $time_actual = $time_from_ph;
+        while (strtotime($time_actual) <= strtotime($time_to_ph)) {
+          // initialize whole array to 0 with correct timestamps
+          $chart_wifi_total_ph[$i]["x"] = strtotime($time_actual)*1000;
+          $chart_wifi_total_ph[$i]["y"] = 0;
+          // increment counters
+          $i += 1;
+          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+        }
+
         // GLOBAL MAC LOOP (TOTAL)
 
         // every unique global MAC saved to PHP array $macs
@@ -204,6 +228,7 @@ if ($db_source_ph == NULL) {
         echo "<table style=\"border-collapse:collapse\">";
         foreach ($macs as $macs_key => $macs_value) {
 
+          // output MAC address
           echo "<tr class=\"info\">";
           echo "<td><tt>" . $macs_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
 
@@ -220,40 +245,52 @@ if ($db_source_ph == NULL) {
             }
           }
 
-          echo "<td><tt>";
-          foreach ($mac_timestamps as $mac_ts_key => $mac_ts_value) {
-            echo $mac_ts_value . " | ";
-          }
-          echo "</tt></td>";
+          // build passages subarray
+          unset($mac_pass_subarray);
+          echo "<td><tt>"; // open timestamps <td>
+          // first is always bold
+          echo "<b>" . $mac_timestamps[0] . "</b> | ";
+          $mac_pass_subarray[] = $mac_timestamps[0];
 
+          // loop every timestamp for current MAC address
+          for ($i = 1; $i < count($mac_timestamps); $i++){
+            if ((strtotime($mac_timestamps[$i]) - strtotime($mac_timestamps[$i-1]) > $threshold_seconds)) {
+              // output bold timestamp
+              echo "<b>" . $mac_timestamps[$i] . "</b> | ";
+              $mac_pass_subarray[] = $mac_timestamps[$i];
+            } else {
+              // output normal timestamp
+              echo $mac_timestamps[$i] . " | ";
+            }
+          }
+
+          echo "</tt></td>"; // close timestamps <td>
           echo "</tr>";
 
-        }
+          // fill total passages array based on passages subarray
+          // reset counters
+          $i = 0;
+          $time_actual = $time_from_ph;
+          while (strtotime($time_actual) <= strtotime($time_to_ph)) {
+            // calculate next time value
+            $time_next = (strtotime($time_actual) + $time_increment);
+            // passage in current time step?
+            foreach ($mac_pass_subarray as $key => $value){
+              if ((strtotime($value) > strtotime($time_actual)) && (strtotime($value) <= $time_next)){
+                $chart_wifi_total_ph[$i]["y"] += 1;
+              }
+            }
+
+            // increment counters
+            $i += 1;
+            $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+          }
+          
+
+        } // end foreach MAC (global)
         echo "</table><br>";
 
-        
-
-        // reset counters
-        $i = 0;
-        $time_actual = $time_from_ph;
-        
-        // loop whole time range
-        while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-
-          // execute prepared MySQL statement
-          mysqli_stmt_execute($stmt);
-          // save MySQL query result to mac_glbl
-          mysqli_stmt_fetch($stmt);
-
-          // push new data into chart arrays
-          $chart_wifi_unique_ph[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_wifi_unique_ph[$i]["y"] += $mac_glbl;
-
-          // increment counters
-          $i += 1;
-          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        } // end of global MAC while (total)
-        mysqli_stmt_close($stmt);
+                
 
         // LOCAL MAC LOOP (TOTAL)
 
@@ -300,7 +337,7 @@ if ($db_source_ph == NULL) {
   $f_wifi_total_ph  = fopen($json_dir . "/chart_wifi_total_ph_" . $session_id, "w");
   $f_bt_ph          = fopen($json_dir . "/chart_bt_ph_" . $session_id, "w");
   fwrite($f_wifi_unique_ph, json_encode($chart_wifi_unique_ph));
-  fwrite($f_wifi_total_ph,  json_encode($chart_wifi_unique_ph)); // ONLY FOR DEBUGGING - RENAME TO wifi_total TO WORK AS INTENDED
+  fwrite($f_wifi_total_ph,  json_encode($chart_wifi_total_ph));
   fwrite($f_bt_ph,          json_encode($chart_bt_ph));
   fclose($f_wifi_unique_ph);
   fclose($f_wifi_total_ph);
