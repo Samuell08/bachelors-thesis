@@ -173,12 +173,12 @@ if ($db_source_ph == NULL) {
           // reset counters
           $i = 0;
           $time_actual = $time_from_ph;
-          while (strtotime($time_actual) <= strtotime($time_to_ph)) {
+          while (strtotime($time_actual) <= (strtotime($time_to_ph) - $time_increment)) {
             // calculate next time value
-            $time_next = (strtotime($time_actual) + $time_increment);
+            $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
             // passage in current time step?
             foreach ($mac_pass_subarray as $key => $value){
-              if ((strtotime($value) > strtotime($time_actual)) && (strtotime($value) <= $time_next)){
+              if ((strtotime($value) > strtotime($time_actual)) && (strtotime($value) <= strtotime($time_next))){
                 $chart_wifi_total_ph[$i]["y"] += 1;
                 if ($unique) {
                   $chart_wifi_unique_ph[$i]["y"] += 1;
@@ -191,7 +191,7 @@ if ($db_source_ph == NULL) {
             $unique = 1;
             // increment counters
             $i += 1;
-            $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+            $time_actual = $time_next;
           }
           
 
