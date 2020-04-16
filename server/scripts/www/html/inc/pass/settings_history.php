@@ -31,8 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $now   = date('H:i:s');
   if ($time_from_ph == "")          { $time_from_ph = "$today" . " 00:00:00"; }
   if ($time_to_ph == "")            { $time_to_ph = "$today" . " $now"; }
-  if ($time_step_ph == "")          { $time_step_ph = 5; }
-  if ($time_step_format_ph == "")   { $time_step_format_ph = "MINUTE"; }
+  if ($time_step_ph == "")          { $time_step_ph = 1; }
+  if ($time_step_format_ph == "")   { $time_step_format_ph = "HOUR"; }
   if ($threshold_ph == "")          { $threshold_ph = 10; }
   if ($threshold_format_ph == "")   { $threshold_format_ph = "MINUTE"; }
   
