@@ -30,6 +30,30 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
+function find_passages($mac_timestamps, $threshold_seconds) {
+  // open timestamps <td>
+  echo "<td><tt>";
+  // first is always bold
+  echo "<b>" . $mac_timestamps[0] . "</b> | ";
+  $mac_pass_subarray[0] = $mac_timestamps[0];
+  // loop every timestamp for current MAC address
+  for ($i = 1; $i < count($mac_timestamps); $i++){
+    if ((strtotime($mac_timestamps[$i]) - strtotime($mac_timestamps[$i-1]) > $threshold_seconds)) {
+      // output bold timestamp
+      echo "<b>" . $mac_timestamps[$i] . "</b> | ";
+      $mac_pass_subarray[] = $mac_timestamps[$i];
+    } else {
+      // output normal timestamp
+      echo $mac_timestamps[$i] . " | ";
+    }
+  }
+  // close timestamps <td>
+  echo "</tt></td>";
+  echo "</tr>";
+
+  return $mac_pass_subarray;
+}
+
 // check if user input is correct
 if ($db_source_ph == NULL) {
   echo "<p class=\"warning\">Source database(s) not selected.</p>";
@@ -161,27 +185,8 @@ if ($db_source_ph == NULL) {
           }
           mysqli_free_result($db_result);
         
-          // build passages subarray
-          unset($mac_pass_subarray);
-          echo "<td><tt>"; // open timestamps <td>
-          // first is always bold
-          echo "<b>" . $mac_timestamps[0] . "</b> | ";
-          $mac_pass_subarray[] = $mac_timestamps[0];
-
-          // loop every timestamp for current MAC address
-          for ($i = 1; $i < count($mac_timestamps); $i++){
-            if ((strtotime($mac_timestamps[$i]) - strtotime($mac_timestamps[$i-1]) > $threshold_seconds)) {
-              // output bold timestamp
-              echo "<b>" . $mac_timestamps[$i] . "</b> | ";
-              $mac_pass_subarray[] = $mac_timestamps[$i];
-            } else {
-              // output normal timestamp
-              echo $mac_timestamps[$i] . " | ";
-            }
-          }
-
-          echo "</tt></td>"; // close timestamps <td>
-          echo "</tr>";
+          // build passages subarray based on MAC timestamps
+          $mac_pass_subarray = find_passages($mac_timestamps, $threshold_seconds);
 
           // fill total and unique passages arrays based on passages subarray
           $unique = 1;
@@ -208,6 +213,10 @@ if ($db_source_ph == NULL) {
             $i += 1;
             $time_actual = $time_next;
           }
+
+          // moving to next MAC addr
+          unset($mac_pass_subarray);
+
         } // end foreach MAC (global)
         echo "</table><br>";
 
