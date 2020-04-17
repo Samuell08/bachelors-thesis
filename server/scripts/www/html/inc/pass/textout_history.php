@@ -125,6 +125,13 @@ if ($db_source_ph == NULL) {
           }
         }
         mysqli_free_result($db_result);
+        
+        // text output
+        echo "<b>Wi-Fi</b><br>";
+        echo "<table class=\"textout\">";
+          echo "<tr class=\"textout\"><td>" . "Total number of devices with global (unique) MAC address passed:" . "</td><td>" . $mac_glbl_passed . "</td></tr>";
+          // extra
+        echo "</table>";
 
         // loop every MAC from last query
         echo "<br>Wi-Fi devices with global MAC addresses:<br>";

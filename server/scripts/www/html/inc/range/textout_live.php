@@ -122,11 +122,11 @@ if ($db_source_rl == NULL) {
     // text output
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Number of devices with global (unique) MAC adress:" . "</td><td>" . $mac_glbl . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Number of devices with global (unique) MAC address:" . "</td><td>" . $mac_glbl . "</td></tr>";
       echo "<tr class=\"textout\"><td>" . "Number of identified local MAC address fingerprints:" . "</td><td>" . $fingerprints_count . "</td></tr>";
       echo "<tr class=\"textout\" style=\"border-bottom:3px double black\"><td>" . "Estimated total number of devices within reach:" . "</td><td>" . $est_total_wifi . "</td></tr>";
       // extra
-      echo "<tr class=\"textout_extra\"><td>" . "Number of detected local (randomized) MAC adresses:" . "</td><td>" . $mac_local . "</td></tr>";
+      echo "<tr class=\"textout_extra\"><td>" . "Number of detected local (randomized) MAC addresses:" . "</td><td>" . $mac_local . "</td></tr>";
     echo "</table>";
   }
 
