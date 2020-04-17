@@ -133,29 +133,34 @@ if ($db_source_ph == NULL) {
           // extra
         echo "</table>";
 
-        // loop every MAC from last query
         echo "<br>Wi-Fi devices with global MAC addresses:<br>";
         echo "<table style=\"border-collapse:collapse\">";
+
+        // loop every MAC in macs array
+        // prepare MySQL statement
+        $query = "SELECT last_time_seen FROM Clients WHERE
+                 (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND (station_MAC = ?);";
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, $query);
+        mysqli_stmt_bind_param($stmt, "s", $macs_value);
+
         foreach ($macs as $macs_key => $macs_value) {
 
           // output global MAC addresses with timestamps table
           echo "<tr class=\"info\">";
           echo "<td><tt>" . $macs_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
 
-          // every timestamp for given MAC in time from From to To
-          $db_q = "SELECT last_time_seen FROM Clients WHERE
-                  (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND (station_MAC = '" . $macs_value . "');";
-          $db_result = mysqli_query($db_conn_s, $db_q);
-
-          // process MySQL query result - fill mac_timestamps array
+          // process MySQL query result - fill timestamps array for given MAC
+          mysqli_stmt_execute($stmt);
+          $db_result = mysqli_stmt_get_result($stmt);
           unset($mac_timestamps);
           if (mysqli_num_rows($db_result) > 0) {
-            while ($db_row = mysqli_fetch_assoc($db_result)) {
+            while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
               $mac_timestamps[] = $db_row["last_time_seen"];
             }
           }
           mysqli_free_result($db_result);
-
+        
           // build passages subarray
           unset($mac_pass_subarray);
           echo "<td><tt>"; // open timestamps <td>
@@ -203,8 +208,6 @@ if ($db_source_ph == NULL) {
             $i += 1;
             $time_actual = $time_next;
           }
-          
-
         } // end foreach MAC (global)
         echo "</table><br>";
 
