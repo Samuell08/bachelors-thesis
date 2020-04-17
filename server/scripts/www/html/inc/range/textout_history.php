@@ -311,6 +311,9 @@ if ($db_source_rh == NULL) {
 
   // algorithm execution end
   $alg_end = time();
-  echo "Algorithm finished in " . ($alg_end - $alg_start) . " seconds.";
+  $mem_peak = memory_get_peak_usage();
+  $mem_peak = $mem_peak / 1000000; // MB
+  echo "Algorithm finished in " . ($alg_end - $alg_start) . " seconds.<br>";
+  echo "Memory usage peak: " . round($mem_peak, 2) . " MB";
 }
 ?>

@@ -116,20 +116,22 @@ if ($db_source_ph == NULL) {
                  GROUP BY station_MAC;";
         $db_result = mysqli_query($db_conn_s, $db_q);
 
+        // process MySQL query result - fill macs array
         unset($macs);
-        // fill macs array
+        $mac_glbl_passed = mysqli_num_rows($db_result);
         if (mysqli_num_rows($db_result) > 0) {
           while ($db_row = mysqli_fetch_assoc($db_result)) {
             $macs[] = $db_row["station_MAC"];
           }
         }
+        mysqli_free_result($db_result);
 
         // loop every MAC from last query
         echo "<br>Wi-Fi devices with global MAC addresses:<br>";
         echo "<table style=\"border-collapse:collapse\">";
         foreach ($macs as $macs_key => $macs_value) {
 
-          // output MAC address
+          // output global MAC addresses with timestamps table
           echo "<tr class=\"info\">";
           echo "<td><tt>" . $macs_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
 
@@ -138,13 +140,14 @@ if ($db_source_ph == NULL) {
                   (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND (station_MAC = '" . $macs_value . "');";
           $db_result = mysqli_query($db_conn_s, $db_q);
 
+          // process MySQL query result - fill mac_timestamps array
           unset($mac_timestamps);
-          // fill mac_timestamps array
           if (mysqli_num_rows($db_result) > 0) {
             while ($db_row = mysqli_fetch_assoc($db_result)) {
               $mac_timestamps[] = $db_row["last_time_seen"];
             }
           }
+          mysqli_free_result($db_result);
 
           // build passages subarray
           unset($mac_pass_subarray);
@@ -253,6 +256,9 @@ if ($db_source_ph == NULL) {
 
   // algorithm execution end
   $alg_end = time();
-  echo "Algorithm finished in " . ($alg_end - $alg_start) . " seconds.";
+  $mem_peak = memory_get_peak_usage();
+  $mem_peak = $mem_peak / 1000000; // MB
+  echo "Algorithm finished in " . ($alg_end - $alg_start) . " seconds.<br>";
+  echo "Memory usage peak: " . round($mem_peak, 2) . " MB";
 }
 ?>
