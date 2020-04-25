@@ -4,19 +4,19 @@ function buildChart() {
 
   nameWifiUnique = "Unique";
   nameWifiTotal  = "Total";
-  //nameBluetooth = "Bluetooth";
+  nameBluetooth = "Bluetooth";
 
   colorWifiUnique = "#1b81e5";
   colorWifiTotal  = "#e57f1b";
-  //colorBluetooth = "#061c33";
+  colorBluetooth = "#061c33";
 
-  chart = new CanvasJS.Chart("chartContainer", {
+  chartWifi = new CanvasJS.Chart("chartContainerWifi", {
 
     theme: "light2",
     zoomEnabled: true,
     
     title: {
-      text: "Passages"
+      text: "Wi-Fi Passages"
     },
     axisX: {
       title: "Timestamp",
@@ -32,13 +32,6 @@ function buildChart() {
       gridDashType: "dash",
       tickThickness: 0
     },
-    //axisY2: {
-    //  title: "Bluetooth devices",
-    //  titleFontColor: colorBluetooth,
-    //  labelFontColor: colorBluetooth,
-    //  gridDashType: "dash",
-    //  tickThickness: 0
-    //},
     toolTip: {
       shared: true,
       cornerRadius: 15,
@@ -60,7 +53,6 @@ function buildChart() {
             switch (e.entries[i].dataSeries.name) {
               case nameWifiUnique: color = colorWifiUnique; break;
               case nameWifiTotal:  color = colorWifiTotal; break;
-              //case nameBluetooth:  color = colorBluetooth; break;
               default:             color = "#000000"; break;
             }
             content += "<span style='color:" + color + "'>" + e.entries[i].dataSeries.name + ": " + e.entries[i].dataPoint.y + "</span>";
@@ -90,22 +82,77 @@ function buildChart() {
       xValueType: "dateTime",
       yValueFormatString: "#",
       dataPoints: [{"x":1000,"y":0}]
-    }
-    //,{
-    //  type: "stackedColumn",
-    //  axisYType: "secondary",
-    //  name: nameBluetooth,
-    //  color: colorBluetooth,
-    //  markerType: "square",
-    //  showInLegend: true,
-    //  xValueType: "dateTime",
-    //  yValueFormatString: "#",
-    //  dataPoints: [{"x":1000,"y":0}]
-    //}
-    ]
+    }]
   });
 
-  chart.render();
+  chartBluetooth = new CanvasJS.Chart("chartContainerBluetooth", {
+
+    theme: "light2",
+    zoomEnabled: true,
+    
+    title: {
+      text: "Bluetooth Passages"
+    },
+    axisX: {
+      title: "Timestamp",
+      valueFormatString: "D.M H:mm",
+      gridThickness: 1,
+      gridDashType: "dash",
+      labelAngle: -45
+    },
+    axisY: {
+      title: "Bluetooth devices",
+      titleFontColor: colorBluetooth,
+      labelFontColor: colorBluetooth,
+      gridDashType: "dash",
+      tickThickness: 0
+    },
+    toolTip: {
+      shared: true,
+      cornerRadius: 15,
+      fontWeight: "bold",
+      contentFormatter: function (e) {
+
+          var timestamp = new Date(e.entries[0].dataPoint.x);
+          var YYYY = timestamp.getFullYear();
+          var MM = timestamp.getMonth(); MM++; MM = "0" + MM; MM = MM.substr(-2);
+          var DD = "0" + timestamp.getDate(); DD = DD.substr(-2);
+          var HOD = "0" + timestamp.getHours(); HOD = HOD.substr(-2);
+          var MIN = "0" + timestamp.getMinutes(); MIN = MIN.substr(-2);
+          var SEC = "0" + timestamp.getSeconds(); SEC = SEC.substr(-2);
+
+          var content = YYYY + "-" + MM + "-" + DD + " " + HOD + ":" + MIN + ":" + SEC + "<hr>";
+          
+          for (var i = 0; i < e.entries.length; i++) {
+            var color;
+            switch (e.entries[i].dataSeries.name) {
+              case nameBluetooth:  color = colorBluetooth; break;
+              default:             color = "#000000"; break;
+            }
+            content += "<span style='color:" + color + "'>" + e.entries[i].dataSeries.name + ": " + e.entries[i].dataPoint.y + "</span>";
+            content += "<br/>";
+          }
+          return content;
+        }
+    },
+    legend: {
+      cursor: "pointer",
+      itemclick: toggleDataSeries
+    },
+    data: [{
+      type: "stackedColumn",
+      name: nameBluetooth,
+      color: colorBluetooth,
+      markerType: "square",
+      showInLegend: true,
+      xValueType: "dateTime",
+      yValueFormatString: "#",
+      dataPoints: [{"x":1000,"y":0}]
+    }]
+  });
+
+  chartWifi.render();
+  chartBluetooth.render();
 
   function toggleDataSeries(e){
     if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
@@ -113,7 +160,8 @@ function buildChart() {
     } else {
       e.dataSeries.visible = true;
     }
-      chart.render();
+      chartWifi.render();
+      chartBluetooth.render();
   }
 }
 
