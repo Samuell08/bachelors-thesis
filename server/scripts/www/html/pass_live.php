@@ -136,11 +136,17 @@ $_SESSION["updateInterval"] = 30000;
       
       <!-- CHART -->
       <div class="div_chart">
-        <h2>Chart</h2>
-        <div id="chartContainer" style="height: 370px; width: 100%;">
+        <h2>Charts</h2>
+      
+        <div id="chartContainerWifi" style="height: 370px; width: 100%;">
+          Loading...
+        </div>
+        <br>
+        <div id="chartContainerBluetooth" style="height: 370px; width: 100%;">
           Loading...
         </div>
         <script src="inc/common/js/canvasjs.min.js"></script>
+
       </div>
 
       <!-- TEXT OUTPUT -->
