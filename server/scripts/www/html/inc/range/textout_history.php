@@ -6,6 +6,9 @@ session_start();
 
 $session_id = session_id();
 
+// infinite execution time due to nested loops
+set_time_limit(0);
+
 // get session variables
 // database connection
 $db_server     = $_SESSION["db_server"];
