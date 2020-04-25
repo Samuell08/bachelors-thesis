@@ -235,34 +235,107 @@ if ($db_source_ph == NULL) {
       // ----------------------------------------------------------------- Bluetooth
       if ($show_bt_ph == "1") {
           
-        // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT BD_ADDR) AS TotalRows FROM Bluetooth WHERE
-                                   (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_step_ph . " " . $time_step_format_ph . ")) AND ?);");
-        mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
-        mysqli_stmt_bind_result($stmt, $bt_total);
-
+        // build total and unique arrays
         // reset counters
         $i = 0;
-        $time_actual = $time_from_ph;
-        
-        // loop whole time range
+        $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
         while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-
-          // execute prepared MySQL statement
-          mysqli_stmt_execute($stmt);
-          // save MySQL query result to bt_total
-          mysqli_stmt_fetch($stmt);
-
-          // push new data into chart arrays
-          $chart_bt_ph[$i]["x"]  = strtotime($time_actual)*1000;
-          $chart_bt_ph[$i]["y"] += $bt_total;
-
+          // initialize whole arrays to 0 with correct timestamps
+          $chart_bt_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
+          $chart_bt_unique_ph[$i]["y"] = 0;
+          $chart_bt_total_ph[$i]["x"] = strtotime($time_actual)*1000;
+          $chart_bt_total_ph[$i]["y"] = 0;
           // increment counters
           $i += 1;
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        } // end of Bluetooth while
-        mysqli_stmt_close($stmt);
+        }
+
+        // every unique BD_ADDR saved to PHP array $bd_addrs
+        $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
+                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
+                 GROUP BY BD_ADDR;";
+        $db_result = mysqli_query($db_conn_s, $db_q);
+
+        // process MySQL query result - fill bd_addrs array
+        unset($bd_addrs);
+        $bt_passed = mysqli_num_rows($db_result);
+        if (mysqli_num_rows($db_result) > 0) {
+          while ($db_row = mysqli_fetch_assoc($db_result)) {
+            $bd_addrs[] = $db_row["BD_ADDR"];
+          }
+        }
+        mysqli_free_result($db_result);
+        
+        // text output
+        echo "<b>Bluetooth</b><br>";
+        echo "<table class=\"textout\">";
+          echo "<tr class=\"textout\"><td>" . "Total number of devices passed:" . "</td><td>" . $bt_passed . "</td></tr>";
+          // extra
+        echo "</table>";
+
+        echo "<br>Bluetooth devices:<br>";
+        echo "<table style=\"border-collapse:collapse\">";
+
+        // loop every BD_ADDR in bd_addrs array
+        // prepare MySQL statement
+        $query = "SELECT last_time_seen FROM Bluetooth WHERE
+                 (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND (BD_ADDR = ?);";
+        $stmt = mysqli_stmt_init($db_conn_s);
+        mysqli_stmt_prepare($stmt, $query);
+        mysqli_stmt_bind_param($stmt, "s", $bd_addrs_value);
+
+        foreach ($bd_addrs as $bd_addrs_key => $bd_addrs_value) {
+
+          // output BD_ADDR addresses with timestamps table
+          echo "<tr class=\"info\">";
+          echo "<td><tt>" . $bd_addrs_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+
+          // process MySQL query result - fill timestamps array for given BD_ADDR
+          mysqli_stmt_execute($stmt);
+          $db_result = mysqli_stmt_get_result($stmt);
+          unset($bd_addr_timestamps);
+          if (mysqli_num_rows($db_result) > 0) {
+            while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
+              $bd_addr_timestamps[] = $db_row["last_time_seen"];
+            }
+          }
+          mysqli_free_result($db_result);
+        
+          // build passages subarray based on BD_ADDR timestamps
+          $bd_addr_pass_subarray = find_passages($bd_addr_timestamps, $threshold_seconds);
+
+          // fill total and unique passages arrays based on passages subarray
+          $unique = 1;
+          // reset counters
+          $i = 0;
+          $time_actual = $time_from_ph;
+          while (strtotime($time_actual) <= (strtotime($time_to_ph) - $time_increment)) {
+            // calculate next time value
+            $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+            // passage in current time step?
+            foreach ($bd_addr_pass_subarray as $key => $value){
+              if ((strtotime($value) > strtotime($time_actual)) && (strtotime($value) <= strtotime($time_next))){
+                $chart_bt_total_ph[$i]["y"] += 1;
+                if ($unique) {
+                  $chart_bt_unique_ph[$i]["y"] += 1;
+                  $unique = 0;
+                }
+              }
+            }
+
+            // moving to next time step
+            $unique = 1;
+            // increment counters
+            $i += 1;
+            $time_actual = $time_next;
+          }
+
+          // moving to next BD_ADDR addr
+          unset($bd_addr_pass_subarray);
+
+        } // end foreach BD_ADDR
+        echo "</table><br>";
+
       } // end of show_bt_ph
     } // end of foreach DB
 
@@ -271,13 +344,16 @@ if ($db_source_ph == NULL) {
   if (!file_exists($json_dir)){ mkdir($json_dir); }
   $f_wifi_unique_ph = fopen($json_dir . "/chart_wifi_unique_ph_" . $session_id, "w");
   $f_wifi_total_ph  = fopen($json_dir . "/chart_wifi_total_ph_" . $session_id, "w");
-  $f_bt_ph          = fopen($json_dir . "/chart_bt_ph_" . $session_id, "w");
+  $f_bt_unique_ph   = fopen($json_dir . "/chart_bt_unique_ph_" . $session_id, "w");
+  $f_bt_total_ph    = fopen($json_dir . "/chart_bt_total_ph_" . $session_id, "w");
   fwrite($f_wifi_unique_ph, json_encode($chart_wifi_unique_ph));
   fwrite($f_wifi_total_ph,  json_encode($chart_wifi_total_ph));
-  fwrite($f_bt_ph,          json_encode($chart_bt_ph));
+  fwrite($f_bt_unique_ph,   json_encode($chart_bt_unique_ph));
+  fwrite($f_bt_total_ph,    json_encode($chart_bt_total_ph));
   fclose($f_wifi_unique_ph);
   fclose($f_wifi_total_ph);
-  fclose($f_bt_ph);
+  fclose($f_bt_unique_ph);
+  fclose($f_bt_total_ph);
 
   // algorithm execution end
   $alg_end = time();

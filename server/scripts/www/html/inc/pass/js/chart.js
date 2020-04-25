@@ -4,11 +4,13 @@ function buildChart() {
 
   nameWifiUnique = "Unique";
   nameWifiTotal  = "Total";
-  nameBluetooth = "Bluetooth";
+  nameBtUnique   = "Unique";
+  nameBtTotal    = "Total";
 
   colorWifiUnique = "#1b81e5";
   colorWifiTotal  = "#e57f1b";
-  colorBluetooth = "#061c33";
+  colorBtUnique   = "#3b5998";
+  colorBtTotal    = "#987a3b";
 
   chartWifi = new CanvasJS.Chart("chartContainerWifi", {
 
@@ -84,7 +86,7 @@ function buildChart() {
       dataPoints: [{"x":1000,"y":0}]
     }]
   });
-
+  
   chartBluetooth = new CanvasJS.Chart("chartContainerBluetooth", {
 
     theme: "light2",
@@ -102,8 +104,8 @@ function buildChart() {
     },
     axisY: {
       title: "Bluetooth devices",
-      titleFontColor: colorBluetooth,
-      labelFontColor: colorBluetooth,
+      titleFontColor: colorBtUnique,
+      labelFontColor: colorBtUnique,
       gridDashType: "dash",
       tickThickness: 0
     },
@@ -126,8 +128,9 @@ function buildChart() {
           for (var i = 0; i < e.entries.length; i++) {
             var color;
             switch (e.entries[i].dataSeries.name) {
-              case nameBluetooth:  color = colorBluetooth; break;
-              default:             color = "#000000"; break;
+              case nameBtUnique: color = colorBtUnique; break;
+              case nameBtTotal:  color = colorBtTotal; break;
+              default:           color = "#000000"; break;
             }
             content += "<span style='color:" + color + "'>" + e.entries[i].dataSeries.name + ": " + e.entries[i].dataPoint.y + "</span>";
             content += "<br/>";
@@ -140,10 +143,18 @@ function buildChart() {
       itemclick: toggleDataSeries
     },
     data: [{
-      type: "stackedColumn",
-      name: nameBluetooth,
-      color: colorBluetooth,
-      markerType: "square",
+      type: "column",
+      name: nameBtUnique,
+      color: colorBtUnique,
+      showInLegend: true,
+      xValueType: "dateTime",
+      xValueFormatString: "D.M H:mm:ss",
+      yValueFormatString: "#",
+      dataPoints: [{"x":1000,"y":0}]
+    },{
+      type: "column",
+      name: nameBtTotal,
+      color: colorBtTotal,
       showInLegend: true,
       xValueType: "dateTime",
       yValueFormatString: "#",
