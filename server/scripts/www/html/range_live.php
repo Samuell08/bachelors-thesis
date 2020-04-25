@@ -106,6 +106,7 @@ $_SESSION["updateInterval"] = 30000;
               <b>Time Period</b><br>
               <table class="form">
                 <tr><td><input type="number" name="time_period_rl" value="<?php echo $time_period_rl?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="time_period_format_rl" value="SECOND" <?php if ($time_period_format_rl == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
                 <tr><td><input type="radio" name="time_period_format_rl" value="MINUTE" <?php if ($time_period_format_rl == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
                 <tr><td><input type="radio" name="time_period_format_rl" value="HOUR"   <?php if ($time_period_format_rl == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>

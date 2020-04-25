@@ -119,6 +119,7 @@ if(!$db_conn){
               <b>Threshold</b><br>
               <table class="form">
                 <tr><td><input type="number" name="threshold_ph" value="<?php echo $threshold_ph?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="threshold_format_ph" value="SECOND" <?php if ($threshold_format_ph == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
                 <tr><td><input type="radio" name="threshold_format_ph" value="MINUTE" <?php if ($threshold_format_ph == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
                 <tr><td><input type="radio" name="threshold_format_ph" value="HOUR"   <?php if ($threshold_format_ph == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>

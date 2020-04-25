@@ -93,6 +93,9 @@ if ($db_source_ph == NULL) {
 
   // calculate threshold seconds
   switch ($threshold_format_ph) {
+  case "SECOND":
+    $threshold_seconds = $threshold_ph;
+    break;
   case "MINUTE":
     $threshold_seconds = $threshold_ph*60;
     break;

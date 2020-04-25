@@ -120,6 +120,7 @@ if(!$db_conn){
               <b>Time Period</b><br>
               <table class="form">
                 <tr><td><input type="number" name="time_period_rh" value="<?php echo $time_period_rh?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="time_period_format_rh" value="SECOND" <?php if ($time_period_format_rh == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
                 <tr><td><input type="radio" name="time_period_format_rh" value="MINUTE" <?php if ($time_period_format_rh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
                 <tr><td><input type="radio" name="time_period_format_rh" value="HOUR"   <?php if ($time_period_format_rh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
               </table>
