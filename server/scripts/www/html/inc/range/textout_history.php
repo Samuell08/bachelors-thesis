@@ -6,7 +6,7 @@ session_start();
 
 $session_id = session_id();
 
-// infinite execution time due to nested loops
+// infinite execution time
 set_time_limit(0);
 
 // get session variables

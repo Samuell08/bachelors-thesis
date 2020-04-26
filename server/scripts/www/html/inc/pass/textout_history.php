@@ -6,7 +6,7 @@ session_start();
 
 $session_id = session_id();
 
-// infinite execution time due to nested loops
+// infinite execution time
 set_time_limit(0);
 
 // get session variables
@@ -33,28 +33,98 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
-function find_passages($mac_timestamps, $threshold_seconds) {
+// function accepts list of timestamps and threshold and returns
+// only timestamps considered as passage
+function find_passages($key_timestamps, $threshold) {
   // open timestamps <td>
   echo "<td><tt>";
   // first is always bold
-  echo "<b>" . $mac_timestamps[0] . "</b> | ";
-  $mac_pass_subarray[0] = $mac_timestamps[0];
-  // loop every timestamp for current MAC address
-  for ($i = 1; $i < count($mac_timestamps); $i++){
-    if ((strtotime($mac_timestamps[$i]) - strtotime($mac_timestamps[$i-1]) > $threshold_seconds)) {
+  echo "<b>" . $key_timestamps[0] . "</b> | ";
+  $key_passages[0] = $key_timestamps[0];
+  // loop every timestamp for current key
+  for ($i = 1; $i < count($key_timestamps); $i++){
+    if ((strtotime($key_timestamps[$i]) - strtotime($key_timestamps[$i-1]) > $threshold)) {
       // output bold timestamp
-      echo "<b>" . $mac_timestamps[$i] . "</b> | ";
-      $mac_pass_subarray[] = $mac_timestamps[$i];
+      echo "<b>" . $key_timestamps[$i] . "</b> | ";
+      $key_passages[] = $key_timestamps[$i];
     } else {
       // output normal timestamp
-      echo $mac_timestamps[$i] . " | ";
+      echo $key_timestamps[$i] . " | ";
     }
   }
   // close timestamps <td>
   echo "</tt></td>";
   echo "</tr>";
+  return $key_passages;
+}
 
-  return $mac_pass_subarray;
+// function accepts list of keys (eg. MAC addresses) and fills
+// chart arrays with passages
+function process_keys($type, $keys, $db_conn_s, $threshold, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total) {
+  // customize algorithm to specific keys type
+  switch ($type) {
+    case "wifi_global":
+      $query = "SELECT last_time_seen FROM Clients WHERE
+               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                AND (station_MAC = ?);"; break;
+    case "wifi_local": break;
+    case "bt":
+      $query = "SELECT last_time_seen FROM Bluetooth WHERE
+               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                AND (BD_ADDR = ?);"; break;
+    default:
+      echo "function process_keys ERROR: Unknown type: " . $type; break;
+      return -1;
+  }
+  echo "<table style=\"border-collapse:collapse\">";
+  $stmt = mysqli_stmt_init($db_conn_s);
+  mysqli_stmt_prepare($stmt, $query);
+  mysqli_stmt_bind_param($stmt, "s", $keys_value);
+  foreach ($keys as $keys_key => $keys_value) {
+    // output keys with timestamps table
+    echo "<tr class=\"info\">";
+    echo "<td><tt>" . $keys_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    // process MySQL query result - fill timestamps array for given key
+    mysqli_stmt_execute($stmt);
+    $db_result = mysqli_stmt_get_result($stmt);
+    unset($key_timestamps);
+    if (mysqli_num_rows($db_result) > 0) {
+      while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
+        $key_timestamps[] = $db_row["last_time_seen"];
+      }
+    }
+    mysqli_free_result($db_result);
+    // build passages subarray based on key timestamps
+    $key_passages = find_passages($key_timestamps, $threshold);
+    // fill chart arrays based on passages subarray
+    $unique = 1;
+    // reset counters
+    $i = 0;
+    $time_actual = $time_from;
+    while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
+      // calculate next time value
+      $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+      // passage in current time step?
+      foreach ($key_passages as $pass_key => $pass_value){
+        if ((strtotime($pass_value) > strtotime($time_actual)) && (strtotime($pass_value) <= strtotime($time_next))){
+          $chart_total[$i]["y"] += 1;
+          if ($unique) {
+            $chart_unique[$i]["y"] += 1;
+            $unique = 0;
+          }
+        }
+      }
+      // moving to next time step
+      $unique = 1;
+      // increment counters
+      $i += 1;
+      $time_actual = $time_next;
+    }
+    // moving to next key
+    unset($key_passages);
+  } // end foreach key
+  echo "</table><br>";
+  return 0;
 }
 
 // check if user input is correct
@@ -76,10 +146,10 @@ if ($db_source_ph == NULL) {
   $alg_start = time();
 
   // reset variables before queries
-  $mac_glbl   = 0;
-  $mac_local  = 0;
-  $bt_total   = 0;
+  $mac_glbl_passed    = 0;
+  $mac_local_passed   = 0;
   $fingerprints_count = 0;
+  $bt_passed          = 0;
 
   // calculate time increment
   switch ($time_step_format_ph) {
@@ -134,9 +204,7 @@ if ($db_source_ph == NULL) {
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
         }
 
-        // GLOBAL MAC LOOP (TOTAL)
-
-        // every unique global MAC saved to PHP array $macs
+        // every unique global MAC in time range 
         $db_q = "SELECT station_MAC FROM Clients WHERE
                 (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
                 (station_MAC LIKE '_0:__:__:__:__:__' OR
@@ -164,69 +232,7 @@ if ($db_source_ph == NULL) {
         echo "</table>";
 
         echo "<br>Wi-Fi devices with global MAC addresses:<br>";
-        echo "<table style=\"border-collapse:collapse\">";
-
-        // loop every MAC in macs array
-        // prepare MySQL statement
-        $query = "SELECT last_time_seen FROM Clients WHERE
-                 (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND (station_MAC = ?);";
-        $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, $query);
-        mysqli_stmt_bind_param($stmt, "s", $macs_value);
-
-        foreach ($macs as $macs_key => $macs_value) {
-
-          // output global MAC addresses with timestamps table
-          echo "<tr class=\"info\">";
-          echo "<td><tt>" . $macs_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
-
-          // process MySQL query result - fill timestamps array for given MAC
-          mysqli_stmt_execute($stmt);
-          $db_result = mysqli_stmt_get_result($stmt);
-          unset($mac_timestamps);
-          if (mysqli_num_rows($db_result) > 0) {
-            while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
-              $mac_timestamps[] = $db_row["last_time_seen"];
-            }
-          }
-          mysqli_free_result($db_result);
-        
-          // build passages subarray based on MAC timestamps
-          $mac_pass_subarray = find_passages($mac_timestamps, $threshold_seconds);
-
-          // fill total and unique passages arrays based on passages subarray
-          $unique = 1;
-          // reset counters
-          $i = 0;
-          $time_actual = $time_from_ph;
-          while (strtotime($time_actual) <= (strtotime($time_to_ph) - $time_increment)) {
-            // calculate next time value
-            $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-            // passage in current time step?
-            foreach ($mac_pass_subarray as $key => $value){
-              if ((strtotime($value) > strtotime($time_actual)) && (strtotime($value) <= strtotime($time_next))){
-                $chart_wifi_total_ph[$i]["y"] += 1;
-                if ($unique) {
-                  $chart_wifi_unique_ph[$i]["y"] += 1;
-                  $unique = 0;
-                }
-              }
-            }
-
-            // moving to next time step
-            $unique = 1;
-            // increment counters
-            $i += 1;
-            $time_actual = $time_next;
-          }
-
-          // moving to next MAC addr
-          unset($mac_pass_subarray);
-
-        } // end foreach MAC (global)
-        echo "</table><br>";
-
-                
+        process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
 
         // LOCAL MAC LOOP (TOTAL)
 
@@ -250,7 +256,7 @@ if ($db_source_ph == NULL) {
           $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
         }
 
-        // every unique BD_ADDR saved to PHP array $bd_addrs
+        // every unique BD_ADDR in time range
         $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
                 (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
                  GROUP BY BD_ADDR;";
@@ -273,68 +279,8 @@ if ($db_source_ph == NULL) {
           // extra
         echo "</table>";
 
-        echo "<br>Bluetooth devices:<br>";
-        echo "<table style=\"border-collapse:collapse\">";
-
-        // loop every BD_ADDR in bd_addrs array
-        // prepare MySQL statement
-        $query = "SELECT last_time_seen FROM Bluetooth WHERE
-                 (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND (BD_ADDR = ?);";
-        $stmt = mysqli_stmt_init($db_conn_s);
-        mysqli_stmt_prepare($stmt, $query);
-        mysqli_stmt_bind_param($stmt, "s", $bd_addrs_value);
-
-        foreach ($bd_addrs as $bd_addrs_key => $bd_addrs_value) {
-
-          // output BD_ADDR addresses with timestamps table
-          echo "<tr class=\"info\">";
-          echo "<td><tt>" . $bd_addrs_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
-
-          // process MySQL query result - fill timestamps array for given BD_ADDR
-          mysqli_stmt_execute($stmt);
-          $db_result = mysqli_stmt_get_result($stmt);
-          unset($bd_addr_timestamps);
-          if (mysqli_num_rows($db_result) > 0) {
-            while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
-              $bd_addr_timestamps[] = $db_row["last_time_seen"];
-            }
-          }
-          mysqli_free_result($db_result);
-        
-          // build passages subarray based on BD_ADDR timestamps
-          $bd_addr_pass_subarray = find_passages($bd_addr_timestamps, $threshold_seconds);
-
-          // fill total and unique passages arrays based on passages subarray
-          $unique = 1;
-          // reset counters
-          $i = 0;
-          $time_actual = $time_from_ph;
-          while (strtotime($time_actual) <= (strtotime($time_to_ph) - $time_increment)) {
-            // calculate next time value
-            $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-            // passage in current time step?
-            foreach ($bd_addr_pass_subarray as $key => $value){
-              if ((strtotime($value) > strtotime($time_actual)) && (strtotime($value) <= strtotime($time_next))){
-                $chart_bt_total_ph[$i]["y"] += 1;
-                if ($unique) {
-                  $chart_bt_unique_ph[$i]["y"] += 1;
-                  $unique = 0;
-                }
-              }
-            }
-
-            // moving to next time step
-            $unique = 1;
-            // increment counters
-            $i += 1;
-            $time_actual = $time_next;
-          }
-
-          // moving to next BD_ADDR addr
-          unset($bd_addr_pass_subarray);
-
-        } // end foreach BD_ADDR
-        echo "</table><br>";
+        echo "<br>Bluetooth devices:<br>";        
+        process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph);
 
       } // end of show_bt_ph
     } // end of foreach DB
