@@ -33,31 +33,6 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
-// function accepts list of timestamps and threshold and returns
-// only timestamps considered as passage
-function find_passages($key_timestamps, $threshold) {
-  // open timestamps <td>
-  echo "<td><tt>";
-  // first is always bold
-  echo "<b>" . $key_timestamps[0] . "</b> | ";
-  $key_passages[0] = $key_timestamps[0];
-  // loop every timestamp for current key
-  for ($i = 1; $i < count($key_timestamps); $i++){
-    if ((strtotime($key_timestamps[$i]) - strtotime($key_timestamps[$i-1]) > $threshold)) {
-      // output bold timestamp
-      echo "<b>" . $key_timestamps[$i] . "</b> | ";
-      $key_passages[] = $key_timestamps[$i];
-    } else {
-      // output normal timestamp
-      echo $key_timestamps[$i] . " | ";
-    }
-  }
-  // close timestamps <td>
-  echo "</tt></td>";
-  echo "</tr>";
-  return $key_passages;
-}
-
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
 function process_keys($type, $keys, $db_conn_s, $threshold, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total) {
@@ -95,7 +70,25 @@ function process_keys($type, $keys, $db_conn_s, $threshold, $time_from, $time_to
     }
     mysqli_free_result($db_result);
     // build passages subarray based on key timestamps
-    $key_passages = find_passages($key_timestamps, $threshold);
+    // open timestamps <td>
+    echo "<td><tt>";
+    // first is always bold
+    echo "<b>" . $key_timestamps[0] . "</b> | ";
+    $key_passages[0] = $key_timestamps[0];
+    // loop every timestamp for current key
+    for ($i = 1; $i < count($key_timestamps); $i++){
+      if ((strtotime($key_timestamps[$i]) - strtotime($key_timestamps[$i-1]) > $threshold)) {
+        // output bold timestamp
+        echo "<b>" . $key_timestamps[$i] . "</b> | ";
+        $key_passages[] = $key_timestamps[$i];
+      } else {
+        // output normal timestamp
+        echo $key_timestamps[$i] . " | ";
+      }
+    }
+    // close timestamps <td>
+    echo "</tt></td>";
+    echo "</tr>";
     // fill chart arrays based on passages subarray
     $unique = 1;
     // reset counters
@@ -182,108 +175,107 @@ if ($db_source_ph == NULL) {
         " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
         " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" . "<br><br>";
 
-    foreach ($db_source_ph as $key => $value) {
+  // prepare chart arrays
+  if ($show_wlan_ph == "1") {
+    $i = 0;
+    $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
+    while (strtotime($time_actual) <= strtotime($time_to_ph)) {
+      $chart_wifi_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
+      $chart_wifi_unique_ph[$i]["y"] = 0;
+      $chart_wifi_total_ph[$i]["x"] = strtotime($time_actual)*1000;
+      $chart_wifi_total_ph[$i]["y"] = 0;
+      $i += 1;
+      $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+    }
+  }
+  if ($show_bt_ph == "1") { 
+    $i = 0;
+    $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
+    while (strtotime($time_actual) <= strtotime($time_to_ph)) {
+      $chart_bt_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
+      $chart_bt_unique_ph[$i]["y"] = 0;
+      $chart_bt_total_ph[$i]["x"] = strtotime($time_actual)*1000;
+      $chart_bt_total_ph[$i]["y"] = 0;
+      $i += 1;
+      $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+    }
+  }
 
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
-
-      // ---------------------------------------------------------------------- WIFI
-      if ($show_wlan_ph == "1") {
-
-        // build total and unique arrays
-        // reset counters
-        $i = 0;
-        $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
-        while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-          // initialize whole arrays to 0 with correct timestamps
-          $chart_wifi_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
-          $chart_wifi_unique_ph[$i]["y"] = 0;
-          $chart_wifi_total_ph[$i]["x"] = strtotime($time_actual)*1000;
-          $chart_wifi_total_ph[$i]["y"] = 0;
-          // increment counters
-          $i += 1;
-          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+  // fill key arrays
+  unset($macs);
+  unset($bd_addrs);
+  $mac_glbl_passed = 0;
+  $bt_passed = 0;
+  foreach ($db_source_ph as $key => $value) {
+    $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+    // ---------------------------------------------------------------------- WIFI
+    if ($show_wlan_ph == "1") {
+      // every unique global MAC in time range 
+      $db_q = "SELECT station_MAC FROM Clients WHERE
+              (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
+              (station_MAC LIKE '_0:__:__:__:__:__' OR
+               station_MAC LIKE '_4:__:__:__:__:__' OR
+               station_MAC LIKE '_8:__:__:__:__:__' OR
+               station_MAC LIKE '_C:__:__:__:__:__')
+               GROUP BY station_MAC;";
+      $db_result = mysqli_query($db_conn_s, $db_q);
+      $mac_glbl_passed += mysqli_num_rows($db_result);
+      // append result to macs
+      if (mysqli_num_rows($db_result) > 0) {
+        while ($db_row = mysqli_fetch_assoc($db_result)) {
+          $macs[] = $db_row["station_MAC"];
         }
-
-        // every unique global MAC in time range 
-        $db_q = "SELECT station_MAC FROM Clients WHERE
-                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
-                (station_MAC LIKE '_0:__:__:__:__:__' OR
-                 station_MAC LIKE '_4:__:__:__:__:__' OR
-                 station_MAC LIKE '_8:__:__:__:__:__' OR
-                 station_MAC LIKE '_C:__:__:__:__:__')
-                 GROUP BY station_MAC;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-
-        // process MySQL query result - fill macs array
-        unset($macs);
-        $mac_glbl_passed = mysqli_num_rows($db_result);
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $macs[] = $db_row["station_MAC"];
-          }
+      }
+      mysqli_free_result($db_result);
+    } // end of show_wlan_ph
+    // ----------------------------------------------------------------- Bluetooth
+    if ($show_bt_ph == "1") {
+      // every unique BD_ADDR in time range
+      $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
+              (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
+               GROUP BY BD_ADDR;";
+      $db_result = mysqli_query($db_conn_s, $db_q);
+      $bt_passed += mysqli_num_rows($db_result);
+      // append result to bd_addrs
+      if (mysqli_num_rows($db_result) > 0) {
+        while ($db_row = mysqli_fetch_assoc($db_result)) {
+          $bd_addrs[] = $db_row["BD_ADDR"];
         }
-        mysqli_free_result($db_result);
-        
-        // text output
-        echo "<b>Wi-Fi</b><br>";
-        echo "<table class=\"textout\">";
-          echo "<tr class=\"textout\"><td>" . "Total number of devices with global (unique) MAC address passed:" . "</td><td>" . $mac_glbl_passed . "</td></tr>";
-          // extra
-        echo "</table>";
+      }
+      mysqli_free_result($db_result);
+    } // end of show_bt_ph
+  } // end of foreach DB
+  
+  // text output
+  if ($show_wlan_ph == "1") {
+    echo "<b>Wi-Fi</b><br>";
+    echo "<table class=\"textout\">";
+      echo "<tr class=\"textout\"><td>" . "Total number of devices with global (unique) MAC address passed:" . "</td><td>" . $mac_glbl_passed . "</td></tr>";
+      // extra
+    echo "</table>";
+  }
+  if ($show_bt_ph == "1") {
+    echo "<b>Bluetooth</b><br>";
+    echo "<table class=\"textout\">";
+      echo "<tr class=\"textout\"><td>" . "Total number of devices passed:" . "</td><td>" . $bt_passed . "</td></tr>";
+      // extra
+    echo "</table>";
+  }
+  echo "<br>";
 
-        echo "<br>Wi-Fi devices with global MAC addresses:<br>";
-        process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
-
-        // LOCAL MAC LOOP (TOTAL)
-
-      } // end of show_wlan_ph
-
-      // ----------------------------------------------------------------- Bluetooth
-      if ($show_bt_ph == "1") {
-          
-        // build total and unique arrays
-        // reset counters
-        $i = 0;
-        $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
-        while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-          // initialize whole arrays to 0 with correct timestamps
-          $chart_bt_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
-          $chart_bt_unique_ph[$i]["y"] = 0;
-          $chart_bt_total_ph[$i]["x"] = strtotime($time_actual)*1000;
-          $chart_bt_total_ph[$i]["y"] = 0;
-          // increment counters
-          $i += 1;
-          $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-        }
-
-        // every unique BD_ADDR in time range
-        $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
-                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
-                 GROUP BY BD_ADDR;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-
-        // process MySQL query result - fill bd_addrs array
-        unset($bd_addrs);
-        $bt_passed = mysqli_num_rows($db_result);
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $bd_addrs[] = $db_row["BD_ADDR"];
-          }
-        }
-        mysqli_free_result($db_result);
-        
-        // text output
-        echo "<b>Bluetooth</b><br>";
-        echo "<table class=\"textout\">";
-          echo "<tr class=\"textout\"><td>" . "Total number of devices passed:" . "</td><td>" . $bt_passed . "</td></tr>";
-          // extra
-        echo "</table>";
-
-        echo "<br>Bluetooth devices:<br>";        
-        process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph);
-
-      } // end of show_bt_ph
-    } // end of foreach DB
+  // keys processing
+  foreach ($db_source_ph as $key => $value) {
+    echo "<b>Database: " . $value . "</b>";
+    $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+    if ($show_wlan_ph == "1") {
+      echo "<br>Wi-Fi devices with global MAC address:<br>";
+      process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
+    }
+    if ($show_bt_ph == "1") {
+      echo "<br>Bluetooth devices:<br>";        
+      process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph);
+    }
+  }
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
