@@ -42,7 +42,11 @@ function process_keys($type, $keys, $db_conn_s, $threshold, $time_from, $time_to
       $query = "SELECT last_time_seen FROM Clients WHERE
                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
                 AND (station_MAC = ?);"; break;
-    case "wifi_local": break;
+    case "wifi_local": 
+      $query = "SELECT last_time_seen FROM Clients WHERE
+               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);"; break;
+      break;
     case "bt":
       $query = "SELECT last_time_seen FROM Bluetooth WHERE
                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
@@ -203,13 +207,16 @@ if ($db_source_ph == NULL) {
 
   // fill key arrays
   unset($macs);
+  unset($fingerprints);
   unset($bd_addrs);
   $mac_glbl_passed = 0;
+  $mac_local_passed = 0;
   $bt_passed = 0;
   foreach ($db_source_ph as $key => $value) {
     $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
     // ---------------------------------------------------------------------- WIFI
     if ($show_wlan_ph == "1") {
+      // GLOBAL MAC
       // every unique global MAC in time range 
       $db_q = "SELECT station_MAC FROM Clients WHERE
               (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
@@ -227,6 +234,36 @@ if ($db_source_ph == NULL) {
         }
       }
       mysqli_free_result($db_result);
+      // LOCAL MAC
+      // every unique local MAC fingerprint
+      $db_q = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
+              (LENGTH(probed_ESSIDs) > 18) AND
+              (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND NOT
+              (station_MAC LIKE '_0:__:__:__:__:__' OR
+               station_MAC LIKE '_4:__:__:__:__:__' OR
+               station_MAC LIKE '_8:__:__:__:__:__' OR
+               station_MAC LIKE '_C:__:__:__:__:__')
+               GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
+      $db_result = mysqli_query($db_conn_s, $db_q);
+      // append result to fingerprints
+      if (mysqli_num_rows($db_result) > 0) {
+        while ($db_row = mysqli_fetch_assoc($db_result)) {
+          $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+        }
+        mysqli_free_result($db_result);
+        // delete fingerprint anagrams
+        foreach ($fingerprints as $master_key => &$master_value) {
+          foreach ($fingerprints as $search_key => &$search_value) {
+            if ($master_key != $search_key){
+              if(is_anagram($master_value, $search_value)){
+                // delete anagram from fingerprints array
+                unset($fingerprints[$search_key]);
+              }
+            }
+          }
+        }
+        $mac_local_passed = count($fingerprints);
+      } 
     } // end of show_wlan_ph
     // ----------------------------------------------------------------- Bluetooth
     if ($show_bt_ph == "1") {
@@ -250,7 +287,8 @@ if ($db_source_ph == NULL) {
   if ($show_wlan_ph == "1") {
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Total number of devices with global (unique) MAC address passed:" . "</td><td>" . $mac_glbl_passed . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Total number of devices with global MAC address passed:" . "</td><td>" . $mac_glbl_passed . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Total number of devices with local MAC address passed:" . "</td><td>" . $mac_local_passed . "</td></tr>";
       // extra
     echo "</table>";
   }
@@ -270,6 +308,8 @@ if ($db_source_ph == NULL) {
     if ($show_wlan_ph == "1") {
       echo "<br>Wi-Fi devices with global MAC address:<br>";
       process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
+      echo "<br>Wi-Fi devices with local MAC address:<br>";
+      process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
     }
     if ($show_bt_ph == "1") {
       echo "<br>Bluetooth devices:<br>";        
