@@ -22,6 +22,7 @@ $time_step_ph           = $_SESSION["time_step_ph"];
 $time_step_format_ph    = $_SESSION["time_step_format_ph"];
 $threshold_ph           = $_SESSION["threshold_ph"];
 $threshold_format_ph    = $_SESSION["threshold_format_ph"];
+$timestamp_limit_ph     = $_SESSION["timestamp_limit_ph"];
 $show_wlan_ph           = $_SESSION["show_wlan_ph"];
 $show_bt_ph             = $_SESSION["show_bt_ph"];
 
@@ -35,7 +36,7 @@ function is_anagram($string1, $string2) {
 
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
-function process_keys($type, $keys, $db_conn_s, $threshold, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total) {
+function process_keys($type, $keys, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total) {
   // customize algorithm to specific keys type
   switch ($type) {
     case "wifi_global":
@@ -67,10 +68,17 @@ function process_keys($type, $keys, $db_conn_s, $threshold, $time_from, $time_to
     mysqli_stmt_execute($stmt);
     $db_result = mysqli_stmt_get_result($stmt);
     unset($key_timestamps);
-    if (mysqli_num_rows($db_result) > 0) {
+    if (mysqli_num_rows($db_result) <= $timestamp_limit) {
       while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
         $key_timestamps[] = $db_row["last_time_seen"];
       }
+    } else {
+      // end processing of key - go to next
+      echo "<td><tt><b>";
+      echo "Number of timestamps over limit";
+      echo "</b></tt></td>";
+      echo "</tr>";
+      continue; // foreach keys
     }
     mysqli_free_result($db_result);
     // build passages subarray based on key timestamps
@@ -119,7 +127,7 @@ function process_keys($type, $keys, $db_conn_s, $threshold, $time_from, $time_to
     }
     // moving to next key
     unset($key_passages);
-  } // end foreach key
+  } // end foreach keys
   echo "</table><br>";
   return 0;
 }
@@ -307,13 +315,13 @@ if ($db_source_ph == NULL) {
     $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
     if ($show_wlan_ph == "1") {
       echo "<br>Wi-Fi devices with global MAC address:<br>";
-      process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
+      process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
       echo "<br>Wi-Fi devices with local MAC address:<br>";
-      process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
+      process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
     }
     if ($show_bt_ph == "1") {
       echo "<br>Bluetooth devices:<br>";        
-      process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph);
+      process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $timestamp_limit_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph);
     }
   }
 

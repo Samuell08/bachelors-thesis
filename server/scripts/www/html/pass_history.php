@@ -126,6 +126,13 @@ if(!$db_conn){
             </div>
 
             <div class="div_subcontent">
+              <b>Timestamp Limit</b><br>
+              <table class="form">
+                <tr><td><input type="number" name="timestamp_limit_ph" value="<?php echo $timestamp_limit_ph?>" min="1" style="width:100px;text-align:center;"></td></tr>
+              </table>
+            </div>
+
+            <div class="div_subcontent">
               <b>Show Data</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="show_wlan_ph" value="1" <?php if ($show_wlan_ph == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>

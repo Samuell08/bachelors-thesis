@@ -11,6 +11,7 @@ $time_step_ph           = "";
 $time_step_format_ph    = "";
 $threshold_ph           = "";
 $threshold_format_ph    = "";
+$timestamp_limit_ph     = "";
 $show_wlan_ph           = "";
 $show_bt_ph             = "";
 
@@ -23,6 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_step_format_ph    = $_GET["time_step_format_ph"];
   $threshold_ph           = filter_var($_GET["threshold_ph"], FILTER_VALIDATE_INT);
   $threshold_format_ph    = $_GET["threshold_format_ph"];
+  $timestamp_limit_ph     = filter_var($_GET["timestamp_limit_ph"], FILTER_VALIDATE_INT);
   $show_wlan_ph           = $_GET["show_wlan_ph"];
   $show_bt_ph             = $_GET["show_bt_ph"];
 
@@ -35,6 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($time_step_format_ph == "")   { $time_step_format_ph = "HOUR"; }
   if ($threshold_ph == "")          { $threshold_ph = 10; }
   if ($threshold_format_ph == "")   { $threshold_format_ph = "MINUTE"; }
+  if ($timestamp_limit_ph == "")    { $timestamp_limit_ph = 100; }
   
   // store variables in session
   $_SESSION["db_source_ph"]           = $db_source_ph;
@@ -44,6 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_step_format_ph"]    = $time_step_format_ph;
   $_SESSION["threshold_ph"]           = $threshold_ph;
   $_SESSION["threshold_format_ph"]    = $threshold_format_ph;
+  $_SESSION["timestamp_limit_ph"]     = $timestamp_limit_ph;
   $_SESSION["show_wlan_ph"]           = $show_wlan_ph;
   $_SESSION["show_bt_ph"]             = $show_bt_ph;
 }
