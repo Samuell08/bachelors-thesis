@@ -37,7 +37,7 @@ function is_anagram($string1, $string2) {
 
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
-function process_keys($type, $keys, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total) {
+function process_keys($type, $keys, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored) {
   // customize algorithm to specific keys type
   switch ($type) {
     case "wifi_global":
@@ -79,6 +79,7 @@ function process_keys($type, $keys, $db_conn_s, $threshold, $timestamp_limit, $t
       echo "Number of timestamps over limit";
       echo "</b></tt></td>";
       echo "</tr>";
+      $ignored++;
       continue; // foreach keys
     }
     mysqli_free_result($db_result);
@@ -150,12 +151,6 @@ if ($db_source_ph == NULL) {
 
   // algorithm execution start
   $alg_start = time();
-
-  // reset variables before queries
-  $mac_glbl_passed    = 0;
-  $mac_local_passed   = 0;
-  $fingerprints_count = 0;
-  $bt_passed          = 0;
 
   // calculate time increment
   switch ($time_step_format_ph) {
@@ -297,49 +292,55 @@ if ($db_source_ph == NULL) {
     } // end of show_bt_ph
   } // end of foreach DB
   
-  // text output
+  echo "<b>Statistics table is located at the bottom of the page</b>" . "<br><br>";
+
+  $total_passed = $mac_glbl_passed + $mac_local_passed + $bt_passed;
+
+  // ignored due to exceeding timestamp limit
+  $mac_glbl_ignored  = 0;
+  $mac_local_ignored = 0;
+  $bt_ignored        = 0;
+
+  // keys processing
+  if ($total_passed > 0) {
+    foreach ($db_source_ph as $key => $value) {
+      echo "<b>Database: " . $value . "</b><br>";
+      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+      if ($show_wlan_ph == "1") {
+        if ($mac_glbl_passed > 0) {
+          echo "Wi-Fi devices with global MAC address:<br>";
+          process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored);
+        }
+          if ($mac_local_passed > 0) {
+          echo "Wi-Fi devices with local MAC address:<br>";
+          process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored);
+        }
+      }
+      if ($show_bt_ph == "1") {
+        if ($bt_passed > 0) {
+          echo "Bluetooth devices:<br>";        
+          process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $timestamp_limit_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
+        }
+      }
+    }
+  }
+  
+  // text output table
   if ($show_wlan_ph == "1") {
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Total number of devices with global MAC address passed:" . "</td><td>" . $mac_glbl_passed . "</td></tr>";
-      echo "<tr class=\"textout\"><td>" . "Total number of devices with local MAC address passed:" . "</td><td>" . $mac_local_passed . "</td></tr>";
-      // extra
+      echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" . "</td><td>" . $mac_glbl_passed . "/" . $mac_glbl_ignored . "/" . ($mac_glbl_passed-$mac_glbl_ignored) . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" . "</td><td>" . $mac_local_passed . "/" . $mac_local_ignored . "/" . ($mac_local_passed-$mac_local_ignored) . "</td></tr>";
     echo "</table>";
   }
   if ($show_bt_ph == "1") {
     echo "<b>Bluetooth</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Total number of devices passed:" . "</td><td>" . $bt_passed . "</td></tr>";
-      // extra
+      echo "<tr class=\"textout\"><td>" . "Devices:" . "</td><td>" . $bt_passed . "/" . $bt_ignored . "/" . ($bt_passed-$bt_ignored) . "</td></tr>";
     echo "</table>";
+    echo "<br>" . "<b>legend:</b> passed/over limit/processed" . "<br>";
   }
   echo "<br>";
-
-  $total_passed = $mac_glbl_passed + $mac_local_passed + $bt_passed;
-
-  // keys processing
-  if ($total_passed > 0) {
-    foreach ($db_source_ph as $key => $value) {
-      echo "<b>Database: " . $value . "</b>";
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
-      if ($show_wlan_ph == "1") {
-        if ($mac_glbl_passed > 0) {
-          echo "<br>Wi-Fi devices with global MAC address:<br>";
-          process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
-        }
-          if ($mac_local_passed > 0) {
-          echo "<br>Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph);
-        }
-      }
-      if ($show_bt_ph == "1") {
-        if ($bt_passed > 0) {
-          echo "<br>Bluetooth devices:<br>";        
-          process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $timestamp_limit_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph);
-        }
-      }
-    }
-  }
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
