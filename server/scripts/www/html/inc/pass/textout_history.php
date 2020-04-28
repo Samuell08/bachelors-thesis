@@ -22,6 +22,7 @@ $time_step_ph           = $_SESSION["time_step_ph"];
 $time_step_format_ph    = $_SESSION["time_step_format_ph"];
 $threshold_ph           = $_SESSION["threshold_ph"];
 $threshold_format_ph    = $_SESSION["threshold_format_ph"];
+$timestamp_limit_chk_ph = $_SESSION["timestamp_limit_chk_ph"];
 $timestamp_limit_ph     = $_SESSION["timestamp_limit_ph"];
 $show_wlan_ph           = $_SESSION["show_wlan_ph"];
 $show_bt_ph             = $_SESSION["show_bt_ph"];
@@ -167,7 +168,7 @@ if ($db_source_ph == NULL) {
   case "HOUR":
     $time_increment = $time_step_ph*3600;
     break;
-  }    
+  }
 
   // calculate threshold seconds
   switch ($threshold_format_ph) {
@@ -180,7 +181,12 @@ if ($db_source_ph == NULL) {
   case "HOUR":
     $threshold_seconds = $threshold_ph*3600;
     break;
-  }    
+  }
+
+  // "disable" limit
+  if ($timestamp_limit_chk_ph != "1"){
+    $timestamp_limit_ph = PHP_INT_MAX;
+  }
   
   // text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_ph)) . "</b>" .

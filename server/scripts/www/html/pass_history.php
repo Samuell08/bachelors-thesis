@@ -128,6 +128,7 @@ if(!$db_conn){
             <div class="div_subcontent">
               <b>Timestamp Limit</b><br>
               <table class="form">
+                <tr><td><input type="checkbox" name="timestamp_limit_chk_ph" value="1" <?php if ($timestamp_limit_chk_ph == "1") { echo "checked";} ?>> Ignore more than this limit </td></tr>
                 <tr><td><input type="number" name="timestamp_limit_ph" value="<?php echo $timestamp_limit_ph?>" min="1" style="width:100px;text-align:center;"></td></tr>
               </table>
             </div>
