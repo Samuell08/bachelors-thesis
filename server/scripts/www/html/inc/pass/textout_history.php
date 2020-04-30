@@ -319,7 +319,7 @@ if ($db_source_ph == NULL) {
       if ($show_bt_ph == "1") {
         if ($bt_passed > 0) {
           echo "Bluetooth devices:<br>";        
-          process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $time_from_ph, $timestamp_limit_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
+          process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
         }
       }
     }
