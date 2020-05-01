@@ -4,7 +4,10 @@
 source /home/pi/monitoring/common/scripts/common_var
 
 # import global functions
-source /home/pi/monitoring/common/scripts/common_var
+source /home/pi/monitoring/common/scripts/common_functions
+
+# local variables
+MYSQL_SECRET=""
 
 # functions
 function print_usage() {
@@ -67,9 +70,8 @@ function create_db() {
   # local variables
   HOSTNAME="rpi_mon_${1}"
   
-  # mysql password prompt
-  read -s -p "Enter MySQL root password: " MYSQL_SECRET
-  echo ""
+  # mysql password prompt - passwd returned in MYSQL_SECRET variable
+  mysql_passwd_check "root"
 
   # check if DB already exists
   if [ -d "${DIR_MYSQL}/${HOSTNAME}" ];
@@ -79,7 +81,7 @@ function create_db() {
   fi
 
   # query: create DB
-  mysql -u root -p"${MYSQL_SECRET}" <<EOF
+  mysql -u root -p${MYSQL_SECRET} <<EOF
 CREATE DATABASE ${HOSTNAME};
 EOF
 
@@ -93,7 +95,7 @@ EOF
   fi
   
   # query: create tables
-  mysql -u root -p"${MYSQL_SECRET}" << EOF
+  mysql -u root -p${MYSQL_SECRET} << EOF
 USE ${HOSTNAME};
 
 $(cat "${DIR_SERVER_SCRIPTS}/${SERVER_DB_FORMAT}")
@@ -113,7 +115,7 @@ EOF
   fi
  
   # query: grant access to table for user 'mon'
-  mysql -u root -p"${MYSQL_SECRET}" << EOF
+  mysql -u root -p${MYSQL_SECRET} << EOF
 GRANT ALL PRIVILEGES ON ${HOSTNAME} . * TO '${SERVER_DB_MON_USER}'@'localhost';
 EOF
 
@@ -122,7 +124,7 @@ EOF
   then
     echo "MySQL: access to newly created database '${HOSTNAME}' for user '${SERVER_DB_MON_USER}' granted successfully!"
     echo "Reloading MySQL privileges..."
-    mysql -u root -p"${MYSQL_SECRET}" <<EOF
+    mysql -u root -p${MYSQL_SECRET} <<EOF
 FLUSH PRIVILEGES;
 EOF
   else
@@ -146,9 +148,8 @@ function drop_db {
   # local variables
   HOSTNAME="rpi_mon_${1}"
 
-  # mysql password prompt
-  read -s -p "enter MySQL root password: " MYSQL_SECRET
-  echo ""
+  # mysql password prompt - passwd returned in MYSQL_SECRET variable
+  mysql_passwd_check "root"
   
   # check if DB exists
   if [ ! -d "${DIR_MYSQL}/${HOSTNAME}" ];
@@ -158,7 +159,7 @@ function drop_db {
   fi
 
   # query
-  mysql -u root -p"${MYSQL_SECRET}" <<EOF
+  mysql -u root -p${MYSQL_SECRET} <<EOF
 DROP DATABASE ${HOSTNAME};
 EOF
 
