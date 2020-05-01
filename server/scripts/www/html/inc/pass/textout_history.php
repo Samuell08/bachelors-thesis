@@ -329,18 +329,17 @@ if ($db_source_ph == NULL) {
   if ($show_wlan_ph == "1") {
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" . "</td><td>" . $mac_glbl_passed . "/" . $mac_glbl_ignored . "/" . ($mac_glbl_passed-$mac_glbl_ignored) . "</td></tr>";
-      echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" . "</td><td>" . $mac_local_passed . "/" . $mac_local_ignored . "/" . ($mac_local_passed-$mac_local_ignored) . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" . "</td><td>" . $mac_glbl_passed . " ~ " . $mac_glbl_ignored . " ~ " . ($mac_glbl_passed-$mac_glbl_ignored) . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" . "</td><td>" . $mac_local_passed . " ~ " . $mac_local_ignored . " ~ " . ($mac_local_passed-$mac_local_ignored) . "</td></tr>";
     echo "</table>";
   }
   if ($show_bt_ph == "1") {
     echo "<b>Bluetooth</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Devices:" . "</td><td>" . $bt_passed . "/" . $bt_ignored . "/" . ($bt_passed-$bt_ignored) . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Devices:" . "</td><td>" . $bt_passed . " ~ " . $bt_ignored . " ~ " . ($bt_passed-$bt_ignored) . "</td></tr>";
     echo "</table>";
-    echo "<br>" . "<b>legend:</b> passed/over limit/processed" . "<br>";
   }
-  echo "<br>";
+  echo "<br>" . "<b>Legend:</b> <i>passed ~ over limit ~ processed</i>" . "<br><br>";
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
