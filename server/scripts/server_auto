@@ -2,6 +2,8 @@
 
 # import global variables
 source /home/pi/monitoring/common/scripts/common_var
+
+# import global functions
 source /home/pi/monitoring/common/scripts/common_functions
 
 # local variables
@@ -229,7 +231,7 @@ function write_service {
     IMPORT_STRING="${IMPORT_STRING}-w5 ${IMPORT_SOURCE} ${IMPORT_WLAN_5GHZ} ${IMPORT_ADDRESS}"
   fi
 
-  # mysql password prompt
+  # mysql password prompt - passwd returned in MYSQL_SECRET variable
   mysql_passwd_check ${SERVER_DB_MON_USER}
 
   # check if service file already exists
