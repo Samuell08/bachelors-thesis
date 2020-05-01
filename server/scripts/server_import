@@ -113,9 +113,8 @@ function import_wlan() {
   # check if mysql password passed as -a argument
   if [[ "${MYSQL_SECRET}" == "" ]];
   then
-    # mysql password prompt
-    read -s -p "Enter MySQL password for user '${SERVER_DB_MON_USER}': " MYSQL_SECRET
-    echo ""
+    # mysql password prompt - passwd returned in MYSQL_SECRET variable
+    mysql_passwd_check ${SERVER_DB_MON_USER}
   fi
 
   # generate "random" number from current time to avoid collision of files
