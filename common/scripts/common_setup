@@ -678,12 +678,24 @@ function setup_server() {
     echo ""
     
     # NEW mon password prompt
-    read -s -p "Enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
-    echo ""
+    while :
+    do
+      read -s -p "Enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass_1
+      echo ""
+      read -s -p "Enter the password again: " i_mon_usr_pass_2
+      echo ""
+      if [[ "$i_mon_usr_pass_1" == "$i_mon_usr_pass_2" ]]
+      then
+        echo "Passwords match!"
+        break;
+      else
+        echo "Passwords do not match - try again!"
+      fi
+    done
     
     # query - create mon user
     mysql -u root -p"${i_root_usr_pass}" <<EOF
-CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}';
+CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass_1}';
 EOF
     # check exit code of create user mon mysql query
     if [ $? -eq 0 ];
@@ -729,12 +741,24 @@ EOF
           echo ""
     
           # NEW mon password prompt
-          read -s -p "Enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass
-          echo ""
+          while :
+          do
+            read -s -p "Enter password for new MySQL user '${SERVER_DB_MON_USER}': " i_mon_usr_pass_1
+            echo ""
+            read -s -p "Enter the password again: " i_mon_usr_pass_2
+            echo ""
+            if [[ "$i_mon_usr_pass_1" == "$i_mon_usr_pass_2" ]]
+            then
+              echo "Passwords match!"
+              break;
+            else
+              echo "Passwords do not match - try again!"
+            fi
+          done
     
           # query - create mon user
           mysql -u root -p"${i_root_usr_pass}" <<EOF
-CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass}';
+CREATE USER '${SERVER_DB_MON_USER}'@'localhost' IDENTIFIED BY '${i_mon_usr_pass_1}';
 EOF
           # check exit code of create user mon mysql query
           if [ $? -eq 0 ];
