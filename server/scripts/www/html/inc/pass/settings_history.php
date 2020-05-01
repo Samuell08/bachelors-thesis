@@ -15,6 +15,8 @@ $timestamp_limit_chk_ph = "";
 $timestamp_limit_ph     = "";
 $show_wlan_ph           = "";
 $show_bt_ph             = "";
+$specific_addr_chk_ph   = "";
+$specific_addr_ph       = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -29,6 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $timestamp_limit_ph     = filter_var($_GET["timestamp_limit_ph"], FILTER_VALIDATE_INT);
   $show_wlan_ph           = $_GET["show_wlan_ph"];
   $show_bt_ph             = $_GET["show_bt_ph"];
+  $specific_addr_chk_ph   = $_GET["specific_addr_chk_ph"];
+  $specific_addr_ph       = filter_var($_GET["specific_addr_ph"], FILTER_SANITIZE_STRING);
 
   // default values
   $today = date('Y-m-d');
@@ -40,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($threshold_ph == "")           { $threshold_ph = 10; }
   if ($threshold_format_ph == "")    { $threshold_format_ph = "MINUTE"; }
   if ($timestamp_limit_ph == "")     { $timestamp_limit_ph = 100; }
+  if ($specific_addr_ph == "")       { $specific_addr_ph = "12:34:56:AB:CD:EF"; }
   
   // store variables in session
   $_SESSION["db_source_ph"]           = $db_source_ph;
@@ -53,5 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["timestamp_limit_ph"]     = $timestamp_limit_ph;
   $_SESSION["show_wlan_ph"]           = $show_wlan_ph;
   $_SESSION["show_bt_ph"]             = $show_bt_ph;
+  $_SESSION["specific_addr_chk_ph"]   = $specific_addr_chk_ph;
+  $_SESSION["specific_addr_ph"]       = $specific_addr_ph;
 }
 ?>

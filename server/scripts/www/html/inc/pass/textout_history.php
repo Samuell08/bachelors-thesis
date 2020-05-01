@@ -26,6 +26,8 @@ $timestamp_limit_chk_ph = $_SESSION["timestamp_limit_chk_ph"];
 $timestamp_limit_ph     = $_SESSION["timestamp_limit_ph"];
 $show_wlan_ph           = $_SESSION["show_wlan_ph"];
 $show_bt_ph             = $_SESSION["show_bt_ph"];
+$specific_addr_chk_ph   = $_SESSION["specific_addr_chk_ph"];
+$specific_addr_ph       = $_SESSION["specific_addr_ph"];
 
 // functions
 function is_anagram($string1, $string2) {
@@ -188,6 +190,10 @@ if ($db_source_ph == NULL) {
         " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
         " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" . "<br><br>";
 
+  if ($specific_addr_chk_ph == "1") {
+    echo "Looked only for this MAC/BD_ADDR address: " . $specific_addr_ph . "<br><br>";
+  }
+
   // prepare chart arrays
   if ($show_wlan_ph == "1") {
     $i = 0;
@@ -225,70 +231,81 @@ if ($db_source_ph == NULL) {
     $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
     // ---------------------------------------------------------------------- WIFI
     if ($show_wlan_ph == "1") {
-      // GLOBAL MAC
-      // every unique global MAC in time range 
-      $db_q = "SELECT station_MAC FROM Clients WHERE
-              (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
-              (station_MAC LIKE '_0:__:__:__:__:__' OR
-               station_MAC LIKE '_4:__:__:__:__:__' OR
-               station_MAC LIKE '_8:__:__:__:__:__' OR
-               station_MAC LIKE '_C:__:__:__:__:__')
-               GROUP BY station_MAC;";
-      $db_result = mysqli_query($db_conn_s, $db_q);
-      $mac_glbl_passed += mysqli_num_rows($db_result);
-      // append result to macs
-      if (mysqli_num_rows($db_result) > 0) {
-        while ($db_row = mysqli_fetch_assoc($db_result)) {
-          $macs[] = $db_row["station_MAC"];
-        }
-      }
-      mysqli_free_result($db_result);
-      // LOCAL MAC
-      // every unique local MAC fingerprint
-      $db_q = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
-              (LENGTH(probed_ESSIDs) > 18) AND
-              (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND NOT
-              (station_MAC LIKE '_0:__:__:__:__:__' OR
-               station_MAC LIKE '_4:__:__:__:__:__' OR
-               station_MAC LIKE '_8:__:__:__:__:__' OR
-               station_MAC LIKE '_C:__:__:__:__:__')
-               GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
-      $db_result = mysqli_query($db_conn_s, $db_q);
-      // append result to fingerprints
-      if (mysqli_num_rows($db_result) > 0) {
-        while ($db_row = mysqli_fetch_assoc($db_result)) {
-          $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+      if ($specific_addr_chk_ph == "1") {
+        // macs array contains only specific MAC
+        $macs[0] = $specific_addr_ph;
+        $mac_glbl_passed = 1;
+      } else {
+        // GLOBAL MAC
+        // every unique global MAC in time range 
+        $db_q = "SELECT station_MAC FROM Clients WHERE
+                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
+                (station_MAC LIKE '_0:__:__:__:__:__' OR
+                 station_MAC LIKE '_4:__:__:__:__:__' OR
+                 station_MAC LIKE '_8:__:__:__:__:__' OR
+                 station_MAC LIKE '_C:__:__:__:__:__')
+                 GROUP BY station_MAC;";
+        $db_result = mysqli_query($db_conn_s, $db_q);
+        $mac_glbl_passed += mysqli_num_rows($db_result);
+        // append result to macs
+        if (mysqli_num_rows($db_result) > 0) {
+          while ($db_row = mysqli_fetch_assoc($db_result)) {
+            $macs[] = $db_row["station_MAC"];
+          }
         }
         mysqli_free_result($db_result);
-        // delete fingerprint anagrams
-        foreach ($fingerprints as $master_key => &$master_value) {
-          foreach ($fingerprints as $search_key => &$search_value) {
-            if ($master_key != $search_key){
-              if(is_anagram($master_value, $search_value)){
-                // delete anagram from fingerprints array
-                unset($fingerprints[$search_key]);
+        // LOCAL MAC
+        // every unique local MAC fingerprint
+        $db_q = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
+                (LENGTH(probed_ESSIDs) > 18) AND
+                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND NOT
+                (station_MAC LIKE '_0:__:__:__:__:__' OR
+                 station_MAC LIKE '_4:__:__:__:__:__' OR
+                 station_MAC LIKE '_8:__:__:__:__:__' OR
+                 station_MAC LIKE '_C:__:__:__:__:__')
+                 GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
+        $db_result = mysqli_query($db_conn_s, $db_q);
+        // append result to fingerprints
+        if (mysqli_num_rows($db_result) > 0) {
+          while ($db_row = mysqli_fetch_assoc($db_result)) {
+            $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+          }
+          mysqli_free_result($db_result);
+          // delete fingerprint anagrams
+          foreach ($fingerprints as $master_key => &$master_value) {
+            foreach ($fingerprints as $search_key => &$search_value) {
+              if ($master_key != $search_key){
+                if(is_anagram($master_value, $search_value)){
+                  // delete anagram from fingerprints array
+                  unset($fingerprints[$search_key]);
+                }
               }
             }
           }
+          $mac_local_passed = count($fingerprints);
         }
-        $mac_local_passed = count($fingerprints);
-      } 
+      } // end of else clause of specific_addr
     } // end of show_wlan_ph
     // ----------------------------------------------------------------- Bluetooth
     if ($show_bt_ph == "1") {
-      // every unique BD_ADDR in time range
-      $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
-              (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
-               GROUP BY BD_ADDR;";
-      $db_result = mysqli_query($db_conn_s, $db_q);
-      $bt_passed += mysqli_num_rows($db_result);
-      // append result to bd_addrs
-      if (mysqli_num_rows($db_result) > 0) {
-        while ($db_row = mysqli_fetch_assoc($db_result)) {
-          $bd_addrs[] = $db_row["BD_ADDR"];
+      if ($specific_addr_chk_ph == "1") {
+        $bd_addrs[0] = $specific_addr_ph;
+        $bt_passed = 1;
+      } else {
+        // every unique BD_ADDR in time range
+        $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
+                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
+                 GROUP BY BD_ADDR;";
+        $db_result = mysqli_query($db_conn_s, $db_q);
+        $bt_passed += mysqli_num_rows($db_result);
+        // append result to bd_addrs
+        if (mysqli_num_rows($db_result) > 0) {
+          while ($db_row = mysqli_fetch_assoc($db_result)) {
+            $bd_addrs[] = $db_row["BD_ADDR"];
+          }
         }
-      }
-      mysqli_free_result($db_result);
+        mysqli_free_result($db_result);
+      } // end of else clause of specific_addr
     } // end of show_bt_ph
   } // end of foreach DB
   
@@ -309,17 +326,20 @@ if ($db_source_ph == NULL) {
       if ($show_wlan_ph == "1") {
         if ($mac_glbl_passed > 0) {
           echo "Wi-Fi devices with global MAC address:<br>";
-          process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored);
+          process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                      $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored);
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored);
+          process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                     $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored);
         }
       }
       if ($show_bt_ph == "1") {
         if ($bt_passed > 0) {
           echo "Bluetooth devices:<br>";        
-          process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph, $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
+          process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                             $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
         }
       }
     }
