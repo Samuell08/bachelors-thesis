@@ -2,6 +2,7 @@
 
 # import global variables
 source /home/pi/monitoring/common/scripts/common_var
+source /home/pi/monitoring/common/scripts/common_functions
 
 # local variables
 IMPORT_PERIOD=""
@@ -229,26 +230,7 @@ function write_service {
   fi
 
   # mysql password prompt
-  while :
-  do
-    read -s -p "Enter MySQL password for user ${SERVER_DB_MON_USER}: " MYSQL_SECRET
-    echo ""
-    # password empty?
-    if [[ "$MYSQL_SECRET" == "" ]]
-    then
-      echo "Incorrect password for MySQL user ${SERVER_DB_MON_USER}"
-      continue;
-    fi
-    # try logging in to MySQL
-    echo "exit" | mysql -u ${SERVER_DB_MON_USER} -p${MYSQL_SECRET} &>/dev/null
-    if [[ "$?" == "0" ]]
-    then
-      echo "Password OK!"
-      break;
-    else
-      echo "Incorrect password for MySQL user ${SERVER_DB_MON_USER}"
-    fi
-  done
+  mysql_passwd_check ${SERVER_DB_MON_USER}
 
   # check if service file already exists
   echo "Checking if service ${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE} already exists..."

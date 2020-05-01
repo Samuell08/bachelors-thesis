@@ -3,7 +3,6 @@
 # import global variables
 source /home/pi/monitoring/common/scripts/common_var
 
-# functions
 function timestamp() {
   echo $(date +"%F %T")
 }
@@ -21,4 +20,27 @@ function log_server_import() {
   >> "${DIR_SERVER_LOGS}/${LOG_SERVER_IMPORT}.log"
 }
 
+function mysql_passwd_check() {
+  # first  argument - MySQL username
 
+  while :
+  do
+    read -s -p "Enter MySQL password for user ${1}: " MYSQL_SECRET
+    echo ""
+    # password empty?
+    if [[ "$MYSQL_SECRET" == "" ]]
+    then
+      echo "Incorrect password for MySQL user ${1}"
+      continue;
+    fi
+    # try logging in to MySQL
+    echo "exit" | mysql -u ${1} -p${MYSQL_SECRET} &>/dev/null
+    if [[ "$?" == "0" ]]
+    then
+      echo "Password OK!"
+      break;
+    else
+      echo "Incorrect password for MySQL user ${1}"
+    fi
+  done
+}
