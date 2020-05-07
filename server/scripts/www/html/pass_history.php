@@ -137,7 +137,15 @@ if(!$db_conn){
               <b>Show Data</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="show_wlan_ph" value="1" <?php if ($show_wlan_ph == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-                <tr><td><input type="checkbox" name="show_bt_ph"   value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_ph == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+                <tr><td><input type="checkbox" name="show_bt_ph" value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_ph == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+              </table>
+            </div>
+
+            <div class="div_subcontent">
+              <b>Wi-Fi Standards</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="show_wlan_a_ph" value="1" <?php if ($show_wlan_a_ph == "1") { echo "checked";} ?>></td><td> 5GHz (802.11a) </td></tr>
+                <tr><td><input type="checkbox" name="show_wlan_bg_ph" value="1" <?php if ($show_wlan_bg_ph == "1") { echo "checked";} ?>></td><td> 2.4GHz (802.11b/g) </td></tr>
               </table>
             </div>
 

@@ -15,6 +15,8 @@ $timestamp_limit_chk_ph = "";
 $timestamp_limit_ph     = "";
 $show_wlan_ph           = "";
 $show_bt_ph             = "";
+$show_wlan_a_ph         = "";
+$show_wlan_bg_ph        = "";
 $specific_addr_chk_ph   = "";
 $specific_addr_ph       = "";
 
@@ -31,6 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $timestamp_limit_ph     = filter_var($_GET["timestamp_limit_ph"], FILTER_VALIDATE_INT);
   $show_wlan_ph           = $_GET["show_wlan_ph"];
   $show_bt_ph             = $_GET["show_bt_ph"];
+  $show_wlan_a_ph         = $_GET["show_wlan_a_ph"];
+  $show_wlan_bg_ph        = $_GET["show_wlan_bg_ph"];
   $specific_addr_chk_ph   = $_GET["specific_addr_chk_ph"];
   $specific_addr_ph       = filter_var($_GET["specific_addr_ph"], FILTER_SANITIZE_STRING);
 
@@ -58,6 +62,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["timestamp_limit_ph"]     = $timestamp_limit_ph;
   $_SESSION["show_wlan_ph"]           = $show_wlan_ph;
   $_SESSION["show_bt_ph"]             = $show_bt_ph;
+  $_SESSION["show_wlan_a_ph"]         = $show_wlan_a_ph;
+  $_SESSION["show_wlan_bg_ph"]        = $show_wlan_bg_ph;
   $_SESSION["specific_addr_chk_ph"]   = $specific_addr_chk_ph;
   $_SESSION["specific_addr_ph"]       = $specific_addr_ph;
 }

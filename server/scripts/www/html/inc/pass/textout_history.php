@@ -26,6 +26,8 @@ $timestamp_limit_chk_ph = $_SESSION["timestamp_limit_chk_ph"];
 $timestamp_limit_ph     = $_SESSION["timestamp_limit_ph"];
 $show_wlan_ph           = $_SESSION["show_wlan_ph"];
 $show_bt_ph             = $_SESSION["show_bt_ph"];
+$show_wlan_a_ph         = $_SESSION["show_wlan_a_ph"];
+$show_wlan_bg_ph        = $_SESSION["show_wlan_bg_ph"];
 $specific_addr_chk_ph   = $_SESSION["specific_addr_chk_ph"];
 $specific_addr_ph       = $_SESSION["specific_addr_ph"];
 
@@ -39,17 +41,17 @@ function is_anagram($string1, $string2) {
 
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
-function process_keys($type, $keys, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored) {
+function process_keys($type, $db_q_standard, $keys, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored) {
   // customize algorithm to specific keys type
   switch ($type) {
     case "wifi_global":
       $query = "SELECT last_time_seen FROM Clients WHERE
                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND (station_MAC = ?);"; break;
+                AND " . $db_q_standard . " AND (station_MAC = ?);"; break;
     case "wifi_local": 
       $query = "SELECT last_time_seen FROM Clients WHERE
                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);"; break;
+                AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);"; break;
       break;
     case "bt":
       $query = "SELECT last_time_seen FROM Bluetooth WHERE
@@ -149,6 +151,8 @@ if ($db_source_ph == NULL) {
   echo "<p class=\"warning\">Invalid threshold.</p>";
 } elseif ($threshold_format_ph == NULL) {
   echo "<p class=\"warning\">Threshold format Minute(s)/Hour(s) not selected.</p>";
+} elseif ($show_wlan_ph == "1" and $show_wlan_a_ph != "1" and $show_wlan_bg_ph != "1") {
+  echo "<p class=\"warning\">Wi-Fi Standard not selected.</p>";
 } else {
 
   // algorithm execution start
@@ -227,15 +231,31 @@ if ($db_source_ph == NULL) {
   $mac_glbl_passed = 0;
   $mac_local_passed = 0;
   $bt_passed = 0;
+  $db_q_standard = "1";
   foreach ($db_source_ph as $key => $value) {
     $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
     // ---------------------------------------------------------------------- WIFI
     if ($show_wlan_ph == "1") {
       if ($specific_addr_chk_ph == "1") {
+        
         // macs array contains only specific MAC
         $macs[0] = $specific_addr_ph;
         $mac_glbl_passed = 1;
+
       } else {
+
+        // STANDARD
+        if ($show_wlan_a_ph == "1" and $show_wlan_bg_ph == "1") {
+          $db_q_standard = "(standard = 'a' OR standard = 'bg')";
+        } else {
+          if ($show_wlan_a_ph == "1") {
+            $db_q_standard = "(standard = 'a')";
+          }
+          if ($show_wlan_bg_ph == "1") {
+            $db_q_standard = "(standard = 'bg')";
+          }
+        }
+
         // GLOBAL MAC
         // every unique global MAC in time range 
         $db_q = "SELECT station_MAC FROM Clients WHERE
@@ -243,8 +263,8 @@ if ($db_source_ph == NULL) {
                 (station_MAC LIKE '_0:__:__:__:__:__' OR
                  station_MAC LIKE '_4:__:__:__:__:__' OR
                  station_MAC LIKE '_8:__:__:__:__:__' OR
-                 station_MAC LIKE '_C:__:__:__:__:__')
-                 GROUP BY station_MAC;";
+                 station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
+                "GROUP BY station_MAC;";
         $db_result = mysqli_query($db_conn_s, $db_q);
         $mac_glbl_passed += mysqli_num_rows($db_result);
         // append result to macs
@@ -254,6 +274,7 @@ if ($db_source_ph == NULL) {
           }
         }
         mysqli_free_result($db_result);
+
         // LOCAL MAC
         // every unique local MAC fingerprint
         $db_q = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
@@ -263,7 +284,8 @@ if ($db_source_ph == NULL) {
                  station_MAC LIKE '_4:__:__:__:__:__' OR
                  station_MAC LIKE '_8:__:__:__:__:__' OR
                  station_MAC LIKE '_C:__:__:__:__:__')
-                 GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
+                 station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
+                "GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
         $db_result = mysqli_query($db_conn_s, $db_q);
         // append result to fingerprints
         if (mysqli_num_rows($db_result) > 0) {
@@ -326,19 +348,19 @@ if ($db_source_ph == NULL) {
       if ($show_wlan_ph == "1") {
         if ($mac_glbl_passed > 0) {
           echo "Wi-Fi devices with global MAC address:<br>";
-          process_keys("wifi_global", $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+          process_keys("wifi_global", $db_q_standard, $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored);
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+          process_keys("wifi_local", $db_q_standard, $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                                      $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored);
         }
       }
       if ($show_bt_ph == "1") {
         if ($bt_passed > 0) {
           echo "Bluetooth devices:<br>";        
-          process_keys("bt", $bd_addrs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+          process_keys("bt", "1", $bd_addrs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                              $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
         }
       }
