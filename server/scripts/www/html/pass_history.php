@@ -77,7 +77,7 @@ if(!$db_conn){
         <div class="div_content">
 
           <!-- Live data | History --> 
-          <span class="lh_other"><a href="pass_live.php">Live data</a></span> | <span class="lh_current">History</span>
+          <span class="lh_current">History</span>
 
           <form method="get" action="<?php echo $_SERVER['PHP_SELF']?>">
 
