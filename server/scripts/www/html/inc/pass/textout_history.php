@@ -283,7 +283,6 @@ if ($db_source_ph == NULL) {
                 (station_MAC LIKE '_0:__:__:__:__:__' OR
                  station_MAC LIKE '_4:__:__:__:__:__' OR
                  station_MAC LIKE '_8:__:__:__:__:__' OR
-                 station_MAC LIKE '_C:__:__:__:__:__')
                  station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
                 "GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
         $db_result = mysqli_query($db_conn_s, $db_q);
