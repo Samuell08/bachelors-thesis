@@ -244,7 +244,7 @@ if ($db_source_ph == NULL) {
 
       } else {
 
-        // STANDARD
+        // standard
         if ($show_wlan_a_ph == "1" and $show_wlan_bg_ph == "1") {
           $db_q_standard = "(standard = 'a' OR standard = 'bg')";
         } else {

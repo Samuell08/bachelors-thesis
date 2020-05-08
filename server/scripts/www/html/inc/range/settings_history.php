@@ -13,6 +13,8 @@ $time_period_rh        = "";
 $time_period_format_rh = "";
 $show_wlan_rh          = "";
 $show_bt_rh            = "";
+$show_wlan_a_rh        = "";
+$show_wlan_bg_rh       = "";
 $specific_addr_chk_rh  = "";
 $specific_addr_rh      = "";
 
@@ -27,6 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_period_format_rh = $_GET["time_period_format_rh"];
   $show_wlan_rh          = $_GET["show_wlan_rh"];
   $show_bt_rh            = $_GET["show_bt_rh"];
+  $show_wlan_a_rh        = $_GET["show_wlan_a_rh"];
+  $show_wlan_bg_rh       = $_GET["show_wlan_bg_rh"];
   $specific_addr_chk_rh  = $_GET["specific_addr_chk_rh"];
   $specific_addr_rh      = $_GET["specific_addr_rh"];
 
@@ -51,6 +55,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_period_format_rh"] = $time_period_format_rh;
   $_SESSION["show_wlan_rh"]          = $show_wlan_rh;
   $_SESSION["show_bt_rh"]            = $show_bt_rh;
+  $_SESSION["show_wlan_a_rh"]        = $show_wlan_a_rh;
+  $_SESSION["show_wlan_bg_rh"]       = $show_wlan_bg_rh;
   $_SESSION["specific_addr_chk_rh"]  = $specific_addr_chk_rh;
   $_SESSION["specific_addr_rh"]      = $specific_addr_rh;
 }

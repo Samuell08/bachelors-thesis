@@ -16,14 +16,16 @@ $db_user       = $_SESSION["db_user"];
 $db_pass       = $_SESSION["db_pass"];
 $db_source_rh  = $_SESSION["db_source_rh"];
 // settings
-$time_period_rh         = $_SESSION["time_period_rh"];
-$time_period_format_rh  = $_SESSION["time_period_format_rh"];
-$show_wlan_rh           = $_SESSION["show_wlan_rh"];
-$show_bt_rh             = $_SESSION["show_bt_rh"];
 $time_from_rh           = $_SESSION["time_from_rh"];
 $time_to_rh             = $_SESSION["time_to_rh"];
 $time_step_rh           = $_SESSION["time_step_rh"];
 $time_step_format_rh    = $_SESSION["time_step_format_rh"];
+$time_period_rh         = $_SESSION["time_period_rh"];
+$time_period_format_rh  = $_SESSION["time_period_format_rh"];
+$show_wlan_rh           = $_SESSION["show_wlan_rh"];
+$show_bt_rh             = $_SESSION["show_bt_rh"];
+$show_wlan_a_rh         = $_SESSION["show_wlan_a_rh"];
+$show_wlan_bg_rh        = $_SESSION["show_wlan_bg_rh"];
 $specific_addr_chk_rh   = $_SESSION["specific_addr_chk_rh"];
 $specific_addr_rh       = $_SESSION["specific_addr_rh"];
 
@@ -48,6 +50,8 @@ if ($db_source_rh == NULL) {
   echo "<p class=\"warning\">Time range \"From\" is later in time than \"To\".</p>";
 } elseif (strtotime($time_to_rh) > time()) {
   echo "<p class=\"warning\">Time range \"To\" is in the future.</p>";
+} elseif ($show_wlan_rh == "1" and $show_wlan_a_rh != "1" and $show_wlan_bg_rh != "1") {
+  echo "<p class=\"warning\">Wi-Fi Standard not selected.</p>";
 } else {
 
   // algorithm execution start
@@ -58,6 +62,7 @@ if ($db_source_rh == NULL) {
   $mac_local  = 0;
   $bt_total   = 0;
   $fingerprints_count = 0;
+  $db_q_standard = "1";
 
   // calculate time increment
   switch ($time_step_format_rh) {
@@ -71,6 +76,20 @@ if ($db_source_rh == NULL) {
     $time_increment = $time_step_rh*3600;
     break;
   }    
+
+  if ($show_wlan_rh == "1") {
+    // standard
+    if ($show_wlan_a_rh == "1" and $show_wlan_bg_rh == "1") {
+      $db_q_standard = "(standard = 'a' OR standard = 'bg')";
+    } else {
+      if ($show_wlan_a_rh == "1") {
+        $db_q_standard = "(standard = 'a')";
+      }
+      if ($show_wlan_bg_rh == "1") {
+        $db_q_standard = "(standard = 'bg')";
+      }
+    }
+  }
   
   // text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_rh)) . "</b>" .
@@ -94,7 +113,7 @@ if ($db_source_rh == NULL) {
         $stmt = mysqli_stmt_init($db_conn_s);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
                                    (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND
-                                   (station_MAC = '" . $specific_addr_rh . "');");
+                                   (station_MAC = '" . $specific_addr_rh . "') AND " . $db_q_standard . ";");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
         mysqli_stmt_bind_result($stmt, $mac_glbl);
 
@@ -180,7 +199,7 @@ if ($db_source_rh == NULL) {
                                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                                     station_MAC LIKE '_4:__:__:__:__:__' OR
                                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                                    station_MAC LIKE '_C:__:__:__:__:__');");
+                                    station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard . ";");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
         mysqli_stmt_bind_result($stmt, $mac_glbl);
 
@@ -216,8 +235,8 @@ if ($db_source_rh == NULL) {
                                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                                     station_MAC LIKE '_4:__:__:__:__:__' OR
                                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                                    station_MAC LIKE '_C:__:__:__:__:__')
-                                    GROUP BY station_MAC;");
+                                    station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
+                                   "GROUP BY station_MAC;");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
 
         // reset counters

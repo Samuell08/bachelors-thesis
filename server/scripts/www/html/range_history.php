@@ -135,6 +135,14 @@ if(!$db_conn){
             </div>
 
             <div class="div_subcontent">
+              <b>Wi-Fi Standards</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="show_wlan_a_rh" value="1" <?php if ($show_wlan_a_rh == "1") { echo "checked";} ?>></td><td> 5GHz (802.11a) </td></tr>
+                <tr><td><input type="checkbox" name="show_wlan_bg_rh" value="1" <?php if ($show_wlan_bg_rh == "1") { echo "checked";} ?>></td><td> 2.4GHz (802.11b/g) </td></tr>
+              </table>
+            </div>
+
+            <div class="div_subcontent">
               <b>Specific MAC/BD_ADDR</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="specific_addr_chk_rh" value="1" <?php if ($specific_addr_chk_rh == "1") { echo "checked";} ?>> Look only for this address </td></tr>
