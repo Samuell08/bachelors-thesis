@@ -46,8 +46,42 @@ function is_anagram($string1, $string2) {
 
 // function accepts list of keys (eg. MAC addresses) and compares
 // it to blacklist (echoing 'Blacklisted' instead of timestamps)
-function blacklisted($type, $key) {
+// returns:  0 - key not blacklisted
+//           1 - key blacklisted
+//          -1 - unknown type
+function blacklisted($type, $key, $blacklist) {
+  $blacklist_exploded = explode(",", $blacklist);
+  switch ($type) {
+    case "wifi_global":
+    case "bt":
+        foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
+          if ($key == $blacklist_value) {
+            // found key in blacklist
+            return 1;
+          }
+        }
+      break;
 
+    case "wifi_local": 
+        $essids = explode(",", $key);
+        $essids_blacklisted = 0;
+        foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
+          foreach ($essids as $essid_key => $essid_value) {
+            if ($essid_value == $blacklist_value) {
+              $essids_blacklisted++;
+            }
+          }
+        }
+        if ($essids_blacklisted == count($essids)) {
+          // fingerprint is made of blacklisted essids only
+          return 1;
+        }
+      break;
+
+    default:
+      return -1;
+  }
+  return 0;
 }
 
 // function accepts list of keys (eg. MAC addresses) and fills
@@ -63,13 +97,12 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
       $query = "SELECT last_time_seen FROM Clients WHERE
                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
                 AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);"; break;
-      break;
     case "bt":
       $query = "SELECT last_time_seen FROM Bluetooth WHERE
                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
                 AND (BD_ADDR = ?);"; break;
     default:
-      echo "function process_keys ERROR: Unknown type: " . $type; break;
+      echo "function process_keys ERROR: Unknown type: " . $type . "<br>";
       return -1;
   }
   echo "<table style=\"border-collapse:collapse\">";
@@ -80,42 +113,26 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
     // output keys with timestamps table
     echo "<tr class=\"info\">";
     echo "<td><tt>" . $keys_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    
     // Blacklist processing
-    $blacklist_exploded = explode(",", $blacklist);
-      if ($type == "wifi_local") {
-        $essids = explode(",", $keys_value);
-        $essids_blacklisted = 0;
-        foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
-          foreach ($essids as $essid_key => $essid_value) {
-            if ($essid_value == $blacklist_value) {
-              $essids_blacklisted++;
-            }
-          }
-        }
-        if ($essids_blacklisted == count($essids)) {
-          // fingerprint is made of blacklisted essids only
-          // end processing of key - go to next
-          echo "<td><tt><b>";
-          echo "Blacklisted";
-          echo "</b></tt></td>";
-          echo "</tr>";
-          $ignored++;
-          continue; // foreach keys
-        }
-      } else { // wifi_global or bt
-        foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
-          if ($keys_value == $blacklist_value) {
-            // found key in blacklist
-            // end processing of key - go to next
-            echo "<td><tt><b>";
-            echo "Blacklisted";
-            echo "</b></tt></td>";
-            echo "</tr>";
-            $ignored++;
-            continue 2; // foreach keys
-          }
-        }
-      }
+    $blacklist_retval = blacklisted($type, $keys_value, $blacklist);
+    switch ($blacklist_retval) {
+      case 0:
+        break;
+      case 1:
+        // blacklisted - end processing of key - go to next
+        echo "<td><tt><b>";
+        echo "Blacklisted";
+        echo "</b></tt></td>";
+        echo "</tr>";
+        $ignored++;
+        continue 2; // foreach keys
+        break;
+      default:
+        echo "function process_keys ERROR: error while processing blacklist";
+        return -1;
+    }
+    
     // process MySQL query result - fill timestamps array for given key
     mysqli_stmt_execute($stmt);
     $db_result = mysqli_stmt_get_result($stmt);
