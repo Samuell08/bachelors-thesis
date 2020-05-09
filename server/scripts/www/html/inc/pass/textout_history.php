@@ -30,8 +30,13 @@ $show_wlan_a_ph         = $_SESSION["show_wlan_a_ph"];
 $show_wlan_bg_ph        = $_SESSION["show_wlan_bg_ph"];
 $specific_addr_chk_ph   = $_SESSION["specific_addr_chk_ph"];
 $specific_addr_ph       = $_SESSION["specific_addr_ph"];
+$blacklist_wlan_chk_ph  = $_SESSION["blacklist_wlan_chk_ph"];
+$blacklist_wlan_ph      = $_SESSION["blacklist_wlan_ph"];
+$blacklist_fp_chk_ph    = $_SESSION["blacklist_fp_chk_ph"];
+$blacklist_fp_ph        = $_SESSION["blacklist_fp_ph"];
+$blacklist_bt_chk_ph    = $_SESSION["blacklist_bt_chk_ph"];
+$blacklist_bt_ph        = $_SESSION["blacklist_bt_ph"];
 
-// functions
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
     return 1;
@@ -39,9 +44,15 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
+// function accepts list of keys (eg. MAC addresses) and compares
+// it to blacklist (echoing 'Blacklisted' instead of timestamps)
+function blacklisted($type, $key) {
+
+}
+
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
-function process_keys($type, $db_q_standard, $keys, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored) {
+function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored) {
   // customize algorithm to specific keys type
   switch ($type) {
     case "wifi_global":
@@ -69,6 +80,42 @@ function process_keys($type, $db_q_standard, $keys, $db_conn_s, $threshold, $tim
     // output keys with timestamps table
     echo "<tr class=\"info\">";
     echo "<td><tt>" . $keys_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    // Blacklist processing
+    $blacklist_exploded = explode(",", $blacklist);
+      if ($type == "wifi_local") {
+        $essids = explode(",", $keys_value);
+        $essids_blacklisted = 0;
+        foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
+          foreach ($essids as $essid_key => $essid_value) {
+            if ($essid_value == $blacklist_value) {
+              $essids_blacklisted++;
+            }
+          }
+        }
+        if ($essids_blacklisted == count($essids)) {
+          // fingerprint is made of blacklisted essids only
+          // end processing of key - go to next
+          echo "<td><tt><b>";
+          echo "Blacklisted";
+          echo "</b></tt></td>";
+          echo "</tr>";
+          $ignored++;
+          continue; // foreach keys
+        }
+      } else { // wifi_global or bt
+        foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
+          if ($keys_value == $blacklist_value) {
+            // found key in blacklist
+            // end processing of key - go to next
+            echo "<td><tt><b>";
+            echo "Blacklisted";
+            echo "</b></tt></td>";
+            echo "</tr>";
+            $ignored++;
+            continue 2; // foreach keys
+          }
+        }
+      }
     // process MySQL query result - fill timestamps array for given key
     mysqli_stmt_execute($stmt);
     $db_result = mysqli_stmt_get_result($stmt);
@@ -347,19 +394,19 @@ if ($db_source_ph == NULL) {
       if ($show_wlan_ph == "1") {
         if ($mac_glbl_passed > 0) {
           echo "Wi-Fi devices with global MAC address:<br>";
-          process_keys("wifi_global", $db_q_standard, $macs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+          process_keys("wifi_global", $db_q_standard, $macs, $blacklist_wlan_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored);
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $db_q_standard, $fingerprints, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+          process_keys("wifi_local", $db_q_standard, $fingerprints, $blacklist_fp_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                                      $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored);
         }
       }
       if ($show_bt_ph == "1") {
         if ($bt_passed > 0) {
           echo "Bluetooth devices:<br>";        
-          process_keys("bt", "1", $bd_addrs, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+          process_keys("bt", "1", $bd_addrs, $blacklist_bt_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                              $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
         }
       }

@@ -156,6 +156,20 @@ if(!$db_conn){
                 <tr><td><input type="text" name="specific_addr_ph" value="<?php echo $specific_addr_ph?>" style="width:150px;text-align:center;"></td></tr>
               </table>
             </div>
+
+            <br>
+            
+            <div class="div_subcontent">
+              <b>Blacklist</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="blacklist_wlan_chk_ph" value="1" <?php if ($blacklist_wlan_chk_ph == "1") { echo "checked";} ?>> Ignore these MAC addresses </td></tr>
+                <tr><td><textarea name="blacklist_wlan_ph" cols="80" rows="2"><?php echo $blacklist_wlan_ph?></textarea></td></tr>
+                <tr><td><input type="checkbox" name="blacklist_fp_chk_ph" value="1" <?php if ($blacklist_fp_chk_ph == "1") { echo "checked";} ?>> Ignore local MAC addresses with only these probed ESSIDs </td></tr>
+                <tr><td><textarea name="blacklist_fp_ph" cols="80" rows="2"><?php echo $blacklist_fp_ph?></textarea></td></tr>
+                <tr><td><input type="checkbox" name="blacklist_bt_chk_ph" value="1" <?php if ($blacklist_bt_chk_ph == "1") { echo "checked";} ?>> Ignore these BD_ADDR addresses </td></tr>
+                <tr><td><textarea name="blacklist_bt_ph" cols="80" rows="2"><?php echo $blacklist_bt_ph?></textarea></td></tr>
+              </table>
+            </div>
             
             <br><button type="submit">Submit</button>
 

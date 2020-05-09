@@ -28,7 +28,7 @@ span.lh_other, span.menu_other {
   padding: 1px 5px 1px 5px;
 }
 
-input[type="text"], input[type="password"], input[type="number"] {
+input[type="text"], input[type="password"], input[type="number"], textarea {
   border: 0px solid #cbcbcb;
   background-color: #d8d8d8;
   border-radius: 8px;
