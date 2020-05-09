@@ -120,8 +120,8 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
       case 0:
         break;
       case 1:
-        // blacklisted - end processing of key - go to next
-        echo "<td><tt><b>";
+        // blacklisted - end processing of key and go to next
+        echo "<td><tt style=\"color:orangered;\"><b>";
         echo "Blacklisted";
         echo "</b></tt></td>";
         echo "</tr>";
@@ -143,7 +143,7 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
       }
     } else {
       // end processing of key - go to next
-      echo "<td><tt><b>";
+      echo "<td><tt style=\"color:orangered;\"><b>";
       echo "Number of timestamps over limit";
       echo "</b></tt></td>";
       echo "</tr>";
