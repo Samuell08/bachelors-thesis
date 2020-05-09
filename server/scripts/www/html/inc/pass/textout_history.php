@@ -50,6 +50,7 @@ function is_anagram($string1, $string2) {
 //           1 - key blacklisted
 //          -1 - unknown type
 function blacklisted($type, $key, $blacklist) {
+  
   $blacklist_exploded = explode(",", $blacklist);
   switch ($type) {
     case "wifi_global":
@@ -86,7 +87,8 @@ function blacklisted($type, $key, $blacklist) {
 
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
-function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored) {
+function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored, &$blacklisted) {
+  
   // customize algorithm to specific keys type
   switch ($type) {
     case "wifi_global":
@@ -105,10 +107,12 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
       echo "function process_keys ERROR: Unknown type: " . $type . "<br>";
       return -1;
   }
-  echo "<table style=\"border-collapse:collapse\">";
   $stmt = mysqli_stmt_init($db_conn_s);
   mysqli_stmt_prepare($stmt, $query);
   mysqli_stmt_bind_param($stmt, "s", $keys_value);
+  
+  echo "<table style=\"border-collapse:collapse\">";
+
   foreach ($keys as $keys_key => $keys_value) {
     // output keys with timestamps table
     echo "<tr class=\"info\">";
@@ -125,7 +129,7 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
         echo "Blacklisted";
         echo "</b></tt></td>";
         echo "</tr>";
-        $ignored++;
+        $blacklisted++;
         continue 2; // foreach keys
         break;
       default:
@@ -151,6 +155,7 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
       continue; // foreach keys
     }
     mysqli_free_result($db_result);
+
     // build passages subarray based on key timestamps
     // open timestamps <td>
     echo "<td><tt>";
@@ -171,6 +176,7 @@ function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $thr
     // close timestamps <td>
     echo "</tt></td>";
     echo "</tr>";
+
     // fill chart arrays based on passages subarray
     $unique = 1;
     // reset counters
@@ -402,6 +408,10 @@ if ($db_source_ph == NULL) {
   $mac_glbl_ignored  = 0;
   $mac_local_ignored = 0;
   $bt_ignored        = 0;
+  // ignored due to being blacklisted
+  $mac_glbl_blacklisted  = 0;
+  $mac_local_blacklisted = 0;
+  $bt_blacklisted        = 0;
 
   // keys processing
   if ($total_passed > 0) {
@@ -412,19 +422,19 @@ if ($db_source_ph == NULL) {
         if ($mac_glbl_passed > 0) {
           echo "Wi-Fi devices with global MAC address:<br>";
           process_keys("wifi_global", $db_q_standard, $macs, $blacklist_wlan_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                                      $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored);
+                                      $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored, $mac_glbl_blacklisted);
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
           process_keys("wifi_local", $db_q_standard, $fingerprints, $blacklist_fp_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                                     $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored);
+                                     $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored, $mac_local_blacklisted);
         }
       }
       if ($show_bt_ph == "1") {
         if ($bt_passed > 0) {
           echo "Bluetooth devices:<br>";        
           process_keys("bt", "1", $bd_addrs, $blacklist_bt_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                             $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored);
+                             $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored, $bt_blacklisted);
         }
       }
     }
@@ -434,17 +444,34 @@ if ($db_source_ph == NULL) {
   if ($show_wlan_ph == "1") {
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" . "</td><td>" . $mac_glbl_passed . " ~ " . $mac_glbl_ignored . " ~ " . ($mac_glbl_passed-$mac_glbl_ignored) . "</td></tr>";
-      echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" . "</td><td>" . $mac_local_passed . " ~ " . $mac_local_ignored . " ~ " . ($mac_local_passed-$mac_local_ignored) . "</td></tr>";
+    echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" .
+                                        "</td><td>" .
+                                        $mac_glbl_passed . " - " .
+                                        $mac_glbl_ignored . " - " .
+                                        $mac_glbl_blacklisted . " = " .
+                                        "<b>" . ($mac_glbl_passed-$mac_glbl_ignored-$mac_glbl_blacklisted) .
+                                        "</b></td></tr>";
+    echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" .
+                                        "</td><td>" . $mac_local_passed . " - " .
+                                        $mac_local_ignored . " - " .
+                                        $mac_local_blacklisted . " = " .
+                                        "<b>" . ($mac_local_passed-$mac_local_ignored-$mac_local_blacklisted) .
+                                        "</b></td></tr>";
     echo "</table>";
   }
   if ($show_bt_ph == "1") {
     echo "<b>Bluetooth</b><br>";
     echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Devices:" . "</td><td>" . $bt_passed . " ~ " . $bt_ignored . " ~ " . ($bt_passed-$bt_ignored) . "</td></tr>";
+    echo "<tr class=\"textout\"><td>" . "Devices:" .
+                                        "</td><td>" .
+                                        $bt_passed . " - " .
+                                        $bt_ignored . " - " .
+                                        $bt_blacklisted . " = " .
+                                        "<b>" . ($bt_passed-$bt_ignored-$bt_blacklisted) .
+                                        "</b></td></tr>";
     echo "</table>";
   }
-  echo "<br>" . "<b>Legend:</b> <i>passed ~ over limit ~ processed</i>" . "<br><br>";
+  echo "<br>" . "<b>Legend:</b> <i>passed - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
