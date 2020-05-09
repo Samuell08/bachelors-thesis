@@ -30,11 +30,8 @@ $show_wlan_a_ph         = $_SESSION["show_wlan_a_ph"];
 $show_wlan_bg_ph        = $_SESSION["show_wlan_bg_ph"];
 $specific_addr_chk_ph   = $_SESSION["specific_addr_chk_ph"];
 $specific_addr_ph       = $_SESSION["specific_addr_ph"];
-$blacklist_wlan_chk_ph  = $_SESSION["blacklist_wlan_chk_ph"];
 $blacklist_wlan_ph      = $_SESSION["blacklist_wlan_ph"];
-$blacklist_fp_chk_ph    = $_SESSION["blacklist_fp_chk_ph"];
 $blacklist_fp_ph        = $_SESSION["blacklist_fp_ph"];
-$blacklist_bt_chk_ph    = $_SESSION["blacklist_bt_chk_ph"];
 $blacklist_bt_ph        = $_SESSION["blacklist_bt_ph"];
 
 function is_anagram($string1, $string2) {
@@ -51,19 +48,25 @@ function is_anagram($string1, $string2) {
 //          -1 - unknown type
 function blacklisted($type, $key, $blacklist) {
   
+  $blacklist_wlan_chk_ph  = $_SESSION["blacklist_wlan_chk_ph"];
+  $blacklist_fp_chk_ph    = $_SESSION["blacklist_fp_chk_ph"];
+  $blacklist_bt_chk_ph    = $_SESSION["blacklist_bt_chk_ph"];
+
   $blacklist_exploded = explode(",", $blacklist);
   switch ($type) {
     case "wifi_global":
-    case "bt":
+      if ($blacklist_wlan_chk_ph == "1") {
         foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
           if ($key == $blacklist_value) {
             // found key in blacklist
             return 1;
           }
         }
+      }
       break;
-
-    case "wifi_local": 
+    
+    case "wifi_local":
+      if ($blacklist_fp_chk_ph == "1") {
         $essids = explode(",", $key);
         $essids_blacklisted = 0;
         foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
@@ -77,6 +80,18 @@ function blacklisted($type, $key, $blacklist) {
           // fingerprint is made of blacklisted essids only
           return 1;
         }
+      }
+      break;
+
+    case "bt":
+      if ($blacklist_bt_chk_ph == "1") {
+        foreach ($blacklist_exploded as $blacklist_key => $blacklist_value) {
+          if ($key == $blacklist_value) {
+            // found key in blacklist
+            return 1;
+          }
+        }
+      }
       break;
 
     default:
