@@ -176,6 +176,7 @@ if(!$db_conn){
           </form>
 
           <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
+          <p class="info_box">Blacklist <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
           <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
           <p class="info_box">Threshold specifies how long device needs to be undetected before counting its discovery as another passage.</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
