@@ -149,34 +149,38 @@ if(!$db_conn){
               </table>
             </div>
 
-            <div class="div_subcontent">
-              <b>Specific MAC/BD_ADDR</b><br>
-              <table class="form">
-                <tr><td><input type="checkbox" name="specific_addr_chk_ph" value="1" <?php if ($specific_addr_chk_ph == "1") { echo "checked";} ?>> Look only for this address </td></tr>
-                <tr><td><input type="text" name="specific_addr_ph" value="<?php echo $specific_addr_ph?>" style="width:150px;text-align:center;"></td></tr>
-              </table>
-            </div>
-
             <br>
             
             <div class="div_subcontent">
-              <b>Blacklist</b><br>
+              <b>Blacklisted Keys</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="blacklist_wlan_chk_ph" value="1" <?php if ($blacklist_wlan_chk_ph == "1") { echo "checked";} ?>> Ignore these MAC addresses </td></tr>
-                <tr><td><textarea name="blacklist_wlan_ph" cols="80" rows="2"><?php echo $blacklist_wlan_ph?></textarea></td></tr>
+                <tr><td><textarea name="blacklist_wlan_ph" cols="60" rows="1"><?php echo $blacklist_wlan_ph?></textarea></td></tr>
                 <tr><td><input type="checkbox" name="blacklist_fp_chk_ph" value="1" <?php if ($blacklist_fp_chk_ph == "1") { echo "checked";} ?>> Ignore local MAC addresses with only these probed ESSIDs </td></tr>
-                <tr><td><textarea name="blacklist_fp_ph" cols="80" rows="2"><?php echo $blacklist_fp_ph?></textarea></td></tr>
+                <tr><td><textarea name="blacklist_fp_ph" cols="60" rows="1"><?php echo $blacklist_fp_ph?></textarea></td></tr>
                 <tr><td><input type="checkbox" name="blacklist_bt_chk_ph" value="1" <?php if ($blacklist_bt_chk_ph == "1") { echo "checked";} ?>> Ignore these BD_ADDR addresses </td></tr>
-                <tr><td><textarea name="blacklist_bt_ph" cols="80" rows="2"><?php echo $blacklist_bt_ph?></textarea></td></tr>
+                <tr><td><textarea name="blacklist_bt_ph" cols="60" rows="1"><?php echo $blacklist_bt_ph?></textarea></td></tr>
               </table>
             </div>
             
+            <div class="div_subcontent">
+              <b>Specific Keys</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="specific_mac_chk_ph" value="1" <?php if ($specific_mac_chk_ph == "1") { echo "checked";} ?>> Look only for these global MAC addresses</td></tr>
+                <tr><td><textarea name="specific_mac_ph" cols="60" rows="1"><?php echo $specific_mac_ph?></textarea></td></tr>
+                <tr><td><input type="checkbox" name="specific_fp_chk_ph" value="1" <?php if ($specific_fp_chk_ph == "1") { echo "checked";} ?>> Look only for this ESSID combination </td></tr>
+                <tr><td><textarea name="specific_fp_ph" cols="60" rows="1"><?php echo $specific_fp_ph?></textarea></td></tr>
+                <tr><td><input type="checkbox" name="specific_bt_chk_ph" value="1" <?php if ($specific_bt_chk_ph == "1") { echo "checked";} ?>> Look only for these BD_ADDR addresses</td></tr>
+                <tr><td><textarea name="specific_bt_ph" cols="60" rows="1"><?php echo $specific_bt_ph?></textarea></td></tr>
+              </table>
+            </div>
+
             <br><button type="submit">Submit</button>
 
           </form>
 
           <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
-          <p class="info_box">Blacklist <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
+          <p class="info_box">Blacklisted Keys and Specific Keys <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
           <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
           <p class="info_box">Threshold specifies how long device needs to be undetected before counting its discovery as another passage.</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>

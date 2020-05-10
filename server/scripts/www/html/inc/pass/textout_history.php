@@ -28,11 +28,15 @@ $show_wlan_ph           = $_SESSION["show_wlan_ph"];
 $show_bt_ph             = $_SESSION["show_bt_ph"];
 $show_wlan_a_ph         = $_SESSION["show_wlan_a_ph"];
 $show_wlan_bg_ph        = $_SESSION["show_wlan_bg_ph"];
-$specific_addr_chk_ph   = $_SESSION["specific_addr_chk_ph"];
-$specific_addr_ph       = $_SESSION["specific_addr_ph"];
 $blacklist_wlan_ph      = $_SESSION["blacklist_wlan_ph"];
 $blacklist_fp_ph        = $_SESSION["blacklist_fp_ph"];
 $blacklist_bt_ph        = $_SESSION["blacklist_bt_ph"];
+$specific_mac_chk_ph    = $_SESSION["specific_mac_chk_ph"];
+$specific_mac_ph        = $_SESSION["specific_mac_ph"];
+$specific_fp_chk_ph     = $_SESSION["specific_fp_chk_ph"];
+$specific_fp_ph         = $_SESSION["specific_fp_ph"];
+$specific_bt_chk_ph     = $_SESSION["specific_bt_chk_ph"];
+$specific_bt_ph         = $_SESSION["specific_bt_ph"];
 
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
@@ -273,15 +277,40 @@ if ($db_source_ph == NULL) {
   if ($timestamp_limit_chk_ph != "1"){
     $timestamp_limit_ph = PHP_INT_MAX;
   }
+
+  // wifi standard
+  if ($show_wlan_ph == "1") {
+    if ($show_wlan_a_ph == "1" and $show_wlan_bg_ph == "1") {
+      $db_q_standard = "(standard = 'a' OR standard = 'bg')";
+    } else {
+      if ($show_wlan_a_ph == "1") {
+        $db_q_standard = "(standard = 'a')";
+      }
+      if ($show_wlan_bg_ph == "1") {
+        $db_q_standard = "(standard = 'bg')";
+      }
+    }
+  }
   
   // text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_ph)) . "</b>" .
         " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
         " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" . "<br><br>";
 
-  if ($specific_addr_chk_ph == "1") {
-    echo "Looked only for this MAC/BD_ADDR address: " . $specific_addr_ph . "<br><br>";
+  if ($show_wlan_ph == "1") {
+    if ($specific_mac_chk_ph == "1") {
+      echo "Looked only for this global MAC addresses: <b>" . $specific_mac_ph . "</b><br>";
+    }
+    if ($specific_fp_chk_ph == "1") {
+      echo "Looked only for this ESSID combination: <b>" . $specific_fp_ph . "</b><br>";
+    }
   }
+  if ($show_bt_ph == "1") {
+    if ($specific_bt_chk_ph == "1") {
+      echo "Looked only for this BD_ADDR addresses: <b>" . $specific_bt_ph . "</b><br>";
+    }
+  }
+  echo "<br>";
 
   // prepare chart arrays
   if ($show_wlan_ph == "1") {
@@ -316,30 +345,43 @@ if ($db_source_ph == NULL) {
   $mac_glbl_passed = 0;
   $mac_local_passed = 0;
   $bt_passed = 0;
-  $db_q_standard = "1";
   foreach ($db_source_ph as $key => $value) {
     $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
-    // ---------------------------------------------------------------------- WIFI
-    if ($show_wlan_ph == "1") {
-      if ($specific_addr_chk_ph == "1") {
-        
-        // macs array contains only specific MAC
-        $macs[0] = $specific_addr_ph;
-        $mac_glbl_passed = 1;
 
-      } else {
+    if ($specific_mac_chk_ph == "1" or $specific_fp_chk_ph == "1" or $specific_bt_chk_ph == "1") {
 
-        // standard
-        if ($show_wlan_a_ph == "1" and $show_wlan_bg_ph == "1") {
-          $db_q_standard = "(standard = 'a' OR standard = 'bg')";
-        } else {
-          if ($show_wlan_a_ph == "1") {
-            $db_q_standard = "(standard = 'a')";
+      // process only specific keys
+
+      if ($show_wlan_ph == "1") {
+        if ($specific_mac_chk_ph == "1") {
+          // macs array contains only specific global MAC addresses
+          foreach (explode(",", $specific_mac_ph) as $specific_key => $specific_value) {
+            $macs[] = $specific_value;
           }
-          if ($show_wlan_bg_ph == "1") {
-            $db_q_standard = "(standard = 'bg')";
-          }
+          $mac_glbl_passed = count($macs);
         }
+        if ($specific_fp_chk_ph == "1") {
+          // fingerprints array contains only specific ESSID combination
+          $fingerprints[0] = $specific_fp_ph;
+          $mac_local_passed = 1;
+        }
+      }
+
+      if ($show_bt_ph == "1") {
+        if ($specific_bt_chk_ph == "1") {
+          // bd_addrs array contains only specific BD_ADDR addresses
+          foreach (explode(",", $specific_bt_ph) as $specific_key => $specific_value) {
+            $bd_addrs[] = $specific_value;
+          }
+          $bt_passed = count($bd_addrs);
+        }
+      }
+
+    } else {
+
+      // process everything
+
+      if ($show_wlan_ph == "1") {
 
         // GLOBAL MAC
         // every unique global MAC in time range 
@@ -390,14 +432,10 @@ if ($db_source_ph == NULL) {
           }
           $mac_local_passed = count($fingerprints);
         }
-      } // end of else clause of specific_addr
-    } // end of show_wlan_ph
-    // ----------------------------------------------------------------- Bluetooth
-    if ($show_bt_ph == "1") {
-      if ($specific_addr_chk_ph == "1") {
-        $bd_addrs[0] = $specific_addr_ph;
-        $bt_passed = 1;
-      } else {
+      } // end of show_wlan_ph
+
+      if ($show_bt_ph == "1") {
+
         // every unique BD_ADDR in time range
         $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
                 (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
@@ -411,8 +449,8 @@ if ($db_source_ph == NULL) {
           }
         }
         mysqli_free_result($db_result);
-      } // end of else clause of specific_addr
-    } // end of show_bt_ph
+      } // end of show_bt_ph
+    } // end of else clause of specific keys
   } // end of foreach DB
   
   echo "<b>Statistics table is located at the bottom of the page</b>" . "<br><br>";
