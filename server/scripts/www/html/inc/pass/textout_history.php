@@ -106,7 +106,11 @@ function blacklisted($type, $key, $blacklist) {
 
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
-function process_keys($type, $db_q_standard, $keys, $blacklist, $db_conn_s, $threshold, $timestamp_limit, $time_from, $time_to, $time_increment, &$chart_unique, &$chart_total, &$ignored, &$blacklisted) {
+function process_keys($type, $db_q_standard, $keys,
+                      $blacklist, $db_conn_s, $threshold,
+                      $timestamp_limit, $time_from, $time_to,
+                      $time_increment, &$chart_unique, &$chart_total,
+                      &$ignored, &$blacklisted) {
   
   // customize algorithm to specific keys type
   switch ($type) {
@@ -295,7 +299,8 @@ if ($db_source_ph == NULL) {
   // text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_ph)) . "</b>" .
         " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
-        " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" . "<br><br>";
+        " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" .
+        "<br><br>";
 
   if ($show_wlan_ph == "1") {
     if ($specific_mac_chk_ph == "1") {
@@ -474,20 +479,29 @@ if ($db_source_ph == NULL) {
       if ($show_wlan_ph == "1") {
         if ($mac_glbl_passed > 0) {
           echo "Wi-Fi devices with global MAC address:<br>";
-          process_keys("wifi_global", $db_q_standard, $macs, $blacklist_wlan_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                                      $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_glbl_ignored, $mac_glbl_blacklisted);
+          process_keys("wifi_global", $db_q_standard, $macs,
+                       $blacklist_wlan_ph, $db_conn_s, $threshold_seconds,
+                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                       $mac_glbl_ignored, $mac_glbl_blacklisted);
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $db_q_standard, $fingerprints, $blacklist_fp_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                                     $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph, $mac_local_ignored, $mac_local_blacklisted);
+          process_keys("wifi_local", $db_q_standard, $fingerprints,
+                       $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
+                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                       $mac_local_ignored, $mac_local_blacklisted);
         }
       }
       if ($show_bt_ph == "1") {
         if ($bt_passed > 0) {
           echo "Bluetooth devices:<br>";        
-          process_keys("bt", "1", $bd_addrs, $blacklist_bt_ph, $db_conn_s, $threshold_seconds, $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                             $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph, $bt_ignored, $bt_blacklisted);
+          process_keys("bt", "1", $bd_addrs,
+                       $blacklist_bt_ph, $db_conn_s, $threshold_seconds,
+                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                       $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph,
+                       $bt_ignored, $bt_blacklisted);
         }
       }
     }
