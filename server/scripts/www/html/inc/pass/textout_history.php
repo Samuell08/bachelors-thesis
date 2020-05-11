@@ -114,30 +114,60 @@ function blacklisted($type, $key, $blacklist) {
   return 0;
 }
 
-// function accepts fingerprints 2D array and fills
-// chart arrays with passages
-function process_keys_fp($type, $db_q_standard, $keys,
-                         $blacklist, $db_conn_s, $threshold,
-                         $timestamp_limit, $time_from, $time_to,
-                         $time_increment, &$chart_unique, &$chart_total,
-                         &$ignored, &$blacklisted) {
+// function accepts list of MAC/BD_ADDR addresses or 2D array of
+// probed ESSIDs fingerprints and fills chart arrays with passages
+function process_keys($type, $db_q_standard, $keys,
+                      $blacklist, $db_conn_s, $threshold,
+                      $timestamp_limit, $time_from, $time_to,
+                      $time_increment, &$chart_unique, &$chart_total,
+                      &$ignored, &$blacklisted) {
   
-  $query = "SELECT last_time_seen FROM Clients WHERE
-           (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-            AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);";
   $stmt = mysqli_stmt_init($db_conn_s);
-  mysqli_stmt_prepare($stmt, $query);
-  mysqli_stmt_bind_param($stmt, "s", $anagram_value);
+  // customize algorithm to specific keys type
+  switch ($type) {
+    case "wifi_global":
+      $query = "SELECT last_time_seen FROM Clients WHERE
+               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                AND " . $db_q_standard . " AND (station_MAC = ?);";
+      mysqli_stmt_prepare($stmt, $query);
+      mysqli_stmt_bind_param($stmt, "s", $keys_value);
+      break;
+    case "wifi_local": 
+      $query = "SELECT last_time_seen FROM Clients WHERE
+               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);";
+      mysqli_stmt_prepare($stmt, $query);
+      mysqli_stmt_bind_param($stmt, "s", $anagram_value);
+      break;
+    case "bt":
+      $query = "SELECT last_time_seen FROM Bluetooth WHERE
+               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                AND (BD_ADDR = ?);";
+      mysqli_stmt_prepare($stmt, $query);
+      mysqli_stmt_bind_param($stmt, "s", $keys_value);
+      break;
+    default:
+      echo "function process_keys ERROR: Unknown type: " . $type . "<br>";
+      return -1;
+  }
   
   echo "<table style=\"border-collapse:collapse\">";
 
   foreach ($keys as $keys_key => $keys_value) {
     // output keys with timestamps table
     echo "<tr class=\"info\">";
-    echo "<td><tt>" . $keys_value[0] . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    if ($type == "wifi_local") {
+      echo "<td><tt>" . $keys_value[0] . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    } else {
+      echo "<td><tt>" . $keys_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    }
     
     // Blacklist processing
-    $blacklist_retval = blacklisted($type, $keys_value[0], $blacklist);
+    if ($type == "wifi_local") {
+      $blacklist_retval = blacklisted($type, $keys_value[0], $blacklist);
+    } else {
+      $blacklist_retval = blacklisted($type, $keys_value, $blacklist);
+    }
     switch ($blacklist_retval) {
       case 0:
         break;
@@ -155,16 +185,27 @@ function process_keys_fp($type, $db_q_standard, $keys,
         return -1;
     }
 
+    // process MySQL query result
     unset($key_timestamps);
-    foreach ($keys_value as $anagram_key => $anagram_value){
-      // process MySQL query result - append all anagram timestamps to single array
+    if ($type == "wifi_local") {
+      // append all anagram timestamps to single array
+      foreach ($keys_value as $anagram_key => $anagram_value){
+        mysqli_stmt_execute($stmt);
+        $db_result = mysqli_stmt_get_result($stmt);
+        while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
+          $key_timestamps[] = $db_row["last_time_seen"];
+        }
+      }
+    } else {
+      // fill timestamps array for given key
       mysqli_stmt_execute($stmt);
       $db_result = mysqli_stmt_get_result($stmt);
       while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
         $key_timestamps[] = $db_row["last_time_seen"];
       }
-      mysqli_free_result($db_result);
+    
     }
+    mysqli_free_result($db_result);
     if (count($key_timestamps) > $timestamp_limit) {
       // end processing of key - go to next
       echo "<td><tt style=\"color:orangered;\"><b>";
@@ -175,134 +216,6 @@ function process_keys_fp($type, $db_q_standard, $keys,
       continue; // foreach keys
     }
     sort($key_timestamps);
-
-    // build passages subarray based on key timestamps
-    // open timestamps <td>
-    echo "<td><tt>";
-    // first is always bold
-    echo "<b>" . $key_timestamps[0] . "</b> | ";
-    $key_passages[0] = $key_timestamps[0];
-    // loop every timestamp for current key
-    for ($i = 1; $i < count($key_timestamps); $i++){
-      if ((strtotime($key_timestamps[$i]) - strtotime($key_timestamps[$i-1]) > $threshold)) {
-        // output bold timestamp
-        echo "<b>" . $key_timestamps[$i] . "</b> | ";
-        $key_passages[] = $key_timestamps[$i];
-      } else {
-        // output normal timestamp
-        echo $key_timestamps[$i] . " | ";
-      }
-    }
-    // close timestamps <td>
-    echo "</tt></td>";
-    echo "</tr>";
-
-    // fill chart arrays based on passages subarray
-    $unique = 1;
-    // reset counters
-    $i = 0;
-    $time_actual = $time_from;
-    while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
-      // calculate next time value
-      $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-      // passage in current time step?
-      foreach ($key_passages as $pass_key => $pass_value){
-        if ((strtotime($pass_value) > strtotime($time_actual)) && (strtotime($pass_value) <= strtotime($time_next))){
-          $chart_total[$i]["y"] += 1;
-          if ($unique) {
-            $chart_unique[$i]["y"] += 1;
-            $unique = 0;
-          }
-        }
-      }
-      // moving to next time step
-      $unique = 1;
-      // increment counters
-      $i += 1;
-      $time_actual = $time_next;
-    }
-    // moving to next key
-    unset($key_passages);
-  } // end foreach keys
-  echo "</table><br>";
-  return 0;
-}
-
-
-// function accepts list of keys (eg. MAC addresses) and fills
-// chart arrays with passages
-function process_keys($type, $db_q_standard, $keys,
-                      $blacklist, $db_conn_s, $threshold,
-                      $timestamp_limit, $time_from, $time_to,
-                      $time_increment, &$chart_unique, &$chart_total,
-                      &$ignored, &$blacklisted) {
-  
-  // customize algorithm to specific keys type
-  switch ($type) {
-    case "wifi_global":
-      $query = "SELECT last_time_seen FROM Clients WHERE
-               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND " . $db_q_standard . " AND (station_MAC = ?);"; break;
-    case "wifi_local": 
-      $query = "SELECT last_time_seen FROM Clients WHERE
-               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);"; break;
-    case "bt":
-      $query = "SELECT last_time_seen FROM Bluetooth WHERE
-               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND (BD_ADDR = ?);"; break;
-    default:
-      echo "function process_keys ERROR: Unknown type: " . $type . "<br>";
-      return -1;
-  }
-  $stmt = mysqli_stmt_init($db_conn_s);
-  mysqli_stmt_prepare($stmt, $query);
-  mysqli_stmt_bind_param($stmt, "s", $keys_value);
-  
-  echo "<table style=\"border-collapse:collapse\">";
-
-  foreach ($keys as $keys_key => $keys_value) {
-    // output keys with timestamps table
-    echo "<tr class=\"info\">";
-    echo "<td><tt>" . $keys_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
-    
-    // Blacklist processing
-    $blacklist_retval = blacklisted($type, $keys_value, $blacklist);
-    switch ($blacklist_retval) {
-      case 0:
-        break;
-      case 1:
-        // blacklisted - end processing of key and go to next
-        echo "<td><tt style=\"color:orangered;\"><b>";
-        echo "Blacklisted";
-        echo "</b></tt></td>";
-        echo "</tr>";
-        $blacklisted++;
-        continue 2; // foreach keys
-        break;
-      default:
-        echo "function process_keys ERROR: error while processing blacklist <br>";
-        return -1;
-    }
-    
-    // process MySQL query result - fill timestamps array for given key
-    mysqli_stmt_execute($stmt);
-    $db_result = mysqli_stmt_get_result($stmt);
-    unset($key_timestamps);
-    if (mysqli_num_rows($db_result) <= $timestamp_limit) {
-      while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
-        $key_timestamps[] = $db_row["last_time_seen"];
-      }
-    } else {
-      // end processing of key - go to next
-      echo "<td><tt style=\"color:orangered;\"><b>";
-      echo "Number of timestamps over limit";
-      echo "</b></tt></td>";
-      echo "</tr>";
-      $ignored++;
-      continue; // foreach keys
-    }
-    mysqli_free_result($db_result);
 
     // build passages subarray based on key timestamps
     // open timestamps <td>
@@ -619,11 +532,11 @@ if ($db_source_ph == NULL) {
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys_fp("wifi_local", $db_q_standard, $fingerprints,
-                          $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
-                          $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                          $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                          $mac_local_ignored, $mac_local_blacklisted);
+          process_keys("wifi_local", $db_q_standard, $fingerprints,
+                       $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
+                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                       $mac_local_ignored, $mac_local_blacklisted);
         }
       }
       if ($show_bt_ph == "1") {
