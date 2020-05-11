@@ -114,6 +114,121 @@ function blacklisted($type, $key, $blacklist) {
   return 0;
 }
 
+// function accepts fingerprints 2D array and fills
+// chart arrays with passages
+function process_keys_fp($type, $db_q_standard, $keys,
+                         $blacklist, $db_conn_s, $threshold,
+                         $timestamp_limit, $time_from, $time_to,
+                         $time_increment, &$chart_unique, &$chart_total,
+                         &$ignored, &$blacklisted) {
+  
+  $query = "SELECT last_time_seen FROM Clients WHERE
+           (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+            AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);";
+  $stmt = mysqli_stmt_init($db_conn_s);
+  mysqli_stmt_prepare($stmt, $query);
+  mysqli_stmt_bind_param($stmt, "s", $anagram_value);
+  
+  echo "<table style=\"border-collapse:collapse\">";
+
+  foreach ($keys as $keys_key => $keys_value) {
+    // output keys with timestamps table
+    echo "<tr class=\"info\">";
+    echo "<td><tt>" . $keys_value[0] . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    
+    // Blacklist processing
+    $blacklist_retval = blacklisted($type, $keys_value[0], $blacklist);
+    switch ($blacklist_retval) {
+      case 0:
+        break;
+      case 1:
+        // blacklisted - end processing of key and go to next
+        echo "<td><tt style=\"color:orangered;\"><b>";
+        echo "Blacklisted";
+        echo "</b></tt></td>";
+        echo "</tr>";
+        $blacklisted++;
+        continue 2; // foreach keys
+        break;
+      default:
+        echo "function process_keys ERROR: error while processing blacklist <br>";
+        return -1;
+    }
+
+    unset($key_timestamps);
+    foreach ($keys_value as $anagram_key => $anagram_value){
+      // process MySQL query result - append all anagram timestamps to single array
+      mysqli_stmt_execute($stmt);
+      $db_result = mysqli_stmt_get_result($stmt);
+      while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
+        $key_timestamps[] = $db_row["last_time_seen"];
+      }
+      mysqli_free_result($db_result);
+    }
+    if (count($key_timestamps) > $timestamp_limit) {
+      // end processing of key - go to next
+      echo "<td><tt style=\"color:orangered;\"><b>";
+      echo "Number of timestamps over limit";
+      echo "</b></tt></td>";
+      echo "</tr>";
+      $ignored++;
+      continue; // foreach keys
+    }
+    sort($key_timestamps);
+
+    // build passages subarray based on key timestamps
+    // open timestamps <td>
+    echo "<td><tt>";
+    // first is always bold
+    echo "<b>" . $key_timestamps[0] . "</b> | ";
+    $key_passages[0] = $key_timestamps[0];
+    // loop every timestamp for current key
+    for ($i = 1; $i < count($key_timestamps); $i++){
+      if ((strtotime($key_timestamps[$i]) - strtotime($key_timestamps[$i-1]) > $threshold)) {
+        // output bold timestamp
+        echo "<b>" . $key_timestamps[$i] . "</b> | ";
+        $key_passages[] = $key_timestamps[$i];
+      } else {
+        // output normal timestamp
+        echo $key_timestamps[$i] . " | ";
+      }
+    }
+    // close timestamps <td>
+    echo "</tt></td>";
+    echo "</tr>";
+
+    // fill chart arrays based on passages subarray
+    $unique = 1;
+    // reset counters
+    $i = 0;
+    $time_actual = $time_from;
+    while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
+      // calculate next time value
+      $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+      // passage in current time step?
+      foreach ($key_passages as $pass_key => $pass_value){
+        if ((strtotime($pass_value) > strtotime($time_actual)) && (strtotime($pass_value) <= strtotime($time_next))){
+          $chart_total[$i]["y"] += 1;
+          if ($unique) {
+            $chart_unique[$i]["y"] += 1;
+            $unique = 0;
+          }
+        }
+      }
+      // moving to next time step
+      $unique = 1;
+      // increment counters
+      $i += 1;
+      $time_actual = $time_next;
+    }
+    // moving to next key
+    unset($key_passages);
+  } // end foreach keys
+  echo "</table><br>";
+  return 0;
+}
+
+
 // function accepts list of keys (eg. MAC addresses) and fills
 // chart arrays with passages
 function process_keys($type, $db_q_standard, $keys,
@@ -377,8 +492,8 @@ if ($db_source_ph == NULL) {
         }
         if ($specific_fp_chk_ph == "1") {
           // fingerprints array contains only specific ESSID combination
-          $fingerprints[0] = $specific_fp_ph;
-          $mac_local_passed = 1;
+          //$fingerprints[0] = $specific_fp_ph;
+          //$mac_local_passed = 1;
         }
       }
 
@@ -431,20 +546,27 @@ if ($db_source_ph == NULL) {
         // append result to fingerprints
         if (mysqli_num_rows($db_result) > 0) {
           while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $fingerprints[] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+            $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
           }
           mysqli_free_result($db_result);
-          // delete fingerprint anagrams
-          foreach ($fingerprints as $master_key => &$master_value) {
-            foreach ($fingerprints as $search_key => &$search_value) {
-              if ($master_key != $search_key){
-                if(is_anagram($master_value, $search_value)){
-                  // delete anagram from fingerprints array
-                  unset($fingerprints[$search_key]);
+          // merge anagrams into 2D array
+          for ($x1 = 0; $x1 < count($fingerprints); $x1++){
+            $fp_col = 1;
+            if ($fingerprints[$x1][0] != NULL){
+              for ($x2 = 0; $x2 < count($fingerprints); $x2++){
+                if ($x1 != $x2) {
+                  if (is_anagram($fingerprints[$x1][0], $fingerprints[$x2][0])){
+                    $fingerprints[$x1][$fp_col] = $fingerprints[$x2][0];
+                    unset($fingerprints[$x2][0]);
+                    $fp_col++;
+                  }
                 }
               }
             }
           }
+          // filter merged array
+          $fingerprints = array_filter($fingerprints);
+          $fingerprints = array_values($fingerprints);
           $mac_local_passed = count($fingerprints);
         }
       } // end of show_wlan_ph
@@ -497,11 +619,11 @@ if ($db_source_ph == NULL) {
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $db_q_standard, $fingerprints,
-                       $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
-                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                       $mac_local_ignored, $mac_local_blacklisted);
+          process_keys_fp("wifi_local", $db_q_standard, $fingerprints,
+                          $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
+                          $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                          $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                          $mac_local_ignored, $mac_local_blacklisted);
         }
       }
       if ($show_bt_ph == "1") {
