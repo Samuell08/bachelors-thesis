@@ -20,6 +20,7 @@ $show_wlan_bg_ph        = "";
 $blacklist_wlan_chk_ph  = "";
 $blacklist_wlan_ph      = "";
 $blacklist_fp_chk_ph    = "";
+$blacklist_mode_fp_ph   = "";
 $blacklist_fp_ph        = "";
 $blacklist_bt_chk_ph    = "";
 $blacklist_bt_ph        = "";
@@ -48,6 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $blacklist_wlan_chk_ph  = $_GET["blacklist_wlan_chk_ph"];
   $blacklist_wlan_ph      = filter_var($_GET["blacklist_wlan_ph"], FILTER_SANITIZE_STRING);
   $blacklist_fp_chk_ph    = $_GET["blacklist_fp_chk_ph"];
+  $blacklist_mode_fp_ph   = $_GET["blacklist_mode_fp_ph"];
   $blacklist_fp_ph        = filter_var($_GET["blacklist_fp_ph"], FILTER_SANITIZE_STRING);
   $blacklist_bt_chk_ph    = $_GET["blacklist_bt_chk_ph"];
   $blacklist_bt_ph        = filter_var($_GET["blacklist_bt_ph"], FILTER_SANITIZE_STRING);
@@ -69,6 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($threshold_format_ph == "")    { $threshold_format_ph = "MINUTE"; }
   if ($timestamp_limit_ph == "")     { $timestamp_limit_ph = 100; }
   if ($blacklist_wlan_ph == "")      { $blacklist_wlan_ph = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
+  if ($blacklist_mode_fp_ph == "")   { $blacklist_mode_fp_ph = "ALL"; }
   if ($blacklist_fp_ph == "")        { $blacklist_fp_ph = "eduroam,vutbrno,fekthost,DPMBfree"; }
   if ($blacklist_bt_ph == "")        { $blacklist_bt_ph = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
   if ($specific_mac_ph == "")        { $specific_mac_ph = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
@@ -92,6 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["blacklist_wlan_chk_ph"]  = $blacklist_wlan_chk_ph;
   $_SESSION["blacklist_wlan_ph"]      = $blacklist_wlan_ph;
   $_SESSION["blacklist_fp_chk_ph"]    = $blacklist_fp_chk_ph;
+  $_SESSION["blacklist_mode_fp_ph"]   = $blacklist_mode_fp_ph;
   $_SESSION["blacklist_fp_ph"]        = $blacklist_fp_ph;
   $_SESSION["blacklist_bt_chk_ph"]    = $blacklist_bt_chk_ph;
   $_SESSION["blacklist_bt_ph"]        = $blacklist_bt_ph;

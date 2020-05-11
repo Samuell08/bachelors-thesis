@@ -156,7 +156,9 @@ if(!$db_conn){
               <table class="form">
                 <tr><td><input type="checkbox" name="blacklist_wlan_chk_ph" value="1" <?php if ($blacklist_wlan_chk_ph == "1") { echo "checked";} ?>> Ignore these MAC addresses </td></tr>
                 <tr><td><textarea name="blacklist_wlan_ph" cols="60" rows="1"><?php echo $blacklist_wlan_ph?></textarea></td></tr>
-                <tr><td><input type="checkbox" name="blacklist_fp_chk_ph" value="1" <?php if ($blacklist_fp_chk_ph == "1") { echo "checked";} ?>> Ignore local MAC addresses with only these probed ESSIDs </td></tr>
+                <tr><td><input type="checkbox" name="blacklist_fp_chk_ph" value="1" <?php if ($blacklist_fp_chk_ph == "1") { echo "checked";} ?>> Ignore local MAC addresses when </td></tr>
+                <tr><td><input type="radio" name="blacklist_mode_fp_ph" value="ALL" <?php if ($blacklist_mode_fp_ph == "ALL") {echo "checked";} ?>> All probed ESSIDs are blacklisted </td></tr>
+                <tr><td><input type="radio" name="blacklist_mode_fp_ph" value="ONE" <?php if ($blacklist_mode_fp_ph == "ONE") {echo "checked";} ?>> At least one probed ESSID is blacklisted </td></tr>
                 <tr><td><textarea name="blacklist_fp_ph" cols="60" rows="1"><?php echo $blacklist_fp_ph?></textarea></td></tr>
                 <tr><td><input type="checkbox" name="blacklist_bt_chk_ph" value="1" <?php if ($blacklist_bt_chk_ph == "1") { echo "checked";} ?>> Ignore these BD_ADDR addresses </td></tr>
                 <tr><td><textarea name="blacklist_bt_ph" cols="60" rows="1"><?php echo $blacklist_bt_ph?></textarea></td></tr>

@@ -54,6 +54,7 @@ function blacklisted($type, $key, $blacklist) {
   
   $blacklist_wlan_chk_ph  = $_SESSION["blacklist_wlan_chk_ph"];
   $blacklist_fp_chk_ph    = $_SESSION["blacklist_fp_chk_ph"];
+  $blacklist_mode_fp_ph   = $_SESSION["blacklist_mode_fp_ph"];
   $blacklist_bt_chk_ph    = $_SESSION["blacklist_bt_chk_ph"];
 
   $blacklist_exploded = explode(",", $blacklist);
@@ -80,9 +81,18 @@ function blacklisted($type, $key, $blacklist) {
             }
           }
         }
-        if ($essids_blacklisted == count($essids)) {
-          // fingerprint is made of blacklisted essids only
-          return 1;
+        switch ($blacklist_mode_fp_ph) {
+          case "ALL":
+            // fingerprint is made of blacklisted essids only
+            if ($essids_blacklisted == count($essids)) { return 1; }
+            break;
+          case "ONE":
+            // fingerprint contains at least one blacklisted essid
+            if ($essids_blacklisted > 0) { return 1; }
+            break;
+          default:
+            echo "function blacklisted ERROR: Unknown local MAC mode: " . $blacklist_mode_fp_ph . "<br>";
+            return -1;
         }
       }
       break;
@@ -156,7 +166,7 @@ function process_keys($type, $db_q_standard, $keys,
         continue 2; // foreach keys
         break;
       default:
-        echo "function process_keys ERROR: error while processing blacklist";
+        echo "function process_keys ERROR: error while processing blacklist <br>";
         return -1;
     }
     
