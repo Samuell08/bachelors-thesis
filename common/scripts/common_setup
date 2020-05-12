@@ -125,10 +125,10 @@ function setup_common(){
     # user prompt
     while :
     do
-      read -p "Do you want to set new password? (y/n) " i_passwd
+      read -p "Do you want to set new password for user 'pi'? (y/n) " i_passwd
       case $i_passwd in
         y|Y|yes|YES)
-          passwd
+          sudo -u pi passwd
           break
           ;;
 
