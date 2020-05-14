@@ -72,7 +72,10 @@ $_SESSION["updateInterval"] = 30000;
       <div class="div_info">
         <h2>Information</h2>
         <div class="div_content">
-          <p><b>In Range</b> mode displays monitoring data as number of devices detected in range of selected source device(s) over given period of time or live.</p>
+	  <p>
+            <b>In Range</b> mode displays monitoring data as number of devices detected
+	    in range of selected source device(s) over given period of time or live.
+          </p>
         </div>
         <div class="div_content" id="info">
           Loading...

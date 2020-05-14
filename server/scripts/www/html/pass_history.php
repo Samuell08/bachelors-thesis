@@ -63,8 +63,10 @@ if(!$db_conn){
       <div class="div_info">
         <h2>Information</h2>
         <div class="div_content">
-          <p class="warning">Page not finished!</p>
-          <p><b>Passages</b> mode displays ...</p>
+	  <p>
+            <b>Passages</b> mode displays monitoring data as number of unique and total passages
+            of devices in range of selected source device(s) for every time step.
+          </p>
         </div>
         <div class="div_content" id="info">
           Loading...
