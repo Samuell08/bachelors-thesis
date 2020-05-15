@@ -27,6 +27,7 @@ $blacklist_bt_ph        = "";
 $specific_mac_chk_ph    = "";
 $specific_mac_ph        = "";
 $specific_fp_chk_ph     = "";
+$specific_mode_fp_ph    = "";
 $specific_fp_ph         = "";
 $specific_bt_chk_ph     = "";
 $specific_bt_ph         = "";
@@ -56,6 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $specific_mac_chk_ph    = $_GET["specific_mac_chk_ph"];
   $specific_mac_ph        = filter_var($_GET["specific_mac_ph"], FILTER_SANITIZE_STRING);
   $specific_fp_chk_ph     = $_GET["specific_fp_chk_ph"];
+  $specific_mode_fp_ph    = $_GET["specific_mode_fp_ph"];
   $specific_fp_ph         = filter_var($_GET["specific_fp_ph"], FILTER_SANITIZE_STRING);
   $specific_bt_chk_ph     = $_GET["specific_bt_chk_ph"];
   $specific_bt_ph         = filter_var($_GET["specific_bt_ph"], FILTER_SANITIZE_STRING);
@@ -75,6 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($blacklist_fp_ph == "")        { $blacklist_fp_ph = "eduroam,vutbrno,fekthost,DPMBfree"; }
   if ($blacklist_bt_ph == "")        { $blacklist_bt_ph = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
   if ($specific_mac_ph == "")        { $specific_mac_ph = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
+  if ($specific_mode_fp_ph == "")    { $specific_mode_fp_ph = "EXACT"; }
   if ($specific_fp_ph == "")         { $specific_fp_ph = "aaa,bbb,ccc"; }
   if ($specific_bt_ph == "")         { $specific_bt_ph = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
   
@@ -102,6 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["specific_mac_chk_ph"]    = $specific_mac_chk_ph;
   $_SESSION["specific_mac_ph"]        = $specific_mac_ph;
   $_SESSION["specific_fp_chk_ph"]     = $specific_fp_chk_ph;
+  $_SESSION["specific_mode_fp_ph"]    = $specific_mode_fp_ph;
   $_SESSION["specific_fp_ph"]         = $specific_fp_ph;
   $_SESSION["specific_bt_chk_ph"]     = $specific_bt_chk_ph;
   $_SESSION["specific_bt_ph"]         = $specific_bt_ph;

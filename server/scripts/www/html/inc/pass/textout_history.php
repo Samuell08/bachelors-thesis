@@ -34,7 +34,6 @@ $blacklist_bt_ph        = $_SESSION["blacklist_bt_ph"];
 $specific_mac_chk_ph    = $_SESSION["specific_mac_chk_ph"];
 $specific_mac_ph        = $_SESSION["specific_mac_ph"];
 $specific_fp_chk_ph     = $_SESSION["specific_fp_chk_ph"];
-$specific_fp_ph         = $_SESSION["specific_fp_ph"];
 $specific_bt_chk_ph     = $_SESSION["specific_bt_chk_ph"];
 $specific_bt_ph         = $_SESSION["specific_bt_ph"];
 
@@ -43,6 +42,87 @@ function is_anagram($string1, $string2) {
     return 1;
   else
     return 0;
+}
+
+// function finds every probed ESSIDs fingerprint and returns
+// 2D array (2nd dimension containing found anagrams)
+function get_fingerprints($mode, $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, &$fingerprints) {
+
+  if ($mode == "specific") {
+    $specific_mode_fp_ph   = $_SESSION["specific_mode_fp_ph"];
+    $specific_fp_ph        = $_SESSION["specific_fp_ph"];
+  }
+
+  $db_q = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
+          (LENGTH(probed_ESSIDs) > 18) AND
+          (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND NOT
+          (station_MAC LIKE '_0:__:__:__:__:__' OR
+           station_MAC LIKE '_4:__:__:__:__:__' OR
+           station_MAC LIKE '_8:__:__:__:__:__' OR
+           station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
+           "GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
+  $db_result = mysqli_query($db_conn_s, $db_q);
+  // append result to fingerprints
+  if (mysqli_num_rows($db_result) > 0) {
+    while ($db_row = mysqli_fetch_assoc($db_result)) {
+      switch ($mode) {
+      
+        case "all":
+          $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+          break;
+
+        case "specific": 
+          switch ($specific_mode_fp_ph) {
+            case "EXACT":
+              // fingerprint must be an anagram of specific ESSID list
+              if (is_anagram($db_row["SUBSTRING(probed_ESSIDs,19,1000)"], $specific_fp_ph)){
+                $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+	            }
+              break;
+	          case "ATLEAST":
+              // fingerprint must contain all specified ESSIDs or more
+              $essids = explode(",", $db_row["SUBSTRING(probed_ESSIDs,19,1000)"]);
+              $specific_exploded = explode(",", $specific_fp_ph);
+              $essids_specified = 0;
+              foreach ($specific_exploded as $specific_key => $specific_value) {
+                foreach ($essids as $essid_key => $essid_value) {
+                  if ($essid_value == $specific_value) {
+                    $essids_specified++;
+                  }
+                }
+              }
+              if ($essids_specified == count($specific_exploded)){
+                $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+              }
+              break;
+            default:
+              exit("function get_fingerprints ERROR: Unknown specific ESSID mode: " . $specific_mode_fp_ph);
+          }
+          break;
+        default:
+          exit("function get_fingerprints ERROR: Unknown mode: " . $mode);
+      }
+    }
+    mysqli_free_result($db_result);
+    // merge anagrams into 2D array
+    for ($x1 = 0; $x1 < count($fingerprints); $x1++){
+      $fp_col = 1;
+      if ($fingerprints[$x1][0] != NULL){
+        for ($x2 = 0; $x2 < count($fingerprints); $x2++){
+          if ($x1 != $x2) {
+            if (is_anagram($fingerprints[$x1][0], $fingerprints[$x2][0])){
+              $fingerprints[$x1][$fp_col] = $fingerprints[$x2][0];
+              unset($fingerprints[$x2][0]);
+              $fp_col++;
+            }
+          }
+        }
+      }
+    }
+  // filter merged array
+  $fingerprints = array_filter($fingerprints);
+  $fingerprints = array_values($fingerprints);
+  }
 }
 
 // function accepts list of keys (eg. MAC addresses) and compares
@@ -91,8 +171,7 @@ function blacklisted($type, $key, $blacklist) {
             if ($essids_blacklisted > 0) { return 1; }
             break;
           default:
-            echo "function blacklisted ERROR: Unknown local MAC mode: " . $blacklist_mode_fp_ph . "<br>";
-            return -1;
+            exit("function blacklisted ERROR: Unknown local MAC mode: " . $blacklist_mode_fp_ph);
         }
       }
       break;
@@ -147,8 +226,7 @@ function process_keys($type, $db_q_standard, $keys,
       mysqli_stmt_bind_param($stmt, "s", $keys_value);
       break;
     default:
-      echo "function process_keys ERROR: Unknown type: " . $type . "<br>";
-      return -1;
+      exit("function process_keys ERROR: Unknown type: " . $type);
   }
   
   echo "<table style=\"border-collapse:collapse\">";
@@ -181,8 +259,7 @@ function process_keys($type, $db_q_standard, $keys,
         continue 2; // foreach keys
         break;
       default:
-        echo "function process_keys ERROR: error while processing blacklist <br>";
-        return -1;
+        exit("function process_keys ERROR: error while processing blacklist");
     }
 
     // process MySQL query result
@@ -340,21 +417,6 @@ if ($db_source_ph == NULL) {
         " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" .
         "<br><br>";
 
-  if ($show_wlan_ph == "1") {
-    if ($specific_mac_chk_ph == "1") {
-      echo "Looked only for this global MAC addresses: <b>" . $specific_mac_ph . "</b><br>";
-    }
-    if ($specific_fp_chk_ph == "1") {
-      echo "Looked only for this ESSID combination: <b>" . $specific_fp_ph . "</b><br>";
-    }
-  }
-  if ($show_bt_ph == "1") {
-    if ($specific_bt_chk_ph == "1") {
-      echo "Looked only for this BD_ADDR addresses: <b>" . $specific_bt_ph . "</b><br>";
-    }
-  }
-  echo "<br>";
-
   // prepare chart arrays
   if ($show_wlan_ph == "1") {
     $i = 0;
@@ -405,8 +467,8 @@ if ($db_source_ph == NULL) {
         }
         if ($specific_fp_chk_ph == "1") {
           // fingerprints array contains only specific ESSID combination
-          //$fingerprints[0] = $specific_fp_ph;
-          //$mac_local_passed = 1;
+          get_fingerprints("specific", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
+          $mac_local_passed = count($fingerprints);
         }
       }
 
@@ -446,42 +508,9 @@ if ($db_source_ph == NULL) {
         mysqli_free_result($db_result);
 
         // LOCAL MAC
-        // every unique local MAC fingerprint
-        $db_q = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
-                (LENGTH(probed_ESSIDs) > 18) AND
-                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND NOT
-                (station_MAC LIKE '_0:__:__:__:__:__' OR
-                 station_MAC LIKE '_4:__:__:__:__:__' OR
-                 station_MAC LIKE '_8:__:__:__:__:__' OR
-                 station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
-                "GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-        // append result to fingerprints
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
-          }
-          mysqli_free_result($db_result);
-          // merge anagrams into 2D array
-          for ($x1 = 0; $x1 < count($fingerprints); $x1++){
-            $fp_col = 1;
-            if ($fingerprints[$x1][0] != NULL){
-              for ($x2 = 0; $x2 < count($fingerprints); $x2++){
-                if ($x1 != $x2) {
-                  if (is_anagram($fingerprints[$x1][0], $fingerprints[$x2][0])){
-                    $fingerprints[$x1][$fp_col] = $fingerprints[$x2][0];
-                    unset($fingerprints[$x2][0]);
-                    $fp_col++;
-                  }
-                }
-              }
-            }
-          }
-          // filter merged array
-          $fingerprints = array_filter($fingerprints);
-          $fingerprints = array_values($fingerprints);
-          $mac_local_passed = count($fingerprints);
-        }
+        // every local MAC fingerprint
+        get_fingerprints("all", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
+        $mac_local_passed = count($fingerprints);
       } // end of show_wlan_ph
 
       if ($show_bt_ph == "1") {

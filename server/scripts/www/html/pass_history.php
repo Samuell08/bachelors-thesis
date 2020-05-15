@@ -170,11 +170,13 @@ if(!$db_conn){
             <div class="div_subcontent">
               <b>Specific Keys</b><br>
               <table class="form">
-                <tr><td><input type="checkbox" name="specific_mac_chk_ph" value="1" <?php if ($specific_mac_chk_ph == "1") { echo "checked";} ?>> Look only for these global MAC addresses</td></tr>
+                <tr><td><input type="checkbox" name="specific_mac_chk_ph" value="1" <?php if ($specific_mac_chk_ph == "1") { echo "checked";} ?>> Process only these global MAC addresses</td></tr>
                 <tr><td><textarea name="specific_mac_ph" cols="60" rows="1"><?php echo $specific_mac_ph?></textarea></td></tr>
-                <tr><td><input type="checkbox" name="specific_fp_chk_ph" value="1" <?php if ($specific_fp_chk_ph == "1") { echo "checked";} ?>> Look only for this ESSID combination </td></tr>
+                <tr><td><input type="checkbox" name="specific_fp_chk_ph" value="1" <?php if ($specific_fp_chk_ph == "1") { echo "checked";} ?>> Process local MAC only when probed ESSIDs </td></tr>
+                <tr><td><input type="radio" name="specific_mode_fp_ph" value="EXACT" <?php if ($specific_mode_fp_ph == "EXACT") {echo "checked";} ?>> Exactly match (anagrams also count)</td></tr>
+                <tr><td><input type="radio" name="specific_mode_fp_ph" value="ATLEAST" <?php if ($specific_mode_fp_ph == "ATLEAST") {echo "checked";} ?>> Contain this list (or more) </td></tr>
                 <tr><td><textarea name="specific_fp_ph" cols="60" rows="1"><?php echo $specific_fp_ph?></textarea></td></tr>
-                <tr><td><input type="checkbox" name="specific_bt_chk_ph" value="1" <?php if ($specific_bt_chk_ph == "1") { echo "checked";} ?>> Look only for these BD_ADDR addresses</td></tr>
+                <tr><td><input type="checkbox" name="specific_bt_chk_ph" value="1" <?php if ($specific_bt_chk_ph == "1") { echo "checked";} ?>> Process only these BD_ADDR addresses</td></tr>
                 <tr><td><textarea name="specific_bt_ph" cols="60" rows="1"><?php echo $specific_bt_ph?></textarea></td></tr>
               </table>
             </div>
