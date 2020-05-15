@@ -65,23 +65,24 @@ function get_fingerprints($mode, $db_conn_s, $time_from_ph, $time_to_ph, $db_q_s
   // append result to fingerprints
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
+      $probed_essids = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
       switch ($mode) {
       
         case "all":
-          $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+          $fingerprints[][0] = $probed_essids;
           break;
 
         case "specific": 
           switch ($specific_mode_fp_ph) {
             case "EXACT":
               // fingerprint must be an anagram of specific ESSID list
-              if (is_anagram($db_row["SUBSTRING(probed_ESSIDs,19,1000)"], $specific_fp_ph)){
-                $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+              if (is_anagram($probed_essids, $specific_fp_ph)){
+                $fingerprints[][0] = $probed_essids;
 	            }
               break;
 	          case "ATLEAST":
               // fingerprint must contain all specified ESSIDs or more
-              $essids = explode(",", $db_row["SUBSTRING(probed_ESSIDs,19,1000)"]);
+              $essids = explode(",", $probed_essids);
               $specific_exploded = explode(",", $specific_fp_ph);
               $essids_specified = 0;
               foreach ($specific_exploded as $specific_key => $specific_value) {
@@ -92,7 +93,7 @@ function get_fingerprints($mode, $db_conn_s, $time_from_ph, $time_to_ph, $db_q_s
                 }
               }
               if ($essids_specified == count($specific_exploded)){
-                $fingerprints[][0] = $db_row["SUBSTRING(probed_ESSIDs,19,1000)"];
+                $fingerprints[][0] = $probed_essids;
               }
               break;
             default:
