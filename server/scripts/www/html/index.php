@@ -5,7 +5,6 @@ session_start();
 $f_hostname = fopen('/etc/hostname', 'r');
 $hostname = fgets($f_hostname);
 fclose($f_hostname);
-$hostname = substr($hostname, 8);     // delete rpi-mon-
 $hostname = substr($hostname, 0, -1); // delete trailing white char
 $_SESSION["hostname"] = $hostname;
 ?>
