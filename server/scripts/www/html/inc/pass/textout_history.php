@@ -445,13 +445,15 @@ if ($db_source_ph == NULL) {
   }
 
   // fill key arrays
-  unset($macs);
-  unset($fingerprints);
-  unset($bd_addrs);
   $mac_glbl_passed = 0;
   $mac_local_passed = 0;
   $bt_passed = 0;
   foreach ($db_source_ph as $key => $value) {
+
+    unset($macs);
+    unset($fingerprints);
+    unset($bd_addrs);
+
     $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
     if ($specific_mac_chk_ph == "1" or $specific_fp_chk_ph == "1" or $specific_bt_chk_ph == "1") {
