@@ -17,6 +17,7 @@ bash:
 > hashovanie MYSQL hesla
 > option na vypnutie zaznamu AcessPoints - vela dat - zbytocne zatazenie
 > node_udev vim -> nano
+> server_clone implementacia
 
 ================================================================================
 ================================================================================

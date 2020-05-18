@@ -1,0 +1,197 @@
+#!/bin/bash
+
+# import global variables
+source /home/pi/monitoring/common/scripts/common_var
+
+# local variables
+REMOVE=""
+
+# functions
+function print_usage() {
+cat <<EOF
+Usage:
+
+  server_clone [OPTION]...
+
+Options:
+
+    -d, --database HOSTNAME
+      Name of MySQL database to clone from remote device into local MySQL
+      database with the same name.
+      Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
+      hostname needs to be specified (eg. node_1).
+    
+    -a, --address IP_ADDRESS
+      IP address of remote device from which the MySQL databse will be cloned.
+      Remote device needs to be paired before using this script (try using 
+      'server_auto -p')
+      Command scp will be used to copy files from remote device.
+
+    -r, --remove
+      Remove local MySQL dump files copied from remote device after importing
+      them into local MySQL database.
+
+    --help
+      Print help page.
+
+Examples:
+
+  server_clone -a 192.168.0.1 -d node_1 -r
+
+EOF
+}
+
+function print_help() {
+cat <<EOF
+
+SERVER: CLONE REMOTE MYSQL DATABSE INTO LOCAL MYSQL DATABSE
+
+This command is used to automatically clone remote MySQL database
+to local machine for further processing. This is useful for retrospective
+data processing after using multiple monitoring devices without internet
+connection.
+
+For this script to function correctly, remote monitoring device must
+have a copy of public ssh key of this device. Try using 'server_auto -p'. 
+
+MySQL dump files on remote device will be automatically removed. Local copy
+in '/var' directory can be preserved (when option '-r' is not used).
+
+Location cannot be altered because scripts on this or remote device
+might be depending on it!
+
+EOF
+print_usage
+}
+
+function clone_db() {
+
+  if [[ -z "$DATABASE" ]];
+  then
+    echo "ERROR: missing database name option! (-d)"
+    return 1
+  fi
+
+  if [[ -z "$ADDRESS" ]];
+  then
+    echo "ERROR: missing device IP address option! (-a)"
+    return 1
+  fi
+
+  # check existance of local database target
+  if [ ! -d "${DIR_MYSQL}/${DATABASE}" ];
+  then
+    echo "ERROR: database '${DATABASE}' does not exist! Please use server_db to create it."
+    return 1
+  fi
+
+  # password prompts
+  read -s -p "Please enter remote target device password for user 'pi': " i_remote_pi_secret
+  printf "\n"
+  read -s -p "Please enter remote target device password for MySQL user 'root': " i_remote_mysql_root_secret
+  printf "\n"
+  read -s -p "Please enter local password for MySQL user 'root': " i_local_mysql_root_secret
+  printf "\n"
+
+  echo "Remote MySQL dump..."
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S mysqldump -u root --password=${i_remote_mysql_root_secret} --fields-terminated-by='|~|' --tab=/tmp ${DATABASE}"
+
+  echo "SCP dump files from remote target to local device..."
+  scp pi@${ADDRESS}:/tmp/AccessPoints.txt /tmp/
+  scp pi@${ADDRESS}:/tmp/Clients.txt /tmp/
+  scp pi@${ADDRESS}:/tmp/Bluetooth.txt /tmp/
+
+  echo "Remove remote target dump files..."
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/AccessPoints.txt"
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Clients.txt"
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Bluetooth.txt"
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/AccessPoints.sql"
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Clients.sql"
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Bluetooth.sql"
+
+  echo "Import dump files to local database..."
+  mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/AccessPoints.txt
+  mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/Clients.txt
+  mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/Bluetooth.txt
+
+
+  if [ "$REMOVE" == "1" ];
+  then
+    echo "Remove local dump files"
+    rm /tmp/AccessPoints.txt
+    rm /tmp/Clients.txt
+    rm /tmp/Bluetooth.txt
+    rm /tmp/AccessPoints.sql
+    rm /tmp/Clients.sql
+    rm /tmp/Bluetooth.sql
+  fi
+}
+
+# options parsing
+
+if [[ $# -eq 0 ]];
+then
+  echo ""
+  print_usage
+  exit 1
+fi  
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    --help)
+      print_help
+      exit 0
+      ;;
+   
+    -d|--database)
+      # arguments
+      # $2 - hostname ending (rpi_mon_###)
+      
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+
+      DATABASE="rpi_mon_${2}";
+      shift 2
+      ;;
+    
+    -a|--address)
+      # arguments
+      # $2 - IP address of remote monitoring device
+
+      # check if argument $2 empty
+      if [[ -z "$2" ]] || [[ "$2" = -* ]];
+      then
+        echo "ERROR: invalid argument '${2}' for option ${1}!"
+        print_usage
+        break
+      fi
+
+      ADDRESS="$2"
+      shift 2
+      ;;
+    
+    -r|--remove)
+
+      REMOVE="1"
+      shift
+      ;;
+
+    *)
+      echo "ERROR: option $1 unknown!"
+      print_usage
+      break
+      ;;
+  esac
+  
+done
+
+# function call
+clone_db
+
+exit 0

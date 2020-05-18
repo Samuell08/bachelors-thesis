@@ -37,7 +37,7 @@ Options:
       Hostname of monitoring device from which log files will be imported to
       MySQL database with the same name (stored on this device).
       Argument will be prefixed with 'rpi_mon_', therefore ONLY last bit of
-      hostname needs to be specified (eg. node_1)
+      hostname needs to be specified (eg. node_1).
 
     -a,--address IP_ADDRESS
       In case of importing logs from remote monitoring device, IP address of
@@ -462,7 +462,6 @@ do
   
 done
 
-  # function call
-  write_service
-
-  exit 0
+# function call
+write_service
+exit 0
