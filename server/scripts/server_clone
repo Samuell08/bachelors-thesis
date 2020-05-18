@@ -23,7 +23,7 @@ Options:
     
     -a, --address IP_ADDRESS
       IP address of remote device from which the MySQL databse will be cloned.
-      Remote device needs to be paired before using this script (try using 
+      Remote device should be paired before using this script (try using 
       'server_auto -p')
       Command scp will be used to copy files from remote device.
 
@@ -51,8 +51,8 @@ to local machine for further processing. This is useful for retrospective
 data processing after using multiple monitoring devices without internet
 connection.
 
-For this script to function correctly, remote monitoring device must
-have a copy of public ssh key of this device. Try using 'server_auto -p'. 
+For this script to function as intended, it is highly recommended to pair
+ssh keys of this device with remote device. Try using 'server_auto -p'. 
 
 MySQL dump files on remote device will be automatically removed. Local copy
 in '/var' directory can be preserved (when option '-r' is not used).
@@ -78,30 +78,30 @@ function clone_db() {
     return 1
   fi
 
-  # check existance of local database target
+  # check existance of local database
   if [ ! -d "${DIR_MYSQL}/${DATABASE}" ];
   then
-    echo "ERROR: database '${DATABASE}' does not exist! Please use server_db to create it."
+    echo "ERROR: local database '${DATABASE}' does not exist! Please use server_db to create it."
     return 1
   fi
 
   # password prompts
-  read -s -p "Please enter remote target device password for user 'pi': " i_remote_pi_secret
+  read -s -p "Please enter remote device password for user 'pi': " i_remote_pi_secret
   printf "\n"
-  read -s -p "Please enter remote target device password for MySQL user 'root': " i_remote_mysql_root_secret
+  read -s -p "Please enter remote device password for MySQL user 'root': " i_remote_mysql_root_secret
   printf "\n"
   read -s -p "Please enter local password for MySQL user 'root': " i_local_mysql_root_secret
   printf "\n"
 
-  echo "Remote MySQL dump..."
+  echo "Dumping remote MySQL database..."
   ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S mysqldump -u root --password=${i_remote_mysql_root_secret} --fields-terminated-by='|~|' --tab=/tmp ${DATABASE}"
 
-  echo "SCP dump files from remote target to local device..."
+  echo "Copying dump files from remote device to local device..."
   scp pi@${ADDRESS}:/tmp/AccessPoints.txt /tmp/
   scp pi@${ADDRESS}:/tmp/Clients.txt /tmp/
   scp pi@${ADDRESS}:/tmp/Bluetooth.txt /tmp/
 
-  echo "Remove remote target dump files..."
+  echo "Removing remote device MySQL dump files..."
   ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/AccessPoints.txt"
   ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Clients.txt"
   ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Bluetooth.txt"
@@ -109,25 +109,31 @@ function clone_db() {
   ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Clients.sql"
   ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S rm /tmp/Bluetooth.sql"
 
-  echo "Import dump files to local database..."
-  mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/AccessPoints.txt
-  mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/Clients.txt
-  mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/Bluetooth.txt
+  echo "Importing dump files to local database..."
+  sudo mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/AccessPoints.txt
+  sudo mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/Clients.txt
+  sudo mysqlimport -u root --password=${i_local_mysql_root_secret} -d --fields-terminated-by='|~|' ${DATABASE} /tmp/Bluetooth.txt
 
 
   if [ "$REMOVE" == "1" ];
   then
-    echo "Remove local dump files"
+    echo "Removing local dump files..."
     rm /tmp/AccessPoints.txt
     rm /tmp/Clients.txt
     rm /tmp/Bluetooth.txt
-    rm /tmp/AccessPoints.sql
-    rm /tmp/Clients.sql
-    rm /tmp/Bluetooth.sql
   fi
 }
 
 # options parsing
+
+CALLER="$(whoami)"
+# user calling this script MUST be pi
+if [[ ! "${CALLER}" == "pi" ]];
+then
+  echo "ERROR: user calling this script is '${CALLER}', MUST be 'pi'!"
+  echo "Try running the command with 'sudo -u pi'"
+  exit 2
+fi
 
 if [[ $# -eq 0 ]];
 then
