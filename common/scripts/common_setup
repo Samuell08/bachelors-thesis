@@ -180,7 +180,7 @@ function setup_common(){
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    echo "Timezone NOT changed! Consider changing it manually or using this script without '-y' argument."
+    echo "Skipping timezone change... Consider changing it manually or using this script without '-y' argument."
   else
     # user prompt
     while :
