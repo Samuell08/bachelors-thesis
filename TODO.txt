@@ -18,6 +18,7 @@ bash:
 > hashovanie MYSQL hesla
 > option na vypnutie zaznamu AcessPoints - vela dat - zbytocne zatazenie
 > server_clone checkovanie return hodnot - exit
+> hard-coded user pi -> common_var defined user
 
 ================================================================================
 ================================================================================
