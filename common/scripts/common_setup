@@ -32,16 +32,16 @@ Usage:
 Options:
 
     -c, --common [USB_NAME] [-y]
-      Setup Raspberry Pi only with common stuff.
+      Setup device only with common stuff.
 
     -n, --node [USB_NAME] [-y]
-      Setup Raspberry Pi as monitoring node.
+      Setup device as monitoring node.
 
     -s, --server [USB_NAME] [-y]
-      Setup Raspberry Pi as monitoring server.
+      Setup device as monitoring server.
 
     -a, --all [USB_NAME] [-y]
-      Setup Raspberry Pi as both monitoring node and server.
+      Setup device as both monitoring node and server.
 
     --help
       Print help page.
@@ -75,12 +75,12 @@ Alfa AWUS036ACH (used in bachelor thesis) or any other adapter based on
 Realtek 8811, 8812, 8814 and 8821 chipsets.
 
 Common setup:
+  > copy directory tree from USB (only if USB name specified in argument)
   > set password
   > set hostname
   > change timezone
   > update package-lists
   > upgrade packages (only if package-lists updated)
-  > copy directory tree from USB (only if USB name specified in argument)
 
 Node setup:
   > install aircrack-ng
@@ -117,7 +117,59 @@ function setup_common(){
   goto_upgrade="0";
   new_hostname="raspberrypi";
 
+  ######################################################### copy dir tree from usb
+  if [[ "$HAVE_USB" == "1" ]];
+  then
+    if [[ "$YES_ALL" == "1" ]];
+    then
+      echo "Copying files from '$DIR_USB_SETUP' to '/home/pi'..."
+      cp -r $DIR_USB_SETUP /home/pi
+      echo "Changing owner of directory: $DIR_MON to user 'pi'..."
+      chown pi:pi $DIR_MON -R
+      echo "Making scripts in directory: $DIR_NODE_SCRIPTS executable..."
+      chmod +x ${DIR_NODE_SCRIPTS}/*
+      echo "Making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
+      chmod +x ${DIR_SERVER_SCRIPTS}/*
+      echo "Making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
+      chmod +x ${DIR_COMMON_SCRIPTS}/*
+    else
+      # user prompt
+      while :
+      do
+        read -p "do you want to copy directory tree and scripts from USB drive '${USB_NAME}'? (y/n) " i_copydir
+        case $i_copydir in
+          y|Y|yes|YES)
+            echo "Copying files from $DIR_USB_SETUP to /home/pi"
+            cp -r $DIR_USB_SETUP /home/pi
+            echo "Changing owner of directory: $DIR_MON to user 'pi'..."
+            chown pi:pi $DIR_MON -R
+            echo "Making scripts in directory: $DIR_NODE_SCRIPTS executable..."
+            chmod +x ${DIR_NODE_SCRIPTS}/*
+            echo "Making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
+            chmod +x ${DIR_SERVER_SCRIPTS}/*
+            echo "Making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
+            chmod +x ${DIR_COMMON_SCRIPTS}/*
+            break;
+            ;;
+
+          n|N|no|NO)
+            echo "Direcotry tree and scripts NOT copied!"
+            break;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+  else
+    echo "Skipping directory tree copy from USB..."
+  fi
+
   ######################################################### password
+  echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
     echo "Skipping password setup..."
@@ -294,58 +346,6 @@ function setup_common(){
     else
       echo "Skipping package upgrade..."
     fi
-  fi
-
-  ######################################################### copy dir tree from usb
-  echo "---"
-  if [[ "$HAVE_USB" == "1" ]];
-  then
-    if [[ "$YES_ALL" == "1" ]];
-    then
-      echo "Copying files from '$DIR_USB_SETUP' to '/home/pi'..."
-      cp -r $DIR_USB_SETUP /home/pi
-      echo "Changing owner of directory: $DIR_MON to user 'pi'..."
-      chown pi:pi $DIR_MON -R
-      echo "Making scripts in directory: $DIR_NODE_SCRIPTS executable..."
-      chmod +x ${DIR_NODE_SCRIPTS}/*
-      echo "Making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
-      chmod +x ${DIR_SERVER_SCRIPTS}/*
-      echo "Making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
-      chmod +x ${DIR_COMMON_SCRIPTS}/*
-    else
-      # user prompt
-      while :
-      do
-        read -p "do you want to copy directory tree and scripts from USB drive '${USB_NAME}'? (y/n) " i_copydir
-        case $i_copydir in
-          y|Y|yes|YES)
-            echo "Copying files from $DIR_USB_SETUP to /home/pi"
-            cp -r $DIR_USB_SETUP /home/pi
-            echo "Changing owner of directory: $DIR_MON to user 'pi'..."
-            chown pi:pi $DIR_MON -R
-            echo "Making scripts in directory: $DIR_NODE_SCRIPTS executable..."
-            chmod +x ${DIR_NODE_SCRIPTS}/*
-            echo "Making scripts in directory: $DIR_SERVER_SCRIPTS executable..."
-            chmod +x ${DIR_SERVER_SCRIPTS}/*
-            echo "Making scripts in directory: $DIR_COMMON_SCRIPTS executable..."
-            chmod +x ${DIR_COMMON_SCRIPTS}/*
-            break;
-            ;;
-
-          n|N|no|NO)
-            echo "Direcotry tree and scripts NOT copied!"
-            break;
-            ;;
-
-          *)
-            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
-            ;;
-
-        esac
-      done
-    fi
-  else
-    echo "Skipping directory tree copy from USB..."
   fi
 
   #########################################################
