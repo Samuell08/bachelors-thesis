@@ -5,6 +5,7 @@ www:
   -> Import Period presunut do MySQL databazy - tabulka Information
 > pridat primary key autoincrement int a prerobit terajsi primary key na unique key?
 > passages - obrazok
+> movement history - osa Y - jednotky
 
 bash:
 > node_service - výpis informácií o service v human friendly podobe

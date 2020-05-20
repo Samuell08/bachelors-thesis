@@ -188,7 +188,7 @@ if(!$db_conn){
           <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box">Blacklisted Keys and Specific Keys <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
           <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
-          <p class="info_box">Threshold specifies how long device needs to be undetected before counting its discovery as another passage.</p>
+          <p class="info_box">Threshold specifies maximum movement time between points A and B; longer times will be ingored.</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
                                                                     <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
                                                                     (Time Period <b>must</b> be set to same time as amnesia)<br>
@@ -200,20 +200,16 @@ if(!$db_conn){
       
       <!-- CHART -->
       <div class="div_chart">
-        <h2>Charts</h2>
+        <h2>Chart</h2>
       
-        <div id="chartContainerWifi" style="height: 370px; width: 100%;">
-          Loading...
-        </div>
-        <br>
-        <div id="chartContainerBluetooth" style="height: 370px; width: 100%;">
+        <div id="chartContainer" style="height: 370px; width: 100%;">
           Loading...
         </div>
         <script src="inc/common/js/canvasjs.min.js"></script>
 
         <div class="div_content">
-          <br><button onclick="updateChart()">Update Charts</button><br>
-          <p class="info_box">Charts need to be updated manually <b>after</b> Text output is loaded.</p>
+          <br><button onclick="updateChart()">Update Chart</button><br>
+          <p class="info_box">Chart needs to be updated manually <b>after</b> Text output is loaded.</p>
         </div>
 
       </div>
