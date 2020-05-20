@@ -77,6 +77,7 @@ Realtek 8811, 8812, 8814 and 8821 chipsets.
 Common setup:
   > set password
   > set hostname
+  > change timezone
   > update package-lists
   > upgrade packages (only if package-lists updated)
   > copy directory tree from USB (only if USB name specified in argument)
@@ -163,7 +164,7 @@ function setup_common(){
           ;;
 
         n|N|no|NO)
-          echo "Hostname unchanged!"
+          echo "Hostname NOT changed!"
           break;
           ;;
 
@@ -179,22 +180,40 @@ function setup_common(){
   echo "---"
   if [[ "$YES_ALL" == "1" ]];
   then
-    timedatectl set-timezone Europe/Prague
-    echo "Timezone set to Prague!"
+    echo "Timezone NOT changed! Consider changing it manually or using this script without '-y' argument."
   else
     # user prompt
     while :
     do
-      read -p "Do you want to change timezone to Prague? (y/n) " i_timezone
-      case $i_timezone in
+      read -p "Do you want to list all possible timezones? (y/n) " i_timezone_list
+      case $i_timezone_list in
         y|Y|yes|YES)
-          timedatectl set-timezone Europe/Prague
-          echo "Timezone set to Prague!"
+          timedatectl list-timezones
           break;
           ;;
 
         n|N|no|NO)
-          echo "Timezone unchanged!"
+          break;
+          ;;
+
+        *)
+          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+          ;;
+          
+      esac
+    done
+    while :
+    do
+      read -p "Do you want to change timezone? (y/n) " i_timezone_change
+      case $i_timezone_change in
+        y|Y|yes|YES)
+          read -p "Enter timezone: " i_timezone
+          timedatectl set-timezone $i_timezone
+          break;
+          ;;
+
+        n|N|no|NO)
+          echo "Timezone NOT changed!"
           break;
           ;;
 
@@ -228,7 +247,7 @@ function setup_common(){
           ;;
 
         n|N|no|NO)
-          echo "Package lists not updated!"
+          echo "Package lists NOT updated!"
           break;
           ;;
 
@@ -262,7 +281,7 @@ function setup_common(){
             ;;
 
           n|N|no|NO)
-            echo "Packages not upgraded!"
+            echo "Packages NOT upgraded!"
             break;
             ;;
 
@@ -314,7 +333,7 @@ function setup_common(){
             ;;
 
           n|N|no|NO)
-            echo "Direcotry tree and scripts not copied!"
+            echo "Direcotry tree and scripts NOT copied!"
             break;
             ;;
 
@@ -419,7 +438,7 @@ function setup_node() {
       done
     fi
   else
-    echo "Directory $DIR_NODE does not exist: skipping Bluelog installation!"
+    echo "Directory $DIR_NODE does NOT exist: skipping Bluelog installation!"
   fi
 
   ######################################################### OUI file
@@ -593,7 +612,7 @@ function setup_server() {
     fi
 
   else
-    echo "WARNING: Apache not installed: skipping PHP installation!"
+    echo "WARNING: Apache NOT installed: skipping PHP installation!"
   fi
 
   ######################################################### mysql
@@ -658,7 +677,7 @@ function setup_server() {
         echo "Passwords match!"
         break;
       else
-        echo "Passwords do not match - try again!"
+        echo "Passwords do NOT match - try again!"
       fi
     done
     
@@ -721,7 +740,7 @@ EOF
               echo "Passwords match!"
               break;
             else
-              echo "Passwords do not match - try again!"
+              echo "Passwords do NOT match - try again!"
             fi
           done
     
@@ -817,7 +836,7 @@ EOF
     fi
 
   else
-    echo "WARNING: Apache and/or PHP not installed: skipping copying of web interface to Apache web server!"
+    echo "WARNING: Apache and/or PHP NOT installed: skipping copying of web interface to Apache web server!"
   fi
 
   #########################################################
