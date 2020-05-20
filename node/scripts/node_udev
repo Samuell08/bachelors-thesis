@@ -18,7 +18,7 @@ Options:
       Arguments will be appended to the end of specified udev rule.
 
     -m, --mod RULE
-      Open specified rule in vim for editing.
+      Open specified rule in nano for editing.
 
     -r, --remove RULE
       Remove specified rule.
@@ -110,7 +110,7 @@ function modify() {
   if [ -f "${DIR_UDEV_RULES}/${1}" ];
   then
     echo "File ${DIR_UDEV_RULES}/${1} exists!"
-    vim "${DIR_UDEV_RULES}/${1}"
+    nano "${DIR_UDEV_RULES}/${1}"
     return 0
   else
     echo "File ${DIR_UDEV_RULES}/${1} does not exist!"
@@ -119,7 +119,7 @@ function modify() {
     if [ "$i_create" == "y" ] || [ "$i_create" == "Y" ];
     then  
       # creating new rule
-      vim "${DIR_UDEV_RULES}/${1}"
+      nano "${DIR_UDEV_RULES}/${1}"
       return 0
     elif [ "$i_create" == "n" ] || [ "$i_create" == "N" ];
     then

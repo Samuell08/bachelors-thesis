@@ -79,7 +79,6 @@ Common setup:
   > set hostname
   > update package-lists
   > upgrade packages (only if package-lists updated)
-  > install Vim
   > copy directory tree from USB (only if USB name specified in argument)
 
 Node setup:
@@ -276,36 +275,6 @@ function setup_common(){
     else
       echo "Skipping package upgrade..."
     fi
-  fi
-
-  ######################################################### vim
-  echo "---"
-  if [[ "$YES_ALL" == "1" ]];
-  then
-    echo "Installing Vim..."
-    apt-get install vim -y
-  else
-    # user prompt
-    while :
-    do
-      read -p "Do you want to install Vim? (y/n) " i_vim
-      case $i_vim in
-        y|Y|yes|YES)
-          apt-get install vim
-          break;
-          ;;
-
-        n|N|no|NO)
-          echo "Vim installation declined!"
-          break;
-          ;;
-
-        *)
-          echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
-          ;;
-
-      esac
-    done
   fi
 
   ######################################################### copy dir tree from usb
