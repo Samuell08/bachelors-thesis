@@ -22,6 +22,6 @@ switch ($_SESSION["menu_current"]) {
     break;
 }
 echo '<span class=' . $class_1 . '><a href="range_history.php">In Range</a></span> |
-      <span class=' . $class_2 . '><a href="move_live.php">Movement</a></span> |
+      <span class=' . $class_2 . '><a href="move_history.php">Movement</a></span> |
       <span class=' . $class_3 . '><a href="pass_history.php">Passages</a></span>';
 ?>
