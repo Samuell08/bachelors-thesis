@@ -3,6 +3,9 @@
 # import node variables
 source /home/pi/monitoring/common/scripts/common_var
 
+# import global functions
+source /home/pi/monitoring/common/scripts/common_functions
+
 # local variables
 now="0"
 intf_airodump=""
@@ -87,14 +90,6 @@ EOF
   print_usage
 }
 
-function check_log_dir() {
-  if [ ! -d "${DIR_NODE_LOGS}" ];
-  then
-    echo "Log directory '${DIR_NODE_LOGS}' does not exist yet! Creating it..."
-    mkdir ${DIR_NODE_LOGS}
-  fi
-}
-
 # options parsing
 
 if [[ $# -eq 0 ]];
@@ -147,7 +142,7 @@ do
       intf_airodump="${intf_airodump::-1}"
 
       # check existence of node log directory
-      check_log_dir
+      check_log_dir "node"
 
       echo "Starting airodump-ng with 2.4GHz interface(s) ${2}..."
       sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP}" -o csv -b bg "$intf_airodump" &>/dev/null &
@@ -186,7 +181,7 @@ do
       intf_airodump="${intf_airodump::-1}"
 
       # check existence of node log directory
-      check_log_dir
+      check_log_dir "node"
 
       echo "Starting airodump-ng with 5GHz interface(s) ${2}..."
       sudo airodump-ng -w "${DIR_NODE_LOGS}/${LOG_NODE_AIRODUMP_5GHZ}" -o csv -b a "$intf_airodump" &>/dev/null &
@@ -217,7 +212,7 @@ do
       "${DIR_NODE_BLUELOG}/bluelog" -k
 
       # check existence of node log directory
-      check_log_dir
+      check_log_dir "node"
       
       # check optional argument $3
       if [[ -z "$3" ]] || [[ "$3" == -* ]];

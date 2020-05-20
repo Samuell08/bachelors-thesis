@@ -7,6 +7,24 @@ function timestamp() {
   echo $(date +"%F %T")
 }
 
+function check_log_dir() {
+  # first argument - node/server/common string
+
+  case $1 in
+    "node")   CHECK_LOG_DIR=$DIR_NODE_LOGS; ;;
+    "server") CHECK_LOG_DIR=$DIR_SERVER_LOGS; ;;
+    "common") CHECK_LOG_DIR=$DIR_COMMON_LOGS; ;;
+    *)        echo "ERROR: invalid argument ${1} for function check_log_dir!" ;;
+  esac
+      
+  if [ ! -d "${CHECK_LOG_DIR}" ];
+  then
+    echo "Log directory '${CHECK_LOG_DIR}' does not exist yet! Creating it..."
+    mkdir ${CHECK_LOG_DIR}
+    chown pi:pi ${CHECK_LOG_DIR}
+  fi
+}
+
 function log_server_import() {
   # first  argument - success/fail
   # second argument - bt/wlan
