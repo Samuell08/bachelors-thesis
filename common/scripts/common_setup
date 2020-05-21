@@ -111,7 +111,7 @@ function check_git(){
   # return 0 - continue with git pull
   # return 1 - abort git pull
 
-  git --version
+  git --version &>/dev/null
   if [[ $? != "0" ]];
   then
     if [[ "$1" == "1" ]];
