@@ -19,6 +19,7 @@ bash:
 > option na vypnutie zaznamu AcessPoints - vela dat - zbytocne zatazenie
 > server_clone checkovanie return hodnot - exit
 > hard-coded user pi -> common_var defined user
+> nepridavat predponu 'rpi_mon_' pred hostname... nie vsetky zariadenia musia byt rpi
 
 ================================================================================
 ================================================================================
