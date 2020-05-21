@@ -106,6 +106,49 @@ EOF
 print_usage
 }
 
+function check_git(){
+  # first argument - YES_ALL
+  # return 0 - continue with git pull
+  # return 1 - abort git pull
+
+  git --version
+  if [[ $? != "0" ]];
+  then
+    if [[ "$1" == "1" ]];
+    then
+      echo "Installing git..."
+      apt-get install git -y
+      return 0;
+    else
+      # user prompt
+      while :
+      do
+        read -p "Git package is needed for this step but has not been found! Do you want to install it? (y/n) " i_git
+        case $i_git in
+          y|Y|yes|YES)
+            echo "Installing git..."
+            apt-get install git
+            return 0;
+            ;;
+
+          n|N|no|NO)
+            echo "Package git NOT installed!"
+            return 1;
+            ;;
+
+          *)
+            echo "ERROR: invalid input - expecting y/Y/n/N - try again!"
+            ;;
+
+        esac
+      done
+    fi
+  else
+    return 0;
+  fi
+
+}
+
 function setup_common(){
 # return 0 - successfully completed
 
@@ -136,7 +179,7 @@ function setup_common(){
       # user prompt
       while :
       do
-        read -p "do you want to copy directory tree and scripts from USB drive '${USB_NAME}'? (y/n) " i_copydir
+        read -p "Do you want to copy directory tree and scripts from USB drive '${USB_NAME}'? (y/n) " i_copydir
         case $i_copydir in
           y|Y|yes|YES)
             echo "Copying files from $DIR_USB_SETUP to /home/pi"
@@ -398,14 +441,21 @@ function setup_node() {
     if [[ "$YES_ALL" == "1" ]];
     then
       echo "Installing Bluelog..."
-      apt-get install libbluetooth-dev -y
-      cd $DIR_NODE
-      git clone https://github.com/MS3FGX/Bluelog.git
-      cd ${DIR_NODE}/Bluelog
-      echo "Patching bluelog.c to change log timestamp to mariaDB friendly format..."
-      sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
-      sed -i 's/\[%s\]/%s/g' ./bluelog.c
-      make
+      check_git "1";
+      git_retval=$?;
+      if [[ "$git_retval" == "0" ]];
+      then
+        apt-get install libbluetooth-dev -y
+        cd $DIR_NODE
+        git clone https://github.com/MS3FGX/Bluelog.git
+        cd ${DIR_NODE}/Bluelog
+        echo "Patching bluelog.c to change log timestamp to mariaDB friendly format..."
+        sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
+        sed -i 's/\[%s\]/%s/g' ./bluelog.c
+        make
+      else
+        echo "Cannot install Bluelog - package git is missing!"
+      fi
     else
       # user prompt
       while :
@@ -413,15 +463,22 @@ function setup_node() {
         read -p "Do you want to install Bluelog? (y/n) " i_bluelog
         case $i_bluelog in
           y|Y|yes|YES)
-            apt-get install libbluetooth-dev
-            cd $DIR_NODE
-            git clone https://github.com/MS3FGX/Bluelog.git
-            cd ${DIR_NODE}/Bluelog
-            # patch
-            echo "Patching bluelog.c to change log timestamp to mariaDB friendly format..."
-            sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
-            sed -i 's/\[%s\]/%s/g' ./bluelog.c
-	    make
+            check_git "0";
+            git_retval=$?;
+            if [[ "$git_retval" == "0" ]];
+            then
+              apt-get install libbluetooth-dev
+              cd $DIR_NODE
+              git clone https://github.com/MS3FGX/Bluelog.git
+              cd ${DIR_NODE}/Bluelog
+              # patch
+              echo "Patching bluelog.c to change log timestamp to mariaDB friendly format..."
+              sed -i 's/strftime(time_string,20,"%D %T",timeinfo);/strftime(time_string,20,"%F %T",timeinfo);/' ./bluelog.c
+              sed -i 's/\[%s\]/%s/g' ./bluelog.c
+	            make
+            else
+              echo "Cannot install Bluelog - package git is missing!"
+            fi
             break;
             ;;
 
@@ -502,10 +559,17 @@ function setup_node() {
     apt-get install dkms -y
     cd $DIR_MON
     echo "Cloning rtl8812au repository from Github..."
-    git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
-    cd rtl8812au
-    echo "Executing rtl18812au installation script..."
-    ./dkms-install.sh
+    check_git "1";
+    git_retval=$?;
+    if [[ "$git_retval" == "0" ]];
+    then
+      git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
+      cd rtl8812au
+      echo "Executing rtl18812au installation script..."
+      ./dkms-install.sh
+    else
+      echo "Cannot install rtl18812au driver - package git is missing!"
+    fi
   else
     # user prompt
     while :
@@ -516,10 +580,17 @@ function setup_node() {
           apt-get install dkms
           cd $DIR_MON
           echo "Cloning rtl8812au repository from Github..."
-          git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
-          cd rtl8812au
-          echo "Executing rtl18812au installation script..."
-          ./dkms-install.sh
+          check_git "0";
+          git_retval=$?;
+          if [[ "$git_retval" == "0" ]];
+          then
+            git clone -b "v5.3.4" https://github.com/aircrack-ng/rtl8812au.git
+            cd rtl8812au
+            echo "Executing rtl18812au installation script..."
+            ./dkms-install.sh
+          else
+            echo "Cannot install rtl18812au driver - package git is missing!"
+          fi
           break;
           ;;
 
