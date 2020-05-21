@@ -95,7 +95,7 @@ Server setup:
   > create MySQL user '${SERVER_DB_MON_USER}'
   > copy web interface to Apache web server
 
-expected directory tree on USB: /media/pi/<USB name>/pi/monitoring/...
+expected directory tree on USB: /media/pi/<USB name>/monitoring/...
 local monitoring directory:     ${DIR_MON}
 hostname location:              ${PI_HOSTNAME}
 
@@ -869,7 +869,7 @@ function parse_args() {
       HAVE_USB="1";
       USB_NAME="$1";
       echo "USB name set to: '${1}'!"
-      DIR_USB_SETUP="/media/pi/${USB_NAME}/pi/monitoring"
+      DIR_USB_SETUP="/media/pi/${USB_NAME}/monitoring"
       echo "USB setup path set to '${DIR_USB_SETUP}'!"
       ;;
   esac
