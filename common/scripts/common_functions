@@ -34,6 +34,8 @@ function log_server_import() {
   # local variables
   LOG_DELIM=$'\t'
 
+  check_log_dir "server"
+
   echo "$(timestamp)${LOG_DELIM}${1}${LOG_DELIM}${2}${LOG_DELIM}${3}${LOG_DELIM}${4}" \
   >> "${DIR_SERVER_LOGS}/${LOG_SERVER_IMPORT}.log"
 }
