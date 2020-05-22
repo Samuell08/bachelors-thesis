@@ -11,10 +11,11 @@ set_time_limit(0);
 
 // get session variables
 // database connection
-$db_server     = $_SESSION["db_server"];
-$db_user       = $_SESSION["db_user"];
-$db_pass       = $_SESSION["db_pass"];
-$db_source_mh  = $_SESSION["db_source_mh"];
+$db_server      = $_SESSION["db_server"];
+$db_user        = $_SESSION["db_user"];
+$db_pass        = $_SESSION["db_pass"];
+$db_source_A_mh = $_SESSION["db_source_A_mh"];
+$db_source_B_mh = $_SESSION["db_source_B_mh"];
 // settings
 $time_from_mh           = $_SESSION["time_from_mh"];
 $time_to_mh             = $_SESSION["time_to_mh"];
@@ -348,8 +349,10 @@ function process_keys($type, $db_q_standard, $keys,
 }
 
 // check if user input is correct
-if ($db_source_mh == NULL) {
-  echo "<p class=\"warning\">Source database(s) not selected.</p>";
+if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
+  echo "<p class=\"warning\">Source database for point A and/or B not selected.</p>";
+} elseif ($db_source_A_mh == $db_source_B_mh) {
+  echo "<p class=\"warning\">Source database for point B cannot be the same as for point A.</p>";
 } elseif ((!($show_wlan_mh == "1")) and (!($show_bt_mh == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
 } elseif (strtotime($time_from_mh) > strtotime($time_to_mh)) {

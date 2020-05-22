@@ -91,7 +91,9 @@ if(!$db_conn){
                 include 'inc/range/settings_history.php';
                 // variables for common settings PHP script
                 $_SESSION["common_settings_input_name"] = "db_source_rh[]";
+                $_SESSION["common_settings_input_type"] = "checkbox";
                 $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_rh"]);
+                echo "<b>Source Database(s)</b><br>";
                 include 'inc/common/settings.php';
                 if(!$settingsok == "1") {
                   echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";

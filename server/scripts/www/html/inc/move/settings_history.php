@@ -4,7 +4,8 @@
 $settingsok = "1";
 
 // form variables
-$db_source_mh           = "";
+$db_source_A_mh         = "";
+$db_source_B_mh         = "";
 $time_from_mh           = "";
 $time_to_mh             = "";
 $time_step_mh           = "";
@@ -34,7 +35,8 @@ $specific_bt_mh         = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-  $db_source_mh           = $_GET["db_source_mh"];
+  $db_source_A_mh         = $_GET["db_source_A_mh"];
+  $db_source_B_mh         = $_GET["db_source_B_mh"];
   $time_from_mh           = filter_var($_GET["time_from_mh"], FILTER_SANITIZE_STRING);
   $time_to_mh             = filter_var($_GET["time_to_mh"], FILTER_SANITIZE_STRING);
   $time_step_mh           = filter_var($_GET["time_step_mh"], FILTER_VALIDATE_INT);
@@ -82,7 +84,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($specific_bt_mh == "")         { $specific_bt_mh = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
   
   // store variables in session
-  $_SESSION["db_source_mh"]           = $db_source_mh;
+  $_SESSION["db_source_A_mh"]         = $db_source_A_mh;
+  $_SESSION["db_source_B_mh"]         = $db_source_B_mh;
   $_SESSION["time_from_mh"]           = $time_from_mh;
   $_SESSION["time_to_mh"]             = $time_to_mh;
   $_SESSION["time_step_mh"]           = $time_step_mh;

@@ -88,12 +88,25 @@ if(!$db_conn){
                 $settingsok="0";
                 include 'inc/move/settings_history.php';
                 // variables for common settings PHP script
-                $_SESSION["common_settings_input_name"] = "db_source_mh[]";
-                $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_mh"]);
+                $_SESSION["common_settings_input_name"] = "db_source_A_mh";
+                $_SESSION["common_settings_input_type"] = "radio";
+                $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_A_mh"]);
+                echo "<b>Source Database as point A</b><br>";
                 include 'inc/common/settings.php';
                 if(!$settingsok == "1") {
                   echo "<p class=\"error\">ERROR: failed to load settings script - page will not be able to process Settings form</p>";
                 }
+              ?>
+            </div>
+
+            <div class="div_subcontent">
+              <?php
+                // variables for common settings PHP script
+                $_SESSION["common_settings_input_name"] = "db_source_B_mh";
+                $_SESSION["common_settings_input_type"] = "radio";
+                $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_B_mh"]);
+                echo "<b>Source Database as point B</b><br>";
+                include 'inc/common/settings.php';
               ?>
             </div>
 
