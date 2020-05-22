@@ -45,6 +45,24 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
+function get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, &$macs) {
+  $db_q = "SELECT station_MAC FROM Clients WHERE
+          (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "') AND
+          (station_MAC LIKE '_0:__:__:__:__:__' OR
+           station_MAC LIKE '_4:__:__:__:__:__' OR
+           station_MAC LIKE '_8:__:__:__:__:__' OR
+           station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
+          "GROUP BY station_MAC;";
+  $db_result = mysqli_query($db_conn_s, $db_q);
+  // append result to macs
+  if (mysqli_num_rows($db_result) > 0) {
+    while ($db_row = mysqli_fetch_assoc($db_result)) {
+      $macs[] = $db_row["station_MAC"];
+    }
+  }
+  mysqli_free_result($db_result);
+}
+
 // function finds every probed ESSIDs fingerprint and returns
 // 2D array (2nd dimension containing found anagrams)
 function get_fingerprints($mode, $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, &$fingerprints) {
@@ -125,6 +143,20 @@ function get_fingerprints($mode, $db_conn_s, $time_from_mh, $time_to_mh, $db_q_s
   $fingerprints = array_filter($fingerprints);
   $fingerprints = array_values($fingerprints);
   }
+}
+
+function get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, &$bd_addrs) {
+  $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
+          (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "')
+           GROUP BY BD_ADDR;";
+  $db_result = mysqli_query($db_conn_s, $db_q);
+  // append result to bd_addrs
+  if (mysqli_num_rows($db_result) > 0) {
+    while ($db_row = mysqli_fetch_assoc($db_result)) {
+      $bd_addrs[] = $db_row["BD_ADDR"];
+    }
+  }
+  mysqli_free_result($db_result);
 }
 
 // function accepts list of keys (eg. MAC addresses) and compares
@@ -447,97 +479,70 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
     }
   }
 
+  $mac_glbl_moved = 0;
+  $mac_local_moved = 0;
+  $bt_moved = 0;
+
   // fill key arrays
-  $mac_glbl_passed = 0;
-  $mac_local_passed = 0;
-  $bt_passed = 0;
-  foreach ($db_source_mh as $key => $value) {
+  // point A
+  unset($A_macs);
+  unset($A_fingerprints);
+  unset($A_bd_addrs);
+  $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_A_mh);
+  if ($show_wlan_mh == "1") {
+    // GLOBAL MAC
+    // every unique global MAC in time range 
+    get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $A_macs);
+    // LOCAL MAC
+    // every local MAC fingerprint
+    get_fingerprints("all", $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $A_fingerprints);
+  }
+  if ($show_bt_mh == "1") {
+    // every unique BD_ADDR in time range
+    get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, $A_bd_addrs);
+  }
 
-    unset($macs);
-    unset($fingerprints);
-    unset($bd_addrs);
+  // point B
+  unset($B_macs);
+  unset($B_fingerprints);
+  unset($B_bd_addrs);
+  $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_B_mh);
+  if ($show_wlan_mh == "1") {
+    // GLOBAL MAC
+    // every unique global MAC in time range 
+    get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $B_macs);
+    // LOCAL MAC
+    // every local MAC fingerprint
+    get_fingerprints("all", $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $B_fingerprints);
+  }
+  if ($show_bt_mh == "1") {
+    // every unique BD_ADDR in time range
+    get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, $B_bd_addrs);
+  }
 
-    $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+  echo "<br>point A<br>";
+  echo "<br><br>macs A:<br>";
+  var_dump($A_macs);
+  echo "<br><br>fingerprints A:<br>";
+  var_dump($A_fingerprints);
+  echo "<br><br>bd_addrs A:<br>";
+  var_dump($A_bd_addrs);
 
-    if ($specific_mac_chk_mh == "1" or $specific_fp_chk_mh == "1" or $specific_bt_chk_mh == "1") {
+  echo "<br><br><br>point B<br>";
+  echo "<br><br>macs B:<br>";
+  var_dump($B_macs);
+  echo "<br><br>fingerprints B:<br>";
+  var_dump($B_fingerprints);
+  echo "<br><br>bd_addrs B:<br>";
+  var_dump($B_bd_addrs);
 
-      // process only specific keys
+  echo "<br><br>";
+  die("debugging end");
 
-      if ($show_wlan_mh == "1") {
-        if ($specific_mac_chk_mh == "1") {
-          // macs array contains only specific global MAC addresses
-          foreach (explode(",", $specific_mac_mh) as $specific_key => $specific_value) {
-            $macs[] = $specific_value;
-          }
-          $mac_glbl_passed = count($macs);
-        }
-        if ($specific_fp_chk_mh == "1") {
-          // fingerprints array contains only specific ESSID combination
-          get_fingerprints("specific", $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $fingerprints);
-          $mac_local_passed = count($fingerprints);
-        }
-      }
 
-      if ($show_bt_mh == "1") {
-        if ($specific_bt_chk_mh == "1") {
-          // bd_addrs array contains only specific BD_ADDR addresses
-          foreach (explode(",", $specific_bt_mh) as $specific_key => $specific_value) {
-            $bd_addrs[] = $specific_value;
-          }
-          $bt_passed = count($bd_addrs);
-        }
-      }
 
-    } else {
 
-      // process everything
 
-      if ($show_wlan_mh == "1") {
-
-        // GLOBAL MAC
-        // every unique global MAC in time range 
-        $db_q = "SELECT station_MAC FROM Clients WHERE
-                (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "') AND
-                (station_MAC LIKE '_0:__:__:__:__:__' OR
-                 station_MAC LIKE '_4:__:__:__:__:__' OR
-                 station_MAC LIKE '_8:__:__:__:__:__' OR
-                 station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
-                "GROUP BY station_MAC;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-        $mac_glbl_passed += mysqli_num_rows($db_result);
-        // append result to macs
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $macs[] = $db_row["station_MAC"];
-          }
-        }
-        mysqli_free_result($db_result);
-
-        // LOCAL MAC
-        // every local MAC fingerprint
-        get_fingerprints("all", $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $fingerprints);
-        $mac_local_passed = count($fingerprints);
-      } // end of show_wlan_mh
-
-      if ($show_bt_mh == "1") {
-
-        // every unique BD_ADDR in time range
-        $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
-                (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "')
-                 GROUP BY BD_ADDR;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-        $bt_passed += mysqli_num_rows($db_result);
-        // append result to bd_addrs
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $bd_addrs[] = $db_row["BD_ADDR"];
-          }
-        }
-        mysqli_free_result($db_result);
-      } // end of show_bt_mh
-    } // end of else clause of specific keys
-  } // end of foreach DB
-  
   echo "<b>Statistics table is located at the bottom of the page</b>" . "<br><br>";
 
   $total_passed = $mac_glbl_passed + $mac_local_passed + $bt_passed;

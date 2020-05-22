@@ -63,6 +63,7 @@ if(!$db_conn){
       <div class="div_info">
         <h2>Information</h2>
         <div class="div_content">
+          <p class="error" style="font-size:30px;text-align:center;">WORK IN PROGRESS</p>
           <p>
             <b>Movement</b> mode displays monitoring data as device transitions from point A
             to point B in given time range.
@@ -164,6 +165,8 @@ if(!$db_conn){
               </table>
             </div>
 
+            <!--
+
             <br>
             
             <div class="div_subcontent">
@@ -193,6 +196,8 @@ if(!$db_conn){
                 <tr><td><textarea name="specific_bt_mh" cols="60" rows="1"><?php echo $specific_bt_mh?></textarea></td></tr>
               </table>
             </div>
+
+            -->
 
             <br><button type="submit">Submit</button>
 
