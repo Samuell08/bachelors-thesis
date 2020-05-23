@@ -38,6 +38,8 @@ $specific_fp_chk_mh     = $_SESSION["specific_fp_chk_mh"];
 $specific_bt_chk_mh     = $_SESSION["specific_bt_chk_mh"];
 $specific_bt_mh         = $_SESSION["specific_bt_mh"];
 
+$debug_output = true;
+
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
     return 1;
@@ -380,23 +382,21 @@ function process_keys($type, $db_q_standard, $keys,
     $timestampsA = get_timestamps($db_conn_A, $db_q);
     $timestampsB = get_timestamps($db_conn_B, $db_q);
 
-    process_timestamps($timestampsA, $timestampsB, $threshold, $AB_movement,  $BA_movement);
+    unset($AB_movement);
+    unset($BA_movement);
 
-    echo "key:" . $keys_value . "<br>";
-    echo "tsA:";
-    var_dump($timestampsA);
-    echo "<br>";
-    echo "tsB:";
-    var_dump($timestampsB);
-    echo "<br><br>";
-    echo "<br>movement A->B:<br>";
-    var_dump($AB_movement);
-    echo "<br><br>movement B->A:<br>";
-    var_dump($BA_movement);
-    echo "<br><br>";
+    process_timestamps($timestampsA, $timestampsB, $threshold, $AB_movement, $BA_movement);
 
+    // fill Movement object and push it to output array
+    $Movement_key = new Movement();
+    $Movement_key->key = $keys_value;
+    $Movement_key->AB = $AB_movement;
+    $Movement_key->BA = $BA_movement;
+    $Movement_array[] = $Movement_key;
 
   }
+
+  return $Movement_array;
     
 }
 
@@ -549,39 +549,45 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $bd_addrs     = in_both($A_bd_addrs, $B_bd_addrs);
 
   // find movement for each key
-  process_keys("wifi_global", $db_q_standard, $macs,
-               $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
-               $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-               $time_increment, $chart_unique, $chart_total,
-               $ignored, $blacklisted);
+  $Movement_macs = process_keys("wifi_global", $db_q_standard, $macs,
+                                $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                $timestamp_limit_mh, $time_from_mh, $time_to_mh,
+                                $time_increment, $chart_unique, $chart_total,
+                                $ignored, $blacklisted);
 
   // --------------------------------------------------------------------------- debug output
 
-  echo "<br>point A<br>";
-  echo "<br><br>macs A:<br>";
-  var_dump($A_macs);
-  echo "<br><br>fingerprints A:<br>";
-  var_dump($A_fingerprints);
-  echo "<br><br>bd_addrs A:<br>";
-  var_dump($A_bd_addrs);
+  if ($debug_output){
+    echo "point A<br>";
+    echo "<br>macs A:<br>";
+    var_dump($A_macs);
+    echo "<br><br>fingerprints A:<br>";
+    var_dump($A_fingerprints);
+    echo "<br><br>bd_addrs A:<br>";
+    var_dump($A_bd_addrs);
 
-  echo "<br><br><br>point B<br>";
-  echo "<br><br>macs B:<br>";
-  var_dump($B_macs);
-  echo "<br><br>fingerprints B:<br>";
-  var_dump($B_fingerprints);
-  echo "<br><br>bd_addrs B:<br>";
-  var_dump($B_bd_addrs);
+    echo "<br><br>point B<br>";
+    echo "<br>macs B:<br>";
+    var_dump($B_macs);
+    echo "<br><br>fingerprints B:<br>";
+    var_dump($B_fingerprints);
+    echo "<br><br>bd_addrs B:<br>";
+    var_dump($B_bd_addrs);
 
-  echo "<br><br><br>in both:<br>";
-  echo "<br><br>macs:<br>";
-  var_dump($macs);
-  echo "<br><br>fingerprints:<br>";
-  var_dump($fingerprints);
-  echo "<br><br>bd_addrs:<br>";
-  var_dump($bd_addrs);
-  echo "<br><br>";
+    echo "<br><br><br>in both:<br>";
+    echo "<br>macs:<br>";
+    var_dump($macs);
+    echo "<br><br>fingerprints:<br>";
+    var_dump($fingerprints);
+    echo "<br><br>bd_addrs:<br>";
+    var_dump($bd_addrs);
+    echo "<br><br>";
 
+    echo "<br>Movement_macs:<br><br>";
+    var_dump($Movement_macs);
+    echo "<br><br>";
+  }
+  
   die("debugging end");
 
   // --------------------------------------------------------------------------- debug end
