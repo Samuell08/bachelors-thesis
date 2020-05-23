@@ -45,6 +45,18 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
+// return array of values that are in both arrays
+function in_both($A, $B){
+  foreach ($A as $A_p => $A_v){
+    foreach ($B as $B_p => $B_v){
+      if ($A_v == $B_v){
+        $result[] = $A_v;
+      }
+    }
+  }
+  return $result;
+}
+
 function get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, &$macs) {
   $db_q = "SELECT station_MAC FROM Clients WHERE
           (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "') AND
@@ -160,27 +172,101 @@ function get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, &$bd_addrs) {
 }
 
 function get_timestamps($db_conn, $db_q){
-  unset($timestamps);
+  unset($ts);
   if (!$db_conn){
     die("function get_timestamps ERROR: Database connection failed");
   } else {
     $db_result = mysqli_query($db_conn, $db_q);
     while ($db_row = mysqli_fetch_assoc($db_result)){
-      $timestamps[] = $db_row["last_time_seen"];
+      $ts[] = $db_row["last_time_seen"];
     }
   }
-  return $timestamps;
+  return $ts;
 }
 
-function in_both($A, $B){
-  foreach ($A as $A_p => $A_v){
-    foreach ($B as $B_p => $B_v){
-      if ($A_v == $B_v){
-        $result[] = $A_v;
+// function accepts two arrays of timestamps and finds minimum time
+// of movement from first to second in seconds
+function timestamps_find_minimum($tsA, $tsB){
+  $min_AB = PHP_INT_MAX;
+  foreach ($tsA as $tsA_p => $tsA_v){
+    foreach ($tsB as $tsB_p => $tsB_v){
+      if (strtotime($tsB_v) > strtotime($tsA_v)){
+        $diff_AB[] = (strtotime($tsB_v)-strtotime($tsA_v));
       }
     }
+    if ($diff_AB != NULL){
+      $min_AB = min($diff_AB);
+    }
   }
-  return $result;
+  return $min_AB;
+}
+
+// function accepts two arrays of timestamps and unsets timestamps
+// that are too close together according to total minimum passage time
+//
+// first array is considered as time of departure therefore the highest times are kept
+// second array is considered as time of arrival therefore the lowest times are kept
+function timestamps_unset_irrelevant(&$tsA, &$tsB, $total_min){
+  unset($unset);
+  // A
+  for ($i = 1; $i < count($tsA); $i++){
+    if (strtotime($tsA[$i])-strtotime($tsA[$i-1]) < ($total_min)){
+      $unset[] = $i-1;
+    }
+  }
+  if($unset != NULL){
+    foreach ($unset as $unset_p => $unset_v){
+      unset($tsA[$unset_v]);
+    }
+  }
+  unset($unset);
+  // B
+  for ($i = 1; $i < count($tsB); $i++){
+    if (strtotime($tsB[$i])-strtotime($tsB[$i-1]) < ($total_min)){
+      $unset[] = $i;
+    }
+  }
+  if($unset != NULL){
+    foreach ($unset as $unset_p => $unset_v){
+      unset($tsB[$unset_v]);
+    }
+  }
+}
+
+// functions accepts two arrays of timestamps and threshold and returns
+// 2D array of movement as first | second | diff
+// values are added to array only when time difference is lower that threshold
+// timestamps need to be sanitized before calling this function - as seen in
+// function process_timestamps
+function timestamps_find_movement($tsA, $tsB, $threshold, &$movement){
+  foreach ($tsA as $tsA_i => $tsA_v){
+    foreach ($tsB as $tsB_i => $tsB_v){
+      if (strtotime($tsB_v) > strtotime($tsA_v)){
+        $diff = (strtotime($tsB_v) - strtotime($tsA_v));
+        if ($diff <= $threshold){
+          $movement[] = array($tsA_v, $tsB_v, $diff);
+        }
+        break;
+      }
+    }
+  }        
+}
+
+// function accepts two raw arrays of timestamps from database query
+// and threshold and returns 2D array of movement as first | second | diff
+function process_timestamps($tsA, $tsB, $threshold, &$AB_movement,  &$BA_movement){
+    // local copies of fingerprints that will be modified
+    $AB_tsA = $tsA;
+    $AB_tsB = $tsB;
+    $BA_tsA = $tsA;
+    $BA_tsB = $tsB;
+    $AB_min = timestamps_find_minimum($timestampsA, $timestampsB);
+    $BA_min = timestamps_find_minimum($timestampsB, $timestampsA);
+    $total_min = min($AB_min, $BA_min);
+    timestamps_unset_irrelevant($AB_tsA, $AB_tsB, $total_min);
+    timestamps_unset_irrelevant($BA_tsB, $BA_tsA, $total_min);
+    timestamps_find_movement($AB_tsA, $AB_tsB, $threshold, $AB_movement);
+    timestamps_find_movement($BA_tsB, $BA_tsA, $threshold, $BA_movement);
 }
 
 // function accepts list of keys (eg. MAC addresses) and compares
@@ -256,9 +342,7 @@ class Movement {
   public $key = NULL; // MAC, fingerprint or BD_ADDR
   public $blacklisted = 0; // if 1, key is blacklisted
   public $AB; // 2D array A | B | diff
-              //          A | B | diff
   public $BA; // 2D array B | A | diff
-              //          B | A | diff
 }
 
 // function accepts list of MAC/BD_ADDR addresses or 2D array of
@@ -296,13 +380,19 @@ function process_keys($type, $db_q_standard, $keys,
     $timestampsA = get_timestamps($db_conn_A, $db_q);
     $timestampsB = get_timestamps($db_conn_B, $db_q);
 
+    process_timestamps($timestampsA, $timestampsB, $threshold, $AB_movement,  $BA_movement);
+
     echo "key:" . $keys_value . "<br>";
     echo "tsA:";
     var_dump($timestampsA);
     echo "<br>";
     echo "tsB:";
     var_dump($timestampsB);
-    echo "<br>";
+    echo "<br><br>";
+    echo "<br>movement A->B:<br>";
+    var_dump($AB_movement);
+    echo "<br><br>movement B->A:<br>";
+    var_dump($BA_movement);
     echo "<br><br>";
 
 
