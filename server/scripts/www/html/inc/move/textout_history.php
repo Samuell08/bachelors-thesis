@@ -159,6 +159,19 @@ function get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, &$bd_addrs) {
   mysqli_free_result($db_result);
 }
 
+function get_timestamps($db_conn, $db_q){
+  unset($timestamps);
+  if (!$db_conn){
+    die("function get_timestamps ERROR: Database connection failed");
+  } else {
+    $db_result = mysqli_query($db_conn, $db_q);
+    while ($db_row = mysqli_fetch_assoc($db_result)){
+      $timestamps[] = $db_row["last_time_seen"];
+    }
+  }
+  return $timestamps;
+}
+
 function in_both($A, $B){
   foreach ($A as $A_p => $A_v){
     foreach ($B as $B_p => $B_v){
@@ -257,6 +270,41 @@ function process_keys($type, $db_q_standard, $keys,
                       &$ignored, &$blacklisted) {
   
   foreach ($keys as $keys_key => $keys_value) {
+    
+    // customize algorithm to specific keys type
+    switch ($type) {
+      case "wifi_global":
+        $db_q = "SELECT last_time_seen FROM Clients WHERE
+                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                 AND " . $db_q_standard . " AND (station_MAC = '" . $keys_value . "');";
+        break;
+      case "wifi_local": 
+        $db_q = "SELECT last_time_seen FROM Clients WHERE
+                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                 AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = '" . $keys_value . "');";
+        break;
+      case "bt":
+        $db_q = "SELECT last_time_seen FROM Bluetooth WHERE
+                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                 AND (BD_ADDR = '" . $keys_value . "');";
+        break;
+      default:
+        die("function process_keys ERROR: Unknown type: " . $type);
+    }
+
+    // get timestamps for key from database A and B
+    $timestampsA = get_timestamps($db_conn_A, $db_q);
+    $timestampsB = get_timestamps($db_conn_B, $db_q);
+
+    echo "key:" . $keys_value . "<br>";
+    echo "tsA:";
+    var_dump($timestampsA);
+    echo "<br>";
+    echo "tsB:";
+    var_dump($timestampsB);
+    echo "<br>";
+    echo "<br><br>";
+
 
   }
     
@@ -411,8 +459,11 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $bd_addrs     = in_both($A_bd_addrs, $B_bd_addrs);
 
   // find movement for each key
-
-
+  process_keys("wifi_global", $db_q_standard, $macs,
+               $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+               $timestamp_limit_mh, $time_from_mh, $time_to_mh,
+               $time_increment, $chart_unique, $chart_total,
+               $ignored, $blacklisted);
 
   // --------------------------------------------------------------------------- debug output
 
