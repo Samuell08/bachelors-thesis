@@ -159,6 +159,17 @@ function get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, &$bd_addrs) {
   mysqli_free_result($db_result);
 }
 
+function in_both($A, $B){
+  foreach ($A as $A_p => $A_v){
+    foreach ($B as $B_p => $B_v){
+      if ($A_v == $B_v){
+        $result[] = $A_v;
+      }
+    }
+  }
+  return $result;
+}
+
 // function accepts list of keys (eg. MAC addresses) and compares
 // it to blacklist (echoing 'Blacklisted' instead of timestamps)
 // returns:  0 - key not blacklisted
@@ -227,157 +238,28 @@ function blacklisted($type, $key, $blacklist) {
   return 0;
 }
 
+class Movement {
+  // properties
+  public $key = NULL; // MAC, fingerprint or BD_ADDR
+  public $blacklisted = 0; // if 1, key is blacklisted
+  public $AB; // 2D array A | B | diff
+              //          A | B | diff
+  public $BA; // 2D array B | A | diff
+              //          B | A | diff
+}
+
 // function accepts list of MAC/BD_ADDR addresses or 2D array of
-// probed ESSIDs fingerprints and fills chart arrays with passages
+// probed ESSIDs fingerprints and returns array of Movement classes
 function process_keys($type, $db_q_standard, $keys,
-                      $blacklist, $db_conn_s, $threshold,
+                      $blacklist, $threshold, $db_conn_A, $db_conn_B,
                       $timestamp_limit, $time_from, $time_to,
                       $time_increment, &$chart_unique, &$chart_total,
                       &$ignored, &$blacklisted) {
   
-  $stmt = mysqli_stmt_init($db_conn_s);
-  // customize algorithm to specific keys type
-  switch ($type) {
-    case "wifi_global":
-      $query = "SELECT last_time_seen FROM Clients WHERE
-               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND " . $db_q_standard . " AND (station_MAC = ?);";
-      mysqli_stmt_prepare($stmt, $query);
-      mysqli_stmt_bind_param($stmt, "s", $keys_value);
-      break;
-    case "wifi_local": 
-      $query = "SELECT last_time_seen FROM Clients WHERE
-               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = ?);";
-      mysqli_stmt_prepare($stmt, $query);
-      mysqli_stmt_bind_param($stmt, "s", $anagram_value);
-      break;
-    case "bt":
-      $query = "SELECT last_time_seen FROM Bluetooth WHERE
-               (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                AND (BD_ADDR = ?);";
-      mysqli_stmt_prepare($stmt, $query);
-      mysqli_stmt_bind_param($stmt, "s", $keys_value);
-      break;
-    default:
-      exit("function process_keys ERROR: Unknown type: " . $type);
-  }
-  
-  echo "<table style=\"border-collapse:collapse\">";
-
   foreach ($keys as $keys_key => $keys_value) {
-    // output keys with timestamps table
-    echo "<tr class=\"info\">";
-    if ($type == "wifi_local") {
-      echo "<td><tt>" . $keys_value[0] . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
-    } else {
-      echo "<td><tt>" . $keys_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
-    }
+
+  }
     
-    // Blacklist processing
-    if ($type == "wifi_local") {
-      $blacklist_retval = blacklisted($type, $keys_value[0], $blacklist);
-    } else {
-      $blacklist_retval = blacklisted($type, $keys_value, $blacklist);
-    }
-    switch ($blacklist_retval) {
-      case 0:
-        break;
-      case 1:
-        // blacklisted - end processing of key and go to next
-        echo "<td><tt style=\"color:orangered;\"><b>";
-        echo "Blacklisted";
-        echo "</b></tt></td>";
-        echo "</tr>";
-        $blacklisted++;
-        continue 2; // foreach keys
-        break;
-      default:
-        exit("function process_keys ERROR: error while processing blacklist");
-    }
-
-    // process MySQL query result
-    unset($key_timestamps);
-    if ($type == "wifi_local") {
-      // append all anagram timestamps to single array
-      foreach ($keys_value as $anagram_key => $anagram_value){
-        mysqli_stmt_execute($stmt);
-        $db_result = mysqli_stmt_get_result($stmt);
-        while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
-          $key_timestamps[] = $db_row["last_time_seen"];
-        }
-      }
-    } else {
-      // fill timestamps array for given key
-      mysqli_stmt_execute($stmt);
-      $db_result = mysqli_stmt_get_result($stmt);
-      while ($db_row = mysqli_fetch_array($db_result, MYSQLI_ASSOC)) {
-        $key_timestamps[] = $db_row["last_time_seen"];
-      }
-    
-    }
-    mysqli_free_result($db_result);
-    if (count($key_timestamps) > $timestamp_limit) {
-      // end processing of key - go to next
-      echo "<td><tt style=\"color:orangered;\"><b>";
-      echo "Number of timestamps over limit";
-      echo "</b></tt></td>";
-      echo "</tr>";
-      $ignored++;
-      continue; // foreach keys
-    }
-    sort($key_timestamps);
-
-    // build passages subarray based on key timestamps
-    // open timestamps <td>
-    echo "<td><tt>";
-    // first is always bold
-    echo "<b>" . $key_timestamps[0] . "</b> | ";
-    $key_passages[0] = $key_timestamps[0];
-    // loop every timestamp for current key
-    for ($i = 1; $i < count($key_timestamps); $i++){
-      if ((strtotime($key_timestamps[$i]) - strtotime($key_timestamps[$i-1]) > $threshold)) {
-        // output bold timestamp
-        echo "<b>" . $key_timestamps[$i] . "</b> | ";
-        $key_passages[] = $key_timestamps[$i];
-      } else {
-        // output normal timestamp
-        echo $key_timestamps[$i] . " | ";
-      }
-    }
-    // close timestamps <td>
-    echo "</tt></td>";
-    echo "</tr>";
-
-    // fill chart arrays based on passages subarray
-    $unique = 1;
-    // reset counters
-    $i = 0;
-    $time_actual = $time_from;
-    while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
-      // calculate next time value
-      $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-      // passage in current time step?
-      foreach ($key_passages as $pass_key => $pass_value){
-        if ((strtotime($pass_value) > strtotime($time_actual)) && (strtotime($pass_value) <= strtotime($time_next))){
-          $chart_total[$i]["y"] += 1;
-          if ($unique) {
-            $chart_unique[$i]["y"] += 1;
-            $unique = 0;
-          }
-        }
-      }
-      // moving to next time step
-      $unique = 1;
-      // increment counters
-      $i += 1;
-      $time_actual = $time_next;
-    }
-    // moving to next key
-    unset($key_passages);
-  } // end foreach keys
-  echo "</table><br>";
-  return 0;
 }
 
 // check if user input is correct
@@ -482,43 +364,57 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $mac_glbl_moved = 0;
   $mac_local_moved = 0;
   $bt_moved = 0;
+  $db_conn_A = mysqli_connect($db_server, $db_user, $db_pass, $db_source_A_mh);
+  $db_conn_B = mysqli_connect($db_server, $db_user, $db_pass, $db_source_B_mh);
 
   // fill key arrays
   // point A
   unset($A_macs);
   unset($A_fingerprints);
   unset($A_bd_addrs);
-  $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_A_mh);
   if ($show_wlan_mh == "1") {
     // GLOBAL MAC
     // every unique global MAC in time range 
-    get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $A_macs);
+    get_macs($db_conn_A, $time_from_mh, $time_to_mh, $db_q_standard, $A_macs);
     // LOCAL MAC
-    // every local MAC fingerprint
-    get_fingerprints("all", $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $A_fingerprints);
+    // every local MAC fingerprint in time range
+    get_fingerprints("all", $db_conn_A, $time_from_mh, $time_to_mh, $db_q_standard, $A_fingerprints);
   }
   if ($show_bt_mh == "1") {
     // every unique BD_ADDR in time range
-    get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, $A_bd_addrs);
+    get_bd_addrs($db_conn_B, $time_from_mh, $time_to_mh, $A_bd_addrs);
   }
 
   // point B
   unset($B_macs);
   unset($B_fingerprints);
   unset($B_bd_addrs);
-  $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_B_mh);
   if ($show_wlan_mh == "1") {
     // GLOBAL MAC
     // every unique global MAC in time range 
-    get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $B_macs);
+    get_macs($db_conn_B, $time_from_mh, $time_to_mh, $db_q_standard, $B_macs);
     // LOCAL MAC
-    // every local MAC fingerprint
-    get_fingerprints("all", $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, $B_fingerprints);
+    // every local MAC fingerprint in time range
+    get_fingerprints("all", $db_conn_B, $time_from_mh, $time_to_mh, $db_q_standard, $B_fingerprints);
   }
   if ($show_bt_mh == "1") {
     // every unique BD_ADDR in time range
-    get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, $B_bd_addrs);
+    get_bd_addrs($db_conn_B, $time_from_mh, $time_to_mh, $B_bd_addrs);
   }
+
+  unset($macs);
+  unset($fingerprints);
+  unset($bd_addrs);
+  // keep only keys that are in both databases
+  $macs         = in_both($A_macs, $B_macs);
+  $fingerprints = in_both($A_fingerprints, $B_fingerprints);
+  $bd_addrs     = in_both($A_bd_addrs, $B_bd_addrs);
+
+  // find movement for each key
+
+
+
+  // --------------------------------------------------------------------------- debug output
 
   echo "<br>point A<br>";
   echo "<br><br>macs A:<br>";
@@ -536,10 +432,18 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   echo "<br><br>bd_addrs B:<br>";
   var_dump($B_bd_addrs);
 
+  echo "<br><br><br>in both:<br>";
+  echo "<br><br>macs:<br>";
+  var_dump($macs);
+  echo "<br><br>fingerprints:<br>";
+  var_dump($fingerprints);
+  echo "<br><br>bd_addrs:<br>";
+  var_dump($bd_addrs);
   echo "<br><br>";
+
   die("debugging end");
 
-
+  // --------------------------------------------------------------------------- debug end
 
 
 
