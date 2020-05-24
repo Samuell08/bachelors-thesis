@@ -38,7 +38,8 @@ $specific_fp_chk_mh     = $_SESSION["specific_fp_chk_mh"];
 $specific_bt_chk_mh     = $_SESSION["specific_bt_chk_mh"];
 $specific_bt_mh         = $_SESSION["specific_bt_mh"];
 
-$debug_output = true;
+$debug_output = false;
+$debug_process_timestamps_output = false;
 
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
@@ -262,9 +263,16 @@ function process_timestamps($tsA, $tsB, $threshold, &$AB_movement,  &$BA_movemen
     $AB_tsB = $tsB;
     $BA_tsA = $tsA;
     $BA_tsB = $tsB;
-    $AB_min = timestamps_find_minimum($timestampsA, $timestampsB);
-    $BA_min = timestamps_find_minimum($timestampsB, $timestampsA);
+    $AB_min = timestamps_find_minimum($tsA, $tsB);
+    $BA_min = timestamps_find_minimum($tsB, $tsA);
     $total_min = min($AB_min, $BA_min);
+
+    if($debug_process_timestamps_output) {
+      echo "<br>AB_min: ".$AB_min."<br>";
+      echo "<br>BA_min: ".$BA_min."<br>";
+      echo "<br>total_min: ".$total_min."<br>";
+    }
+
     timestamps_unset_irrelevant($AB_tsA, $AB_tsB, $total_min);
     timestamps_unset_irrelevant($BA_tsB, $BA_tsA, $total_min);
     timestamps_find_movement($AB_tsA, $AB_tsB, $threshold, $AB_movement);
@@ -385,7 +393,24 @@ function process_keys($type, $db_q_standard, $keys,
     unset($AB_movement);
     unset($BA_movement);
 
+    if($debug_process_timestamps_output) {
+      echo "<br> key:<br>";
+      echo $keys_value . "<br>";
+    }
+
     process_timestamps($timestampsA, $timestampsB, $threshold, $AB_movement, $BA_movement);
+
+    if($debug_process_timestamps_output) {
+      echo "<br> timestampsA:<br>";
+      var_dump($timestampsA);
+      echo "<br> timestampsB:<br>";
+      var_dump($timestampsB);
+      echo "<br> AB_movement:<br>";
+      var_dump($AB_movement);
+      echo "<br> BA_movement:<br>";
+      var_dump($BA_movement);
+      echo "<br><br>";
+    }
 
     // fill Movement object and push it to output array
     $Movement_key = new Movement();
@@ -398,6 +423,38 @@ function process_keys($type, $db_q_standard, $keys,
 
   return $Movement_array;
     
+}
+
+function print_Movement_array($direction, $type, $Movement_array) {
+  echo "<table style=\"border-collapse:collapse\">";
+  foreach ($Movement_array as $Movement_key) {
+    echo "<tr class=\"info\">";
+    echo "<td><tt>" . $Movement_key->key . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    echo "<td>";
+      echo "<table>";
+      switch($direction){
+        case "AB":
+          foreach ($Movement_key->AB as $AB_array_p => $AB_array_v) {
+            echo "<tr>";
+            echo "<td><tt>" . $AB_array_v[0] . "<b> => </b>" . $AB_array_v[1] . "<b>(" . $AB_array_v[2]  . ") </b></td>";
+            echo "</tr>";
+          }
+          break;
+        case "BA":
+          foreach ($Movement_key->BA as $BA_array_p => $BA_array_v) {
+            echo "<tr>";
+            echo "<td><tt>" . $BA_array_v[0] . "<b> => </b>" . $BA_array_v[1] . "<b>(" . $BA_array_v[2]  . ") </b></td>";
+            echo "</tr>";
+          }
+          break;
+        default:
+          die("function print_Movement_array ERROR: Unknown direction: " . $direction);
+      }
+      echo "</table>";
+    echo "<td>";
+    echo "</tr>";
+  }
+  echo "</table>";
 }
 
 // check if user input is correct
@@ -560,6 +617,15 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
                                     $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                     $time_increment, $chart_unique, $chart_total,
                                     $ignored, $blacklisted);
+  
+  // text output of Movement array
+  echo "Movement from point A to point B:<br>";
+  print_Movement_array("AB", "wifi_global", $Movement_macs);
+
+  echo "<br>";
+  echo "Movement from point B to point A:<br>";
+  print_Movement_array("BA", "wifi_global", $Movement_macs);
+
   // --------------------------------------------------------------------------- debug output
 
   if ($debug_output){

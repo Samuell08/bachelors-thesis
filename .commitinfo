@@ -1,0 +1,6 @@
+Movement history - text output function implemented
+
+textout_history.php
+  - new debugging output implemented for function process_timestamps
+  - bugfix of process_timestamps function
+  - print_Movement_array function implemented
