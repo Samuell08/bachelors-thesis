@@ -555,6 +555,11 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
                                 $time_increment, $chart_unique, $chart_total,
                                 $ignored, $blacklisted);
 
+  $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
+                                    $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                    $timestamp_limit_mh, $time_from_mh, $time_to_mh,
+                                    $time_increment, $chart_unique, $chart_total,
+                                    $ignored, $blacklisted);
   // --------------------------------------------------------------------------- debug output
 
   if ($debug_output){
@@ -585,6 +590,10 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
     echo "<br>Movement_macs:<br><br>";
     var_dump($Movement_macs);
+    echo "<br><br>";
+
+    echo "<br>Movement_bd_addrs:<br><br>";
+    var_dump($Movement_bd_addrs);
     echo "<br><br>";
   }
   
