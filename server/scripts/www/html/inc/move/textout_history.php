@@ -426,6 +426,23 @@ function process_keys($type, $db_q_standard, $keys,
 }
 
 function print_Movement_array($direction, $type, $Movement_array) {
+
+  // TODO statistics table
+  
+  switch($type){
+    case "wifi_global":
+      echo "Wi-Fi devices with global MAC address:<br>";
+      break;
+    case "wifi_local":
+      echo "Wi-Fi devices with local MAC address:<br>";
+      break;
+    case "bt":
+      echo "Bluetooth devices:<br>";
+      break;
+    default:
+      die("function print_Movement_array ERROR: Unknown type: " . $type);
+  }
+
   echo "<table style=\"border-collapse:collapse\">";
   foreach ($Movement_array as $Movement_key) {
     echo "<tr class=\"info\">";
@@ -434,17 +451,45 @@ function print_Movement_array($direction, $type, $Movement_array) {
       echo "<table>";
       switch($direction){
         case "AB":
-          foreach ($Movement_key->AB as $AB_array_p => $AB_array_v) {
-            echo "<tr>";
-            echo "<td><tt>" . $AB_array_v[0] . "<b> => </b>" . $AB_array_v[1] . "<b>(" . $AB_array_v[2]  . ") </b></td>";
-            echo "</tr>";
+          if ($Movement_key->AB == NULL) {
+            echo "<tr style=\"color:orangered\"><td><tt>" . 
+                   "None" . 
+                 "</tt></td></tr>";
+          } else {
+            foreach ($Movement_key->AB as $AB_array_p => $AB_array_v) {
+              echo "<tr>";
+              echo "<td><tt>" . 
+                     $AB_array_v[0] . "<b> => </b>" . 
+                     $AB_array_v[1] . 
+                     "<b>(" . 
+                       round($AB_array_v[2], 2)  . " sec / " . 
+                       round($AB_array_v[2]/60, 2) . " min / " . 
+                       round($AB_array_v[2]/3600, 2) . " hod" .
+                     ")</b>" .
+                   "</tt></td>";
+              echo "</tr>";
+            }
           }
           break;
         case "BA":
-          foreach ($Movement_key->BA as $BA_array_p => $BA_array_v) {
-            echo "<tr>";
-            echo "<td><tt>" . $BA_array_v[0] . "<b> => </b>" . $BA_array_v[1] . "<b>(" . $BA_array_v[2]  . ") </b></td>";
-            echo "</tr>";
+          if ($Movement_key->BA == NULL) {
+            echo "<tr style=\"color:orangered\"><td><tt>" . 
+                   "None" . 
+                 "</tt></td></tr>";
+          } else {
+            foreach ($Movement_key->BA as $BA_array_p => $BA_array_v) {
+              echo "<tr>";
+              echo "<td><tt>" . 
+                     $BA_array_v[0] . "<b> => </b>" . 
+                     $BA_array_v[1] . 
+                     "<b>(" . 
+                       round($BA_array_v[2], 2)  . " sec / " . 
+                       round($BA_array_v[2]/60, 2) . " min / " . 
+                       round($BA_array_v[2]/3600, 2) . " hod" .
+                     ")</b>" .
+                   "</tt></td>";
+              echo "</tr>";
+            }
           }
           break;
         default:
@@ -619,11 +664,11 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
                                     $ignored, $blacklisted);
   
   // text output of Movement array
-  echo "Movement from point A to point B:<br>";
+  echo "<b>Movement from point A to point B:</b><br>";
   print_Movement_array("AB", "wifi_global", $Movement_macs);
 
   echo "<br>";
-  echo "Movement from point B to point A:<br>";
+  echo "<b>Movement from point B to point A:</b><br>";
   print_Movement_array("BA", "wifi_global", $Movement_macs);
 
   // --------------------------------------------------------------------------- debug output
