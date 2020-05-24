@@ -59,15 +59,15 @@ function in_both($A, $B){
   return $result;
 }
 
-function get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, &$macs) {
+function get_macs($db_conn, $time_from, $time_to, $db_q_standard, &$macs) {
   $db_q = "SELECT station_MAC FROM Clients WHERE
-          (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "') AND
+          (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "') AND
           (station_MAC LIKE '_0:__:__:__:__:__' OR
            station_MAC LIKE '_4:__:__:__:__:__' OR
            station_MAC LIKE '_8:__:__:__:__:__' OR
            station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
           "GROUP BY station_MAC;";
-  $db_result = mysqli_query($db_conn_s, $db_q);
+  $db_result = mysqli_query($db_conn, $db_q);
   // append result to macs
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
@@ -79,7 +79,7 @@ function get_macs($db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, &$macs
 
 // function finds every probed ESSIDs fingerprint and returns
 // 2D array (2nd dimension containing found anagrams)
-function get_fingerprints($mode, $db_conn_s, $time_from_mh, $time_to_mh, $db_q_standard, &$fingerprints) {
+function get_fingerprints($mode, $db_conn, $time_from, $time_to, $db_q_standard, &$fingerprints) {
 
   if ($mode == "specific") {
     $specific_mode_fp_mh   = $_SESSION["specific_mode_fp_mh"];
@@ -88,13 +88,13 @@ function get_fingerprints($mode, $db_conn_s, $time_from_mh, $time_to_mh, $db_q_s
 
   $db_q = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
           (LENGTH(probed_ESSIDs) > 18) AND
-          (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "') AND NOT
+          (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "') AND NOT
           (station_MAC LIKE '_0:__:__:__:__:__' OR
            station_MAC LIKE '_4:__:__:__:__:__' OR
            station_MAC LIKE '_8:__:__:__:__:__' OR
            station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
            "GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
-  $db_result = mysqli_query($db_conn_s, $db_q);
+  $db_result = mysqli_query($db_conn, $db_q);
   // append result to fingerprints
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
@@ -159,11 +159,11 @@ function get_fingerprints($mode, $db_conn_s, $time_from_mh, $time_to_mh, $db_q_s
   }
 }
 
-function get_bd_addrs($db_conn_s, $time_from_mh, $time_to_mh, &$bd_addrs) {
+function get_bd_addrs($db_conn, $time_from, $time_to, &$bd_addrs) {
   $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
-          (last_time_seen BETWEEN '" . $time_from_mh . "' AND '" . $time_to_mh . "')
+          (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
            GROUP BY BD_ADDR;";
-  $db_result = mysqli_query($db_conn_s, $db_q);
+  $db_result = mysqli_query($db_conn, $db_q);
   // append result to bd_addrs
   if (mysqli_num_rows($db_result) > 0) {
     while ($db_row = mysqli_fetch_assoc($db_result)) {
@@ -520,7 +520,7 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   }
   if ($show_bt_mh == "1") {
     // every unique BD_ADDR in time range
-    get_bd_addrs($db_conn_B, $time_from_mh, $time_to_mh, $A_bd_addrs);
+    get_bd_addrs($db_conn_A, $time_from_mh, $time_to_mh, $A_bd_addrs);
   }
 
   // point B
