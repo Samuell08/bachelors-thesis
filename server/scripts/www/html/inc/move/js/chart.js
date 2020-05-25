@@ -46,12 +46,11 @@ function buildChart() {
           var SEC = "0" + timestamp.getSeconds(); SEC = SEC.substr(-2);
 
           var content = YYYY + "-" + MM + "-" + DD + " " + HOD + ":" + MIN + ":" + SEC + "<hr>";
-          var totalWifi = -1;
           
           for (var i = 0; i < e.entries.length; i++) {
             var color;
             switch (e.entries[i].dataSeries.name) {
-              case nameAB: color = colorAB; totalWifi += e.entries[i].dataPoint.y; break;
+              case nameAB: color = colorAB; break;
               case nameBA: color = colorBA; break;
               default:     color = "#000000"; break;
             }
@@ -59,10 +58,6 @@ function buildChart() {
             content += "<br/>";
           }
 
-          totalWifi++; // init na -1
-          if (totalWifi > 0) {
-            content += "<hr>" + "total Wi-Fi: " + totalWifi;
-          }
           return content;
         }
     },

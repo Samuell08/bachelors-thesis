@@ -1,8 +1,8 @@
 function updateChart() {
-  var dps_wifi = readTextFile("json/chart_wifi_mh_" + session_id);
-  var dps_bt   = readTextFile("json/chart_bt_mh_" + session_id);
-  chart.options.data[0].dataPoints = JSON.parse(dps_wifi); 
-  chart.options.data[1].dataPoints = JSON.parse(dps_bt);
+  var dps_AB = readTextFile("json/chart_AB_mh_" + session_id);
+  var dps_BA = readTextFile("json/chart_BA_mh_" + session_id);
+  chart.options.data[0].dataPoints = JSON.parse(dps_AB); 
+  chart.options.data[1].dataPoints = JSON.parse(dps_BA);
   chart.render();
 }
 
