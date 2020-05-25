@@ -5,7 +5,11 @@ www:
   -> Import Period presunut do MySQL databazy - tabulka Information
 > pridat primary key autoincrement int a prerobit terajsi primary key na unique key?
 > passages - obrazok
-> movement history - osa Y - jednotky
+> spolocne funkcie pre textouty v jedno subore?? (mozno radsej nie)
+> passages history - reformatting kodu ako v movement
+> range - reformatting kodu ako v movement
+> movement history - spracovanie fingerprints
+> movement history - threshold
 
 bash:
 > node_service - výpis informácií o service v human friendly podobe
@@ -55,3 +59,4 @@ DONE:
 > Specific Keys - fingerprints - obsahuje tieto / obsahuje iba tieto
 > server_clone implementacia
 > node_udev vim -> nano
+> movement history - osa Y - jednotky
