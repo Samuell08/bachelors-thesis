@@ -10,6 +10,7 @@ www:
 > range - reformatting kodu ako v movement
 > movement history - spracovanie fingerprints
 > movement history - threshold
+> movement history - statistics table
 
 bash:
 > node_service - výpis informácií o service v human friendly podobe
