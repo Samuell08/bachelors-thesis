@@ -54,7 +54,12 @@ function buildChart() {
               case nameBA: color = colorBA; break;
               default:     color = "#000000"; break;
             }
-            content += "<span style='color:" + color + "'>" + e.entries[i].dataSeries.name + ": " + e.entries[i].dataPoint.y + "</span>";
+            content += "<span style='color:" + color + "'>" + 
+                         e.entries[i].dataSeries.name               + ":<br>" + 
+                         (e.entries[i].dataPoint.y).toFixed(2)      + " second(s)<br>" +
+                         (e.entries[i].dataPoint.y/60).toFixed(2)   + " minutes(s)<br>" +
+                         (e.entries[i].dataPoint.y/3600).toFixed(2) + " hour(s)" +
+                       "</span>";
             content += "<br/>";
           }
 
