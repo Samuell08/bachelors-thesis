@@ -38,8 +38,9 @@ $specific_fp_chk_mh     = $_SESSION["specific_fp_chk_mh"];
 $specific_bt_chk_mh     = $_SESSION["specific_bt_chk_mh"];
 $specific_bt_mh         = $_SESSION["specific_bt_mh"];
 
-$debug_output = false;
-$debug_process_timestamps_output = false;
+$_SESSION["debug_main"] = false;
+$_SESSION["debug_process_timestamps_output"] = false;
+$_SESSION["debug_chart_arrays"] = false;
 
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
@@ -58,6 +59,19 @@ function in_both($A, $B){
     }
   }
   return $result;
+}
+
+function prepare_chart_array($time_from, $time_to, $time_increment) {
+  // prepare chart arrays
+  $i = 0;
+  $time_actual = date('Y-m-d H:i:s', (strtotime($time_from) + $time_increment));
+  while (strtotime($time_actual) <= strtotime($time_to)) {
+    $chart_array[$i]["x"] = strtotime($time_actual)*1000;
+    $chart_array[$i]["y"] = 0;
+    $i += 1;
+    $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+  }
+  return $chart_array;
 }
 
 function get_macs($db_conn, $time_from, $time_to, $db_q_standard, &$macs) {
@@ -267,7 +281,7 @@ function process_timestamps($tsA, $tsB, $threshold, &$AB_movement,  &$BA_movemen
     $BA_min = timestamps_find_minimum($tsB, $tsA);
     $total_min = min($AB_min, $BA_min);
 
-    if($debug_process_timestamps_output) {
+    if($_SESSION["debug_process_timestamps_output"]) {
       echo "<br>AB_min: ".$AB_min."<br>";
       echo "<br>BA_min: ".$BA_min."<br>";
       echo "<br>total_min: ".$total_min."<br>";
@@ -393,14 +407,14 @@ function process_keys($type, $db_q_standard, $keys,
     unset($AB_movement);
     unset($BA_movement);
 
-    if($debug_process_timestamps_output) {
+    if($_SESSION["debug_process_timestamps_output"]) {
       echo "<br> key:<br>";
       echo $keys_value . "<br>";
     }
 
     process_timestamps($timestampsA, $timestampsB, $threshold, $AB_movement, $BA_movement);
 
-    if($debug_process_timestamps_output) {
+    if($_SESSION["debug_process_timestamps_output"]) {
       echo "<br> timestampsA:<br>";
       var_dump($timestampsA);
       echo "<br> timestampsB:<br>";
@@ -425,6 +439,8 @@ function process_keys($type, $db_q_standard, $keys,
     
 }
 
+// function accepts array of Movement objects and prints it to html based on
+// direction and type parameters
 function print_Movement_array($direction, $type, $Movement_array) {
 
   // TODO statistics table
@@ -500,6 +516,84 @@ function print_Movement_array($direction, $type, $Movement_array) {
     echo "</tr>";
   }
   echo "</table>";
+  echo "<br>";
+}
+
+function fill_chart_arrays($accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
+  
+  $chart_AB_size = count($chart_AB);
+  $chart_BA_size = count($chart_BA);
+  if ($chart_AB_size != $chart_BA_size){
+    die("function append_chart_arrays ERROR: AB and BA chart array sizes do not match");
+  } else {
+    $chart_array_size = $chart_AB_size;
+  }
+  
+  for ($i = 0; $i < $chart_array_size; $i++){
+    $chart_AB[$i]["y"] = array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]);
+    $chart_BA[$i]["y"] = array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]);
+  }
+
+  if ($_SESSION["debug_chart_arrays"]) {
+    echo "<hr>";
+    echo "function fill_chart_arrays done:<br>";
+    echo "chart AB:<br>";
+    var_dump($chart_AB);
+    echo "<br><br>";
+    echo "chart BA:<br>";
+    var_dump($chart_BA);
+    echo "<br>";
+  }
+}
+
+function accumulate_chart_arrays($time_from, $time_to, $time_increment, 
+                                 $Movement_array, &$accumulator_AB, &$accumulator_BA) {
+
+  if ($_SESSION["debug_chart_arrays"]) {
+    echo "<hr>";
+    echo "function accumulate_chart_arrays start:<br>";
+  }
+
+  foreach ($Movement_array as $Movement_key) {
+    // reset counters
+    $i = 0;
+    $time_actual = $time_from;
+    while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
+      // calculate next time value
+      $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+      // AB movement in current time step?
+      foreach ($Movement_key->AB as $AB_p => $AB_v){
+        if ((strtotime($AB_v[1]) > strtotime($time_actual)) && (strtotime($AB_v[1]) <= strtotime($time_next))){
+          if ($_SESSION["debug_chart_arrays"]) {
+            echo "AB - Key: " . $Movement_key->key . " ... Appending " . $AB_v[2] . " to timestamp " . $time_next . "<br>";
+          }
+          $accumulator_AB[$i][] = $AB_v[2]; // diff
+        }
+      }
+      // BA movement in current time step?
+      foreach ($Movement_key->BA as $BA_p => $BA_v){
+        if ((strtotime($BA_v[1]) > strtotime($time_actual)) && (strtotime($BA_v[1]) <= strtotime($time_next))){
+          if ($_SESSION["debug_chart_arrays"]) {
+            echo "BA - Key: " . $Movement_key->key . " ... Appending " . $BA_v[2] . " to timestamp " . $time_next . "<br>";
+          }
+          $accumulator_BA[$i][] = $BA_v[2]; // diff
+        }
+      }
+      // moving to next time step
+      // increment counters
+      $i += 1;
+      $time_actual = $time_next;
+    }
+  }
+
+  if ($_SESSION["debug_chart_arrays"]) {
+    echo "<br>function accumulate_chart_arrays done:<br>";
+    echo "acc AB:<br>";
+    var_dump($accumulator_AB);
+    echo "<br><br>";
+    echo "acc BA:<br>";
+    var_dump($accumulator_BA);
+  }
 }
 
 // check if user input is correct
@@ -576,34 +670,10 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
         "<br><br>";
 
   // prepare chart arrays
-  if ($show_wlan_mh == "1") {
-    $i = 0;
-    $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_mh) + $time_increment));
-    while (strtotime($time_actual) <= strtotime($time_to_mh)) {
-      $chart_wifi_unique_mh[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_wifi_unique_mh[$i]["y"] = 0;
-      $chart_wifi_total_mh[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_wifi_total_mh[$i]["y"] = 0;
-      $i += 1;
-      $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-    }
-  }
-  if ($show_bt_mh == "1") { 
-    $i = 0;
-    $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_mh) + $time_increment));
-    while (strtotime($time_actual) <= strtotime($time_to_mh)) {
-      $chart_bt_unique_mh[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_bt_unique_mh[$i]["y"] = 0;
-      $chart_bt_total_mh[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_bt_total_mh[$i]["y"] = 0;
-      $i += 1;
-      $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-    }
-  }
+  $chart_AB = prepare_chart_array($time_from_mh, $time_to_mh, $time_increment);
+  $chart_BA = prepare_chart_array($time_from_mh, $time_to_mh, $time_increment);
 
-  $mac_glbl_moved = 0;
-  $mac_local_moved = 0;
-  $bt_moved = 0;
+  // prepare database connections
   $db_conn_A = mysqli_connect($db_server, $db_user, $db_pass, $db_source_A_mh);
   $db_conn_B = mysqli_connect($db_server, $db_user, $db_pass, $db_source_B_mh);
 
@@ -666,14 +736,24 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   // text output of Movement array
   echo "<b>Movement from point A to point B:</b><br>";
   print_Movement_array("AB", "wifi_global", $Movement_macs);
+  print_Movement_array("AB", "bt", $Movement_bd_addrs);
 
   echo "<br>";
   echo "<b>Movement from point B to point A:</b><br>";
   print_Movement_array("BA", "wifi_global", $Movement_macs);
+  print_Movement_array("BA", "bt", $Movement_bd_addrs);
+
+  // fill chart arrays
+  unset($accumulator_AB);
+  unset($accumulator_BA);
+  accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
+  accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
+  fill_chart_arrays($accumulator_AB, $accumulator_BA, $chart_AB, $chart_BA);
+
 
   // --------------------------------------------------------------------------- debug output
 
-  if ($debug_output){
+  if ($_SESSION["debug_main"]) {
     echo "point A<br>";
     echo "<br>macs A:<br>";
     var_dump($A_macs);
