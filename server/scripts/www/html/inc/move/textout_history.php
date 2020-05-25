@@ -530,8 +530,16 @@ function fill_chart_arrays($accumulator_AB, $accumulator_BA, &$chart_AB, &$chart
   }
   
   for ($i = 0; $i < $chart_array_size; $i++){
-    $chart_AB[$i]["y"] = array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]);
-    $chart_BA[$i]["y"] = array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]);
+    if (is_null($accumulator_AB[$i])) {
+      $chart_AB[$i]["y"] = null;
+    } else {
+      $chart_AB[$i]["y"] = array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]);
+    }
+    if (is_null($accumulator_BA[$i])) {
+      $chart_BA[$i]["y"] = null;
+    } else {
+      $chart_BA[$i]["y"] = array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]);
+    }
   }
 
   if ($_SESSION["debug_chart_arrays"]) {
@@ -663,15 +671,9 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
     }
   }
   
-  // text output
-  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_mh)) . "</b>" .
-        " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_mh)) . "</b>" .
-        " with step of " . "<b>" . $time_step_mh . " " . strtolower($time_step_format_mh) . "(s)" . "</b>" .
-        "<br><br>";
-
   // prepare chart arrays
-  $chart_AB = prepare_chart_array($time_from_mh, $time_to_mh, $time_increment);
-  $chart_BA = prepare_chart_array($time_from_mh, $time_to_mh, $time_increment);
+  $chart_AB_mh = prepare_chart_array($time_from_mh, $time_to_mh, $time_increment);
+  $chart_BA_mh = prepare_chart_array($time_from_mh, $time_to_mh, $time_increment);
 
   // prepare database connections
   $db_conn_A = mysqli_connect($db_server, $db_user, $db_pass, $db_source_A_mh);
@@ -712,9 +714,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
     get_bd_addrs($db_conn_B, $time_from_mh, $time_to_mh, $B_bd_addrs);
   }
 
-  unset($macs);
-  unset($fingerprints);
-  unset($bd_addrs);
   // keep only keys that are in both databases
   $macs         = in_both($A_macs, $B_macs);
   $fingerprints = in_both($A_fingerprints, $B_fingerprints);
@@ -733,11 +732,15 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
                                     $time_increment, $chart_unique, $chart_total,
                                     $ignored, $blacklisted);
   
-  // text output of Movement array
+  // actual text output
+  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_mh)) . "</b>" .
+        " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_mh)) . "</b>" .
+        " with step of " . "<b>" . $time_step_mh . " " . strtolower($time_step_format_mh) . "(s)" . "</b>" .
+        "<br><br>";
+
   echo "<b>Movement from point A to point B:</b><br>";
   print_Movement_array("AB", "wifi_global", $Movement_macs);
   print_Movement_array("AB", "bt", $Movement_bd_addrs);
-
   echo "<br>";
   echo "<b>Movement from point B to point A:</b><br>";
   print_Movement_array("BA", "wifi_global", $Movement_macs);
@@ -748,7 +751,8 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   unset($accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
-  fill_chart_arrays($accumulator_AB, $accumulator_BA, $chart_AB, $chart_BA);
+  fill_chart_arrays($accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
+
 
 
   // --------------------------------------------------------------------------- debug output
@@ -788,109 +792,24 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
     echo "<br><br>";
   }
   
-  die("debugging end");
-
   // --------------------------------------------------------------------------- debug end
 
-
-
-  echo "<b>Statistics table is located at the bottom of the page</b>" . "<br><br>";
-
-  $total_passed = $mac_glbl_passed + $mac_local_passed + $bt_passed;
-
-  // ignored due to exceeding timestamp limit
-  $mac_glbl_ignored  = 0;
-  $mac_local_ignored = 0;
-  $bt_ignored        = 0;
-  // ignored due to being blacklisted
-  $mac_glbl_blacklisted  = 0;
-  $mac_local_blacklisted = 0;
-  $bt_blacklisted        = 0;
-
-  // keys processing
-  if ($total_passed > 0) {
-    foreach ($db_source_mh as $key => $value) {
-      echo "<b>Database: " . $value . "</b><br>";
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
-      if ($show_wlan_mh == "1") {
-        if ($mac_glbl_passed > 0) {
-          echo "Wi-Fi devices with global MAC address:<br>";
-          process_keys("wifi_global", $db_q_standard, $macs,
-                       $blacklist_wlan_mh, $db_conn_s, $threshold_seconds,
-                       $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                       $time_increment, $chart_wifi_unique_mh, $chart_wifi_total_mh,
-                       $mac_glbl_ignored, $mac_glbl_blacklisted);
-        }
-          if ($mac_local_passed > 0) {
-          echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $db_q_standard, $fingerprints,
-                       $blacklist_fp_mh, $db_conn_s, $threshold_seconds,
-                       $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                       $time_increment, $chart_wifi_unique_mh, $chart_wifi_total_mh,
-                       $mac_local_ignored, $mac_local_blacklisted);
-        }
-      }
-      if ($show_bt_mh == "1") {
-        if ($bt_passed > 0) {
-          echo "Bluetooth devices:<br>";        
-          process_keys("bt", "1", $bd_addrs,
-                       $blacklist_bt_mh, $db_conn_s, $threshold_seconds,
-                       $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                       $time_increment, $chart_bt_unique_mh, $chart_bt_total_mh,
-                       $bt_ignored, $bt_blacklisted);
-        }
-      }
-    }
+  if (!(json_encode($chart_AB_mh))) {
+    die ("JSON encoding of AB chart array ERROR: " . json_last_error_msg());
   }
-  
-  // text output table
-  if ($show_wlan_mh == "1") {
-    echo "<b>Wi-Fi</b><br>";
-    echo "<table class=\"textout\">";
-    echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" .
-                                        "</td><td>" .
-                                        $mac_glbl_passed . " - " .
-                                        $mac_glbl_ignored . " - " .
-                                        $mac_glbl_blacklisted . " = " .
-                                        "<b>" . ($mac_glbl_passed-$mac_glbl_ignored-$mac_glbl_blacklisted) .
-                                        "</b></td></tr>";
-    echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" .
-                                        "</td><td>" . $mac_local_passed . " - " .
-                                        $mac_local_ignored . " - " .
-                                        $mac_local_blacklisted . " = " .
-                                        "<b>" . ($mac_local_passed-$mac_local_ignored-$mac_local_blacklisted) .
-                                        "</b></td></tr>";
-    echo "</table>";
+  if (!(json_encode($chart_BA_mh))) {
+    die ("JSON encoding of BA chart array ERROR: " . json_last_error_msg());
   }
-  if ($show_bt_mh == "1") {
-    echo "<b>Bluetooth</b><br>";
-    echo "<table class=\"textout\">";
-    echo "<tr class=\"textout\"><td>" . "Devices:" .
-                                        "</td><td>" .
-                                        $bt_passed . " - " .
-                                        $bt_ignored . " - " .
-                                        $bt_blacklisted . " = " .
-                                        "<b>" . ($bt_passed-$bt_ignored-$bt_blacklisted) .
-                                        "</b></td></tr>";
-    echo "</table>";
-  }
-  echo "<br>" . "<b>Legend:</b> <i>passed - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }
-  $f_wifi_unique_mh = fopen($json_dir . "/chart_wifi_unique_mh_" . $session_id, "w");
-  $f_wifi_total_mh  = fopen($json_dir . "/chart_wifi_total_mh_" . $session_id, "w");
-  $f_bt_unique_mh   = fopen($json_dir . "/chart_bt_unique_mh_" . $session_id, "w");
-  $f_bt_total_mh    = fopen($json_dir . "/chart_bt_total_mh_" . $session_id, "w");
-  fwrite($f_wifi_unique_mh, json_encode($chart_wifi_unique_mh));
-  fwrite($f_wifi_total_mh,  json_encode($chart_wifi_total_mh));
-  fwrite($f_bt_unique_mh,   json_encode($chart_bt_unique_mh));
-  fwrite($f_bt_total_mh,    json_encode($chart_bt_total_mh));
-  fclose($f_wifi_unique_mh);
-  fclose($f_wifi_total_mh);
-  fclose($f_bt_unique_mh);
-  fclose($f_bt_total_mh);
+  $f_AB_mh = fopen($json_dir . "/chart_AB_mh_" . $session_id, "w");
+  $f_BA_mh = fopen($json_dir . "/chart_BA_mh_" . $session_id, "w");
+  fwrite($f_AB_mh, json_encode($chart_AB_mh));
+  fwrite($f_BA_mh, json_encode($chart_BA_mh));
+  fclose($f_AB_mh);
+  fclose($f_BA_mh);
 
   // algorithm execution end
   $alg_end = time();
