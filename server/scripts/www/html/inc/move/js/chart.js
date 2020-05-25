@@ -2,11 +2,11 @@ function buildChart() {
  
   session_id = /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 
-  nameWifi = "Wi-Fi";
-  nameBluetooth = "Bluetooth";
+  nameAB = "A->B";
+  nameBA = "B->A";
 
-  colorWifi = "#1b81e5";
-  colorBluetooth = "#061c33";
+  colorAB = "#1b81e5";
+  colorBA = "#061c33";
 
   chart = new CanvasJS.Chart("chartContainer", {
 
@@ -24,16 +24,10 @@ function buildChart() {
       labelAngle: -45
     },
     axisY: {
-      title: "Wi-Fi average time",
-      titleFontColor: colorWifi,
-      labelFontColor: colorWifi,
-      gridDashType: "dash",
-      tickThickness: 0
-    },
-    axisY2: {
-      title: "Bluetooth average time",
-      titleFontColor: colorBluetooth,
-      labelFontColor: colorBluetooth,
+      // TODO time units
+      title: "Average time",
+      titleFontColor: colorAB,
+      labelFontColor: colorAB,
       gridDashType: "dash",
       tickThickness: 0
     },
@@ -57,9 +51,9 @@ function buildChart() {
           for (var i = 0; i < e.entries.length; i++) {
             var color;
             switch (e.entries[i].dataSeries.name) {
-              case nameWifi:      color = colorWifi;      totalWifi += e.entries[i].dataPoint.y; break;
-              case nameBluetooth: color = colorBluetooth; break;
-              default:            color = "#000000"; break;
+              case nameAB: color = colorAB; totalWifi += e.entries[i].dataPoint.y; break;
+              case nameBA: color = colorBA; break;
+              default:     color = "#000000"; break;
             }
             content += "<span style='color:" + color + "'>" + e.entries[i].dataSeries.name + ": " + e.entries[i].dataPoint.y + "</span>";
             content += "<br/>";
@@ -78,8 +72,8 @@ function buildChart() {
     },
     data: [{
       type: "line",
-      name: nameWifi,
-      color: colorWifi,
+      name: nameAB,
+      color: colorAB,
       showInLegend: true,
       xValueType: "dateTime",
       xValueFormatString: "D.M H:mm:ss",
@@ -87,10 +81,8 @@ function buildChart() {
       dataPoints: [{"x":1000,"y":0}]
     },{
       type: "line",
-      axisYType: "secondary",
-      name: nameBluetooth,
-      color: colorBluetooth,
-      markerType: "square",
+      name: nameBA,
+      color: colorBA,
       showInLegend: true,
       xValueType: "dateTime",
       yValueFormatString: "#",
