@@ -24,8 +24,7 @@ function buildChart() {
       labelAngle: -45
     },
     axisY: {
-      // TODO time units
-      title: "Average time",
+      title: "Average time [minutes]", // must be same as format (below in toolTip function)
       titleFontColor: colorAB,
       labelFontColor: colorAB,
       gridDashType: "dash",
@@ -36,6 +35,11 @@ function buildChart() {
       cornerRadius: 15,
       fontWeight: "bold",
       contentFormatter: function (e) {
+
+          var format = "m"; // must be same as in PHP
+          var divisorS;
+          var divisorM;
+          var divisorH;          
 
           var timestamp = new Date(e.entries[0].dataPoint.x);
           var YYYY = timestamp.getFullYear();
@@ -54,11 +58,33 @@ function buildChart() {
               case nameBA: color = colorBA; break;
               default:     color = "#000000"; break;
             }
+            switch (format) {
+              case "s":
+                divisorS = 1;
+                divisorM = 60;
+                divisorH = 3600;
+                break;
+              case "m":
+                divisorS = 1/60;
+                divisorM = 1;
+                divisorH = 60;
+                break;
+              case "h":
+                divisorS = 1/3600;
+                divisorM = 1/60;
+                divisorH = 1;
+                break;
+              default:
+                divisorS = 1;
+                divisorM = 60;
+                divisorH = 3600;
+                break;
+            }
             content += "<span style='color:" + color + "'>" + 
-                         e.entries[i].dataSeries.name               + ":<br>" + 
-                         (e.entries[i].dataPoint.y).toFixed(2)      + " second(s)<br>" +
-                         (e.entries[i].dataPoint.y/60).toFixed(2)   + " minutes(s)<br>" +
-                         (e.entries[i].dataPoint.y/3600).toFixed(2) + " hour(s)" +
+                         e.entries[i].dataSeries.name                   + ":<br>" + 
+                         (e.entries[i].dataPoint.y/divisorS).toFixed(2) + " second(s)<br>" +
+                         (e.entries[i].dataPoint.y/divisorM).toFixed(2) + " minutes(s)<br>" +
+                         (e.entries[i].dataPoint.y/divisorH).toFixed(2) + " hour(s)" +
                        "</span>";
             content += "<br/>";
           }

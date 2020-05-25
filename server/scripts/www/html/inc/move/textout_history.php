@@ -519,27 +519,39 @@ function print_Movement_array($direction, $type, $Movement_array) {
   echo "<br>";
 }
 
-function fill_chart_arrays($accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
+function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
   
   $chart_AB_size = count($chart_AB);
   $chart_BA_size = count($chart_BA);
   if ($chart_AB_size != $chart_BA_size){
-    die("function append_chart_arrays ERROR: AB and BA chart array sizes do not match");
+    die("function fill_chart_arrays ERROR: AB and BA chart array sizes do not match");
   } else {
     $chart_array_size = $chart_AB_size;
   }
   
+  switch($format) {
+    case "s": $divisor = 1; break;
+    case "m": $divisor = 60; break;
+    case "h": $divisor = 3600; break;
+    default:
+      die("function fill_chart_arrays ERROR: Unknown format: ". $format);
+  }
+
+  
   for ($i = 0; $i < $chart_array_size; $i++){
+    
     if (is_null($accumulator_AB[$i])) {
       $chart_AB[$i]["y"] = null;
     } else {
-      $chart_AB[$i]["y"] = array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]);
+      $chart_AB[$i]["y"] = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
     }
+    
     if (is_null($accumulator_BA[$i])) {
       $chart_BA[$i]["y"] = null;
     } else {
-      $chart_BA[$i]["y"] = array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]);
+      $chart_BA[$i]["y"] = (array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]))/$divisor;
     }
+
   }
 
   if ($_SESSION["debug_chart_arrays"]) {
@@ -751,7 +763,7 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   unset($accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
-  fill_chart_arrays($accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
+  fill_chart_arrays("m", $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
 
 
 
