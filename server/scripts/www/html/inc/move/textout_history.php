@@ -50,11 +50,27 @@ function is_anagram($string1, $string2) {
 }
 
 // return array of values that are in both arrays
-function in_both($A, $B){
+function in_both($type, $A, $B){
   foreach ($A as $A_p => $A_v){
     foreach ($B as $B_p => $B_v){
-      if ($A_v == $B_v){
-        $result[] = $A_v;
+      switch($type) {
+        case "wifi_global": //fallthrough
+        case "bluetooth":
+          if ($A_v == $B_v){
+            $result[] = $A_v;
+          }
+          break;
+        case "wifi_local":
+          if (is_anagram($A_v[0], $B_v[0])) {
+            if (count($A_v) > count($B_v)) {
+              $result[] = $A_v;
+            } else {
+              $result[] = $B_v;
+            }
+          }
+          break;
+        default:
+          die("function in_both ERROR: Unknown type: " . $type);
       }
     }
   }
@@ -145,11 +161,11 @@ function get_fingerprints($mode, $db_conn, $time_from, $time_to, $db_q_standard,
               }
               break;
             default:
-              exit("function get_fingerprints ERROR: Unknown specific ESSID mode: " . $specific_mode_fp_mh);
+              die("function get_fingerprints ERROR: Unknown specific ESSID mode: " . $specific_mode_fp_mh);
           }
           break;
         default:
-          exit("function get_fingerprints ERROR: Unknown mode: " . $mode);
+          die("function get_fingerprints ERROR: Unknown mode: " . $mode);
       }
     }
     mysqli_free_result($db_result);
@@ -339,7 +355,7 @@ function blacklisted($type, $key, $blacklist) {
             if ($essids_blacklisted > 0) { return 1; }
             break;
           default:
-            exit("function blacklisted ERROR: Unknown local MAC mode: " . $blacklist_mode_fp_mh);
+            die("function blacklisted ERROR: Unknown local MAC mode: " . $blacklist_mode_fp_mh);
         }
       }
       break;
@@ -374,8 +390,7 @@ class Movement {
 function process_keys($type, $db_q_standard, $keys,
                       $blacklist, $threshold, $db_conn_A, $db_conn_B,
                       $timestamp_limit, $time_from, $time_to,
-                      $time_increment, &$chart_unique, &$chart_total,
-                      &$ignored, &$blacklisted) {
+                      $time_increment, &$ignored, &$blacklisted) {
   
   foreach ($keys as $keys_key => $keys_value) {
     
@@ -727,22 +742,20 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   }
 
   // keep only keys that are in both databases
-  $macs         = in_both($A_macs, $B_macs);
-  $fingerprints = in_both($A_fingerprints, $B_fingerprints);
-  $bd_addrs     = in_both($A_bd_addrs, $B_bd_addrs);
+  $macs         = in_both("wifi_global", $A_macs, $B_macs);
+  $fingerprints = in_both("wifi_local", $A_fingerprints, $B_fingerprints);
+  $bd_addrs     = in_both("bluetooth", $A_bd_addrs, $B_bd_addrs);
 
   // find movement for each key
   $Movement_macs = process_keys("wifi_global", $db_q_standard, $macs,
                                 $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                 $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                $time_increment, $chart_unique, $chart_total,
-                                $ignored, $blacklisted);
+                                $time_increment, $ignored, $blacklisted);
 
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
                                     $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                     $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                    $time_increment, $chart_unique, $chart_total,
-                                    $ignored, $blacklisted);
+                                    $time_increment, $ignored, $blacklisted);
   
   // actual text output
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_mh)) . "</b>" .
@@ -764,8 +777,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
   fill_chart_arrays("m", $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
-
-
 
   // --------------------------------------------------------------------------- debug output
 
