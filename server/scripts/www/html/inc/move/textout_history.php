@@ -595,9 +595,9 @@ function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB
   }
 
   if ($_SESSION["debug_chart_arrays"]) {
-    echo "<hr>";
+    echo "<hr><hr>";
     echo "function fill_chart_arrays done:<br>";
-    echo "chart AB:<br>";
+    echo "<br>chart AB:<br>";
     var_dump($chart_AB);
     echo "<br><br>";
     echo "chart BA:<br>";
@@ -625,7 +625,11 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
       foreach ($Movement_key->AB as $AB_p => $AB_v){
         if ((strtotime($AB_v[1]) > strtotime($time_actual)) && (strtotime($AB_v[1]) <= strtotime($time_next))){
           if ($_SESSION["debug_chart_arrays"]) {
-            echo "AB - Key: " . $Movement_key->key . " ... Appending " . $AB_v[2] . " to timestamp " . $time_next . "<br>";
+            if (is_scalar($Movement_key->key)) {
+              echo "AB - Key: " . $Movement_key->key . " ... Appending " . $AB_v[2] . " to timestamp " . $time_next . "<br>";
+            } else {
+              echo "AB - Key: " . $Movement_key->key[0] . " ... Appending " . $AB_v[2] . " to timestamp " . $time_next . "<br>";
+            }
           }
           $accumulator_AB[$i][] = $AB_v[2]; // diff
         }
@@ -634,7 +638,11 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
       foreach ($Movement_key->BA as $BA_p => $BA_v){
         if ((strtotime($BA_v[1]) > strtotime($time_actual)) && (strtotime($BA_v[1]) <= strtotime($time_next))){
           if ($_SESSION["debug_chart_arrays"]) {
-            echo "BA - Key: " . $Movement_key->key . " ... Appending " . $BA_v[2] . " to timestamp " . $time_next . "<br>";
+            if (is_scalar($Movement_key->key)) {
+              echo "BA - Key: " . $Movement_key->key . " ... Appending " . $BA_v[2] . " to timestamp " . $time_next . "<br>";
+            } else {
+              echo "BA - Key: " . $Movement_key->key[0] . " ... Appending " . $BA_v[2] . " to timestamp " . $time_next . "<br>";
+            }
           }
           $accumulator_BA[$i][] = $BA_v[2]; // diff
         }
@@ -807,6 +815,7 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   unset($accumulator_AB);
   unset($accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
+  accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_fingerprints, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
   fill_chart_arrays("m", $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
 
