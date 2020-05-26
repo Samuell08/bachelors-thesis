@@ -209,9 +209,19 @@ function get_timestamps($db_conn, $db_q){
   if (!$db_conn){
     die("function get_timestamps ERROR: Database connection failed");
   } else {
-    $db_result = mysqli_query($db_conn, $db_q);
-    while ($db_row = mysqli_fetch_assoc($db_result)){
-      $ts[] = $db_row["last_time_seen"];
+    if (is_scalar($db_q)) {
+      $db_result = mysqli_query($db_conn, $db_q);
+      while ($db_row = mysqli_fetch_assoc($db_result)){
+        $ts[] = $db_row["last_time_seen"];
+      }
+    } else {
+      // fingerprint has one or more anagrams
+      foreach ($db_q as $db_q_p => $db_q_v) {
+        $db_result = mysqli_query($db_conn, $db_q_v);
+        while ($db_row = mysqli_fetch_assoc($db_result)){
+          $ts[] = $db_row["last_time_seen"];
+        }
+      }
     }
   }
   return $ts;
@@ -401,10 +411,12 @@ function process_keys($type, $db_q_standard, $keys,
                 (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
                  AND " . $db_q_standard . " AND (station_MAC = '" . $keys_value . "');";
         break;
-      case "wifi_local": 
-        $db_q = "SELECT last_time_seen FROM Clients WHERE
-                (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                 AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = '" . $keys_value . "');";
+      case "wifi_local":
+        foreach ($keys_value as $anagram_p => $anagram_v) {
+          $db_q[] = "SELECT last_time_seen FROM Clients WHERE
+                    (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+                     AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = '" . $anagram_v . "');";
+        }
         break;
       case "bt":
         $db_q = "SELECT last_time_seen FROM Bluetooth WHERE
