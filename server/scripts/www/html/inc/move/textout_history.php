@@ -400,7 +400,8 @@ class Movement {
 function process_keys($type, $db_q_standard, $keys,
                       $blacklist, $threshold, $db_conn_A, $db_conn_B,
                       $timestamp_limit, $time_from, $time_to,
-                      $time_increment, &$ignored, &$blacklisted) {
+                      $time_increment, &$ignored, &$moved_AB, &$moved_BA,
+                      &$blacklisted) {
   
   foreach ($keys as $keys_key => $keys_value) {
     
@@ -453,6 +454,9 @@ function process_keys($type, $db_q_standard, $keys,
       echo "<br><br>";
     }
 
+    $moved_AB += count($AB_movement);
+    $moved_BA += count($BA_movement);
+
     // fill Movement object and push it to output array
     $Movement_key = new Movement();
     $Movement_key->key = $keys_value;
@@ -460,7 +464,7 @@ function process_keys($type, $db_q_standard, $keys,
     $Movement_key->BA = $BA_movement;
     $Movement_array[] = $Movement_key;
 
-  }
+  } // foreach key end
 
   return $Movement_array;
     
@@ -557,6 +561,43 @@ function print_Movement_array($direction, $type, $Movement_array) {
   }
   echo "</table>";
   echo "<br>";
+}
+
+function print_statistics_table($direction, $show_wlan, $show_bt,
+                                $mac_glbl_moved, $mac_glbl_ignored, $mac_glbl_blacklisted,
+                                $mac_local_moved, $mac_local_ignored, $mac_local_blacklisted,
+                                $bt_moved, $bt_ignored, $bt_blacklisted) {
+  if ($show_wlan == "1") {
+    echo "<b>Wi-Fi " . $direction . "</b><br>";
+    echo "<table class=\"textout\">";
+    echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" .
+                                        "</td><td>" .
+                                        $mac_glbl_moved . " - " .
+                                        $mac_glbl_ignored . " - " .
+                                        $mac_glbl_blacklisted . " = " .
+                                        "<b>" . ($mac_glbl_moved-$mac_glbl_ignored-$mac_glbl_blacklisted) .
+                                        "</b></td></tr>";
+    echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" .
+                                        "</td><td>" . 
+                                        $mac_local_moved . " - " .
+                                        $mac_local_ignored . " - " .
+                                        $mac_local_blacklisted . " = " .
+                                        "<b>" . ($mac_local_moved-$mac_local_ignored-$mac_local_blacklisted) .
+                                        "</b></td></tr>";
+    echo "</table>";
+  }
+  if ($show_bt == "1") {
+    echo "<b>Bluetooth " . $direction . "</b><br>";
+    echo "<table class=\"textout\">";
+    echo "<tr class=\"textout\"><td>" . "Devices:" .
+                                        "</td><td>" .
+                                        $bt_moved . " - " .
+                                        $bt_ignored . " - " .
+                                        $bt_blacklisted . " = " .
+                                        "<b>" . ($bt_moved-$bt_ignored-$bt_blacklisted) .
+                                        "</b></td></tr>";
+    echo "</table><br>";
+  }
 }
 
 function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
@@ -783,34 +824,21 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $Movement_macs = process_keys("wifi_global", $db_q_standard, $macs,
                                 $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                 $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                $time_increment, $ignored, $blacklisted);
+                                $time_increment, $ignored, $mac_glbl_moved_AB, $mac_glbl_moved_BA,
+                                $blacklisted);
 
   $Movement_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
                                         $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                         $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                        $time_increment, $ignored, $blacklisted);
+                                        $time_increment, $ignored, $mac_local_moved_AB, $mac_local_moved_BA,
+                                        $blacklisted);
 
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
                                     $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                     $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                    $time_increment, $ignored, $blacklisted);
+                                    $time_increment, $ignored, $bt_moved_AB, $bt_moved_BA,
+                                    $blacklisted);
   
-  // actual text output
-  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_mh)) . "</b>" .
-        " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_mh)) . "</b>" .
-        " with step of " . "<b>" . $time_step_mh . " " . strtolower($time_step_format_mh) . "(s)" . "</b>" .
-        "<br><br>";
-
-  echo "<b>Movement from point A to point B:</b><br>";
-  print_Movement_array("AB", "wifi_global", $Movement_macs);
-  print_Movement_array("AB", "wifi_local", $Movement_fingerprints);
-  print_Movement_array("AB", "bt", $Movement_bd_addrs);
-  echo "<br>";
-  echo "<b>Movement from point B to point A:</b><br>";
-  print_Movement_array("BA", "wifi_global", $Movement_macs);
-  print_Movement_array("BA", "wifi_local", $Movement_fingerprints);
-  print_Movement_array("BA", "bt", $Movement_bd_addrs);
-
   // fill chart arrays
   unset($accumulator_AB);
   unset($accumulator_BA);
@@ -818,6 +846,38 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_fingerprints, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
   fill_chart_arrays("m", $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
+
+  // actual text output starts here
+  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_mh)) . "</b>" .
+        " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_mh)) . "</b>" .
+        " with step of " . "<b>" . $time_step_mh . " " . strtolower($time_step_format_mh) . "(s)" . "</b>" .
+        "<br><br>";
+
+  echo "<b>Point A:</b> " . $db_source_A_mh . "<br>";
+  echo "<b>Point B:</b> " . $db_source_B_mh . "<br><br>";
+
+  // statistics table
+  print_statistics_table("A->B", $show_wlan_mh, $show_bt_mh,
+                                 $mac_glbl_moved_AB, 0, 0,
+                                 $mac_local_moved_AB, 0, 0,
+                                 $bt_moved_AB, 0, 0);
+
+  print_statistics_table("B->A", $show_wlan_mh, $show_bt_mh,
+                                 $mac_glbl_moved_BA, 0, 0,
+                                 $mac_local_moved_BA, 0, 0,
+                                 $bt_moved_BA, 0, 0);
+
+  echo "<b>Legend:</b> <i>moved - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
+
+  echo "<b>Movement from point A to point B:</b><br>";
+  print_Movement_array("AB", "wifi_global", $Movement_macs);
+  print_Movement_array("AB", "wifi_local", $Movement_fingerprints);
+  print_Movement_array("AB", "bt", $Movement_bd_addrs);
+
+  echo "<b>Movement from point B to point A:</b><br>";
+  print_Movement_array("BA", "wifi_global", $Movement_macs);
+  print_Movement_array("BA", "wifi_local", $Movement_fingerprints);
+  print_Movement_array("BA", "bt", $Movement_bd_addrs);
 
   // --------------------------------------------------------------------------- debug output
 
