@@ -8,7 +8,6 @@ www:
 > spolocne funkcie pre textouty v jedno subore?? (mozno radsej nie)
 > passages history - reformatting kodu ako v movement
 > range - reformatting kodu ako v movement
-> movement history - spracovanie fingerprints
 > movement history - threshold
 > movement history - statistics table
 
@@ -61,3 +60,4 @@ DONE:
 > server_clone implementacia
 > node_udev vim -> nano
 > movement history - osa Y - jednotky
+> movement history - spracovanie fingerprints
