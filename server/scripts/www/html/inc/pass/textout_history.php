@@ -599,7 +599,7 @@ if ($db_source_ph == NULL) {
     }
   }
   
-  // text output table
+  // statistics table
   if ($show_wlan_ph == "1") {
     echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
@@ -611,7 +611,8 @@ if ($db_source_ph == NULL) {
                                         "<b>" . ($mac_glbl_passed-$mac_glbl_ignored-$mac_glbl_blacklisted) .
                                         "</b></td></tr>";
     echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" .
-                                        "</td><td>" . $mac_local_passed . " - " .
+                                        "</td><td>" .
+                                        $mac_local_passed . " - " .
                                         $mac_local_ignored . " - " .
                                         $mac_local_blacklisted . " = " .
                                         "<b>" . ($mac_local_passed-$mac_local_ignored-$mac_local_blacklisted) .
