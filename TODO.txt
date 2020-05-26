@@ -9,7 +9,7 @@ www:
 > passages history - reformatting kodu ako v movement
 > range - reformatting kodu ako v movement
 > movement history - threshold
-> movement history - statistics table
+> movement history - blacklist a ignorelist
 
 bash:
 > node_service - výpis informácií o service v human friendly podobe
@@ -61,3 +61,4 @@ DONE:
 > node_udev vim -> nano
 > movement history - osa Y - jednotky
 > movement history - spracovanie fingerprints
+> movement history - statistics table
