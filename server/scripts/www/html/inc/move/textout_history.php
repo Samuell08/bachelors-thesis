@@ -488,8 +488,21 @@ function print_Movement_array($direction, $type, $Movement_array) {
 
   echo "<table style=\"border-collapse:collapse\">";
   foreach ($Movement_array as $Movement_key) {
+
+    switch($type){
+      case "wifi_global":
+      case "bt":
+        $key = $Movement_key->key;
+        break;
+      case "wifi_local":
+        $key = $Movement_key->key[0];
+        break;
+      default:
+        die("function print_Movement_array ERROR: Unknown type: " . $type);
+    }
+
     echo "<tr class=\"info\">";
-    echo "<td><tt>" . $Movement_key->key . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    echo "<td><tt>" . $key . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
     echo "<td>";
       echo "<table>";
       switch($direction){
@@ -764,6 +777,11 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
                                 $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                 $time_increment, $ignored, $blacklisted);
 
+  $Movement_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
+                                        $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                        $timestamp_limit_mh, $time_from_mh, $time_to_mh,
+                                        $time_increment, $ignored, $blacklisted);
+
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
                                     $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                     $timestamp_limit_mh, $time_from_mh, $time_to_mh,
@@ -777,10 +795,12 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   echo "<b>Movement from point A to point B:</b><br>";
   print_Movement_array("AB", "wifi_global", $Movement_macs);
+  print_Movement_array("AB", "wifi_local", $Movement_fingerprints);
   print_Movement_array("AB", "bt", $Movement_bd_addrs);
   echo "<br>";
   echo "<b>Movement from point B to point A:</b><br>";
   print_Movement_array("BA", "wifi_global", $Movement_macs);
+  print_Movement_array("BA", "wifi_local", $Movement_fingerprints);
   print_Movement_array("BA", "bt", $Movement_bd_addrs);
 
   // fill chart arrays
