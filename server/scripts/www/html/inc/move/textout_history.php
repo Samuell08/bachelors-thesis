@@ -413,6 +413,7 @@ function process_keys($type, $db_q_standard, $keys,
                  AND " . $db_q_standard . " AND (station_MAC = '" . $keys_value . "');";
         break;
       case "wifi_local":
+        unset($db_q);
         foreach ($keys_value as $anagram_p => $anagram_v) {
           $db_q[] = "SELECT last_time_seen FROM Clients WHERE
                     (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
@@ -428,17 +429,21 @@ function process_keys($type, $db_q_standard, $keys,
         die("function process_keys ERROR: Unknown type: " . $type);
     }
 
+    if($_SESSION["debug_process_timestamps_output"]) {
+      echo "<br> key:<br>";
+      if(is_scalar($keys_value)){
+        echo $keys_value . "<br>";
+      } else {
+        echo $keys_value[0] . "<br>";
+      }
+    }
+
     // get timestamps for key from database A and B
     $timestampsA = get_timestamps($db_conn_A, $db_q);
     $timestampsB = get_timestamps($db_conn_B, $db_q);
 
     unset($AB_movement);
     unset($BA_movement);
-
-    if($_SESSION["debug_process_timestamps_output"]) {
-      echo "<br> key:<br>";
-      echo $keys_value . "<br>";
-    }
 
     process_timestamps($timestampsA, $timestampsB, $threshold, $AB_movement, $BA_movement);
 
@@ -474,8 +479,6 @@ function process_keys($type, $db_q_standard, $keys,
 // direction and type parameters
 function print_Movement_array($direction, $type, $Movement_array) {
 
-  // TODO statistics table
-  
   switch($type){
     case "wifi_global":
       echo "Wi-Fi devices with global MAC address:<br>";
@@ -869,12 +872,12 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   echo "<b>Legend:</b> <i>moved - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
 
-  echo "<b>Movement from point A to point B:</b><br>";
+  echo "<b>Movement A->B:</b><br>";
   print_Movement_array("AB", "wifi_global", $Movement_macs);
   print_Movement_array("AB", "wifi_local", $Movement_fingerprints);
   print_Movement_array("AB", "bt", $Movement_bd_addrs);
 
-  echo "<b>Movement from point B to point A:</b><br>";
+  echo "<b>Movement B->A:</b><br>";
   print_Movement_array("BA", "wifi_global", $Movement_macs);
   print_Movement_array("BA", "wifi_local", $Movement_fingerprints);
   print_Movement_array("BA", "bt", $Movement_bd_addrs);
