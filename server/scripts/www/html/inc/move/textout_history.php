@@ -405,6 +405,31 @@ function process_keys($type, $db_q_standard, $keys,
   
   foreach ($keys as $keys_key => $keys_value) {
     
+    // new movement object for every key
+    $Movement_key = new Movement();
+
+    // Blacklist processing
+    if ($type == "wifi_local") {
+      $blacklist_retval = blacklisted($type, $keys_value[0], $blacklist);
+    } else {
+      $blacklist_retval = blacklisted($type, $keys_value, $blacklist);
+    }
+    switch ($blacklist_retval) {
+      case 0:
+        break;
+      case 1:
+        // blacklisted - end processing of key and go to next
+        // fill Movement object and push it to output array
+        $Movement_key->key = $keys_value;
+        $Movement_key->blacklisted = 1;
+        $Movement_array[] = $Movement_key;
+        $blacklisted++;
+        continue 2; // foreach keys
+        break;
+      default:
+        exit("function process_keys ERROR: error while processing blacklist");
+    }
+
     // customize algorithm to specific keys type
     switch ($type) {
       case "wifi_global":
@@ -437,7 +462,7 @@ function process_keys($type, $db_q_standard, $keys,
         echo $keys_value[0] . "<br>";
       }
     }
-
+    
     // get timestamps for key from database A and B
     $timestampsA = get_timestamps($db_conn_A, $db_q);
     $timestampsB = get_timestamps($db_conn_B, $db_q);
@@ -463,7 +488,6 @@ function process_keys($type, $db_q_standard, $keys,
     $moved_BA += count($BA_movement);
 
     // fill Movement object and push it to output array
-    $Movement_key = new Movement();
     $Movement_key->key = $keys_value;
     $Movement_key->AB = $AB_movement;
     $Movement_key->BA = $BA_movement;
@@ -512,52 +536,61 @@ function print_Movement_array($direction, $type, $Movement_array) {
     echo "<td><tt>" . $key . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
     echo "<td>";
       echo "<table>";
-      switch($direction){
-        case "AB":
-          if ($Movement_key->AB == NULL) {
-            echo "<tr style=\"color:orangered\"><td><tt>" . 
-                   "None" . 
-                 "</tt></td></tr>";
-          } else {
-            foreach ($Movement_key->AB as $AB_array_p => $AB_array_v) {
-              echo "<tr>";
-              echo "<td><tt>" . 
-                     $AB_array_v[0] . "<b> => </b>" . 
-                     $AB_array_v[1] . 
-                     "<b>(" . 
-                       round($AB_array_v[2], 2)  . " sec / " . 
-                       round($AB_array_v[2]/60, 2) . " min / " . 
-                       round($AB_array_v[2]/3600, 2) . " hod" .
-                     ")</b>" .
-                   "</tt></td>";
-              echo "</tr>";
+      if ($Movement_key->blacklisted == 1) {
+
+        echo "<tr style=\"color:orangered\"><td><tt>" . 
+               "Blacklisted" . 
+             "</tt></td></tr>";
+      
+      } else {
+
+        switch($direction){
+          case "AB":
+            if ($Movement_key->AB == NULL) {
+              echo   "<tr style=\"color:orangered\"><td><tt>" . 
+                     "None" . 
+                   "</tt></td></tr>";
+            } else {
+              foreach ($Movement_key->AB as $AB_array_p => $AB_array_v) {
+                echo "<tr>";
+                echo "<td><tt>" . 
+                       $AB_array_v[0] . "<b> => </b>" . 
+                       $AB_array_v[1] . 
+                       "<b>(" . 
+                         round($AB_array_v[2], 2)  . " sec / " . 
+                         round($AB_array_v[2]/60, 2) . " min / " . 
+                         round($AB_array_v[2]/3600, 2) . " hod" .
+                       ")</b>" .
+                     "</tt></td>";
+                echo "</tr>";
+              }
             }
-          }
-          break;
-        case "BA":
-          if ($Movement_key->BA == NULL) {
-            echo "<tr style=\"color:orangered\"><td><tt>" . 
-                   "None" . 
-                 "</tt></td></tr>";
-          } else {
-            foreach ($Movement_key->BA as $BA_array_p => $BA_array_v) {
-              echo "<tr>";
-              echo "<td><tt>" . 
-                     $BA_array_v[0] . "<b> => </b>" . 
-                     $BA_array_v[1] . 
-                     "<b>(" . 
-                       round($BA_array_v[2], 2)  . " sec / " . 
-                       round($BA_array_v[2]/60, 2) . " min / " . 
-                       round($BA_array_v[2]/3600, 2) . " hod" .
-                     ")</b>" .
-                   "</tt></td>";
-              echo "</tr>";
+            break;
+          case "BA":
+            if ($Movement_key->BA == NULL) {
+              echo "<tr style=\"color:orangered\"><td><tt>" . 
+                     "None" . 
+                   "</tt></td></tr>";
+            } else {
+              foreach ($Movement_key->BA as $BA_array_p => $BA_array_v) {
+                echo "<tr>";
+                echo "<td><tt>" . 
+                       $BA_array_v[0] . "<b> => </b>" . 
+                       $BA_array_v[1] . 
+                       "<b>(" . 
+                         round($BA_array_v[2], 2)  . " sec / " . 
+                         round($BA_array_v[2]/60, 2) . " min / " . 
+                         round($BA_array_v[2]/3600, 2) . " hod" .
+                       ")</b>" .
+                     "</tt></td>";
+                echo "</tr>";
+              }
             }
-          }
-          break;
-        default:
-          die("function print_Movement_array ERROR: Unknown direction: " . $direction);
-      }
+            break;
+          default:
+            die("function print_Movement_array ERROR: Unknown direction: " . $direction);
+        } // switch direction end
+      } // if blacklisted end
       echo "</table>";
     echo "<td>";
     echo "</tr>";
@@ -828,19 +861,19 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
                                 $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                 $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                 $time_increment, $ignored, $mac_glbl_moved_AB, $mac_glbl_moved_BA,
-                                $blacklisted);
+                                $mac_glbl_blacklisted);
 
   $Movement_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
-                                        $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                        $blacklist_fp_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                         $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                         $time_increment, $ignored, $mac_local_moved_AB, $mac_local_moved_BA,
-                                        $blacklisted);
+                                        $mac_local_blacklisted);
 
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
-                                    $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                    $blacklist_bt_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                     $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                     $time_increment, $ignored, $bt_moved_AB, $bt_moved_BA,
-                                    $blacklisted);
+                                    $bt_blacklisted);
   
   // fill chart arrays
   unset($accumulator_AB);
@@ -861,12 +894,12 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   // statistics table
   print_statistics_table("A->B", $show_wlan_mh, $show_bt_mh,
-                                 $mac_glbl_moved_AB, 0, 0,
+                                 $mac_glbl_moved_AB, 0, $mac_glbl_blacklisted,
                                  $mac_local_moved_AB, 0, 0,
                                  $bt_moved_AB, 0, 0);
 
   print_statistics_table("B->A", $show_wlan_mh, $show_bt_mh,
-                                 $mac_glbl_moved_BA, 0, 0,
+                                 $mac_glbl_moved_BA, 0, $mac_glbl_blacklisted,
                                  $mac_local_moved_BA, 0, 0,
                                  $bt_moved_BA, 0, 0);
 

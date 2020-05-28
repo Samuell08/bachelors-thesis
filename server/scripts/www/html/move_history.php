@@ -165,8 +165,6 @@ if(!$db_conn){
               </table>
             </div>
 
-            <!--
-
             <br>
             
             <div class="div_subcontent">
@@ -196,8 +194,6 @@ if(!$db_conn){
                 <tr><td><textarea name="specific_bt_mh" cols="60" rows="1"><?php echo $specific_bt_mh?></textarea></td></tr>
               </table>
             </div>
-
-            -->
 
             <br><button type="submit">Submit</button>
 
