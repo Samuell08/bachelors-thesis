@@ -42,6 +42,16 @@ $_SESSION["debug_main"] = false;
 $_SESSION["debug_process_timestamps_output"] = false;
 $_SESSION["debug_chart_arrays"] = false;
 
+class Movement {
+  public $key = NULL; // MAC, fingerprint or BD_ADDR
+  public $blacklisted = 0; // if 1, key is blacklisted
+  public $AB; // 2D array A | B | diff
+  public $BA; // 2D array B | A | diff
+}
+
+// Function accepts two strings and
+// returns: 0 - strings are NOT anagrams
+//          1 - strings are anagrams
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
     return 1;
@@ -49,7 +59,8 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
-// return array of values that are in both arrays
+// Function accepts two arrays of keys and returns
+// array of keys that are in both arrays.
 function in_both($type, $A, $B){
   foreach ($A as $A_p => $A_v){
     foreach ($B as $B_p => $B_v){
@@ -77,8 +88,11 @@ function in_both($type, $A, $B){
   return $result;
 }
 
+// Function accepts time parameters from Settings form and builds
+// array that will be accepted by charts.
+// axis x - time
+// axis y - values (default = 0)
 function prepare_chart_array($time_from, $time_to, $time_increment) {
-  // prepare chart arrays
   $i = 0;
   $time_actual = date('Y-m-d H:i:s', (strtotime($time_from) + $time_increment));
   while (strtotime($time_actual) <= strtotime($time_to)) {
@@ -90,6 +104,8 @@ function prepare_chart_array($time_from, $time_to, $time_increment) {
   return $chart_array;
 }
 
+// Function accepts time parameters and wlan standard from Settings form and 
+// returns all GLOBAL MAC addresses within given time range.
 function get_macs($db_conn, $time_from, $time_to, $db_q_standard, &$macs) {
   $db_q = "SELECT station_MAC FROM Clients WHERE
           (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "') AND
@@ -108,8 +124,11 @@ function get_macs($db_conn, $time_from, $time_to, $db_q_standard, &$macs) {
   mysqli_free_result($db_result);
 }
 
-// function finds every probed ESSIDs fingerprint and returns
-// 2D array (2nd dimension containing found anagrams)
+// Function accepts time parameters and wlan standard from Settings form and
+// returns every probed ESSIDs fingerprint as 2D array
+// (2nd dimension containing found anagrams):
+// a,b,c | c,b,a | a,c,b
+// x,y,z | x,y 
 function get_fingerprints($mode, $db_conn, $time_from, $time_to, $db_q_standard, &$fingerprints) {
 
   if ($mode == "specific") {
@@ -190,6 +209,8 @@ function get_fingerprints($mode, $db_conn, $time_from, $time_to, $db_q_standard,
   }
 }
 
+// Function accepts time parameters from Settings form and
+// returns all BD_ADDR addresses within given time range.
 function get_bd_addrs($db_conn, $time_from, $time_to, &$bd_addrs) {
   $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
           (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
@@ -204,6 +225,9 @@ function get_bd_addrs($db_conn, $time_from, $time_to, &$bd_addrs) {
   mysqli_free_result($db_result);
 }
 
+// Function accepts database connection and query (1D array of queries 
+// in case of local MAC probed ESSID fingerprint with anagrams) and returns
+// all last_time_seen timestamps.
 function get_timestamps($db_conn, $db_q){
   unset($ts);
   if (!$db_conn){
@@ -227,8 +251,8 @@ function get_timestamps($db_conn, $db_q){
   return $ts;
 }
 
-// function accepts two arrays of timestamps and finds minimum time
-// of movement from first to second in seconds
+// Function accepts two arrays of timestamps and finds minimum time
+// of movement from first to second in seconds.
 function timestamps_find_minimum($tsA, $tsB){
   $min_AB = PHP_INT_MAX;
   foreach ($tsA as $tsA_p => $tsA_v){
@@ -244,11 +268,10 @@ function timestamps_find_minimum($tsA, $tsB){
   return $min_AB;
 }
 
-// function accepts two arrays of timestamps and unsets timestamps
-// that are too close together according to total minimum passage time
-//
-// first array is considered as time of departure therefore the highest times are kept
-// second array is considered as time of arrival therefore the lowest times are kept
+// Function accepts two arrays of timestamps and unsets timestamps
+// that are too close together according to total minimum passage time.
+// First array is considered as time of departure therefore the highest times are kept.
+// Second array is considered as time of arrival therefore the lowest times are kept.
 function timestamps_unset_irrelevant(&$tsA, &$tsB, $total_min){
   unset($unset);
   // A
@@ -276,11 +299,14 @@ function timestamps_unset_irrelevant(&$tsA, &$tsB, $total_min){
   }
 }
 
-// functions accepts two arrays of timestamps and threshold and returns
-// 2D array of movement as first | second | diff
-// values are added to array only when time difference is lower that threshold
-// timestamps need to be sanitized before calling this function - as seen in
-// function process_timestamps
+// Functions accepts two arrays of timestamps and threshold and returns
+// 2D array of movement as:
+// first | second | diff
+// first | second | diff
+//
+// Values are added to array only when time difference is lower than threshold.
+// Timestamps need to be sanitized before calling this function - as seen in
+// function process_timestamps.
 function timestamps_find_movement($tsA, $tsB, $threshold, &$movement){
   foreach ($tsA as $tsA_i => $tsA_v){
     foreach ($tsB as $tsB_i => $tsB_v){
@@ -295,8 +321,10 @@ function timestamps_find_movement($tsA, $tsB, $threshold, &$movement){
   }        
 }
 
-// function accepts two raw arrays of timestamps from database query
-// and threshold and returns 2D array of movement as first | second | diff
+// Function accepts two raw arrays of timestamps from database query
+// and threshold and returns 2D array of movement as:
+// first | second | diff
+// first | second | diff
 function process_timestamps($tsA, $tsB, $threshold, &$AB_movement,  &$BA_movement){
     // local copies of fingerprints that will be modified
     $AB_tsA = $tsA;
@@ -319,11 +347,10 @@ function process_timestamps($tsA, $tsB, $threshold, &$AB_movement,  &$BA_movemen
     timestamps_find_movement($BA_tsB, $BA_tsA, $threshold, $BA_movement);
 }
 
-// function accepts list of keys (eg. MAC addresses) and compares
-// it to blacklist (echoing 'Blacklisted' instead of timestamps)
+// Function accepts list of keys (eg. MAC addresses) and compares
+// it to blacklist.
 // returns:  0 - key not blacklisted
 //           1 - key blacklisted
-//          -1 - unknown type
 function blacklisted($type, $key, $blacklist) {
   
   $blacklist_wlan_chk_mh  = $_SESSION["blacklist_wlan_chk_mh"];
@@ -382,21 +409,13 @@ function blacklisted($type, $key, $blacklist) {
       break;
 
     default:
-      return -1;
+      die("function blacklisted ERROR: Unknown type: " . $type);
   }
   return 0;
 }
 
-class Movement {
-  // properties
-  public $key = NULL; // MAC, fingerprint or BD_ADDR
-  public $blacklisted = 0; // if 1, key is blacklisted
-  public $AB; // 2D array A | B | diff
-  public $BA; // 2D array B | A | diff
-}
-
-// function accepts list of MAC/BD_ADDR addresses or 2D array of
-// probed ESSIDs fingerprints and returns array of Movement classes
+// Function accepts list of MAC/BD_ADDR addresses or 2D array of
+// probed ESSIDs fingerprints and returns array of Movement classes.
 function process_keys($type, $db_q_standard, $keys,
                       $blacklist, $threshold, $db_conn_A, $db_conn_B,
                       $timestamp_limit, $time_from, $time_to,
@@ -499,8 +518,8 @@ function process_keys($type, $db_q_standard, $keys,
     
 }
 
-// function accepts array of Movement objects and prints it to html based on
-// direction and type parameters
+// Function accepts array of Movement objects and prints it to HTML based on
+// direction and type parameters.
 function print_Movement_array($direction, $type, $Movement_array) {
 
   switch($type){
@@ -599,6 +618,7 @@ function print_Movement_array($direction, $type, $Movement_array) {
   echo "<br>";
 }
 
+// Function accepts statistics data and prints it to HTML
 function print_statistics_table($show_wlan, $show_bt,
                                 $moved_total_AB, $moved_total_BA,
                                 $mac_glbl_moved, $mac_glbl_ignored, $mac_glbl_blacklisted,
@@ -644,53 +664,9 @@ function print_statistics_table($show_wlan, $show_bt,
   echo "<b>Total number of processed movements combined: </b>" . $moved_total . "<br><br>";
 }
 
-function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
-  
-  $chart_AB_size = count($chart_AB);
-  $chart_BA_size = count($chart_BA);
-  if ($chart_AB_size != $chart_BA_size){
-    die("function fill_chart_arrays ERROR: AB and BA chart array sizes do not match");
-  } else {
-    $chart_array_size = $chart_AB_size;
-  }
-  
-  switch($format) {
-    case "s": $divisor = 1; break;
-    case "m": $divisor = 60; break;
-    case "h": $divisor = 3600; break;
-    default:
-      die("function fill_chart_arrays ERROR: Unknown format: ". $format);
-  }
-
-  
-  for ($i = 0; $i < $chart_array_size; $i++){
-    
-    if (is_null($accumulator_AB[$i])) {
-      $chart_AB[$i]["y"] = null;
-    } else {
-      $chart_AB[$i]["y"] = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
-    }
-    
-    if (is_null($accumulator_BA[$i])) {
-      $chart_BA[$i]["y"] = null;
-    } else {
-      $chart_BA[$i]["y"] = (array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]))/$divisor;
-    }
-
-  }
-
-  if ($_SESSION["debug_chart_arrays"]) {
-    echo "<hr><hr>";
-    echo "function fill_chart_arrays done:<br>";
-    echo "<br>chart AB:<br>";
-    var_dump($chart_AB);
-    echo "<br><br>";
-    echo "chart BA:<br>";
-    var_dump($chart_BA);
-    echo "<br>";
-  }
-}
-
+// Function takes time parameters from Settings form and
+// accumulates values from Movement class array into two arrays
+// (one for each direction).
 function accumulate_chart_arrays($time_from, $time_to, $time_increment, 
                                  $Movement_array, &$accumulator_AB, &$accumulator_BA) {
 
@@ -746,6 +722,55 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
     echo "<br><br>";
     echo "acc BA:<br>";
     var_dump($accumulator_BA);
+  }
+}
+
+// Functions accepts accumulated arrays for both directions and fills pre-build chart arrays.
+// Input "format" specifies time scale.
+function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
+  
+  $chart_AB_size = count($chart_AB);
+  $chart_BA_size = count($chart_BA);
+  if ($chart_AB_size != $chart_BA_size){
+    die("function fill_chart_arrays ERROR: AB and BA chart array sizes do not match");
+  } else {
+    $chart_array_size = $chart_AB_size;
+  }
+  
+  switch($format) {
+    case "s": $divisor = 1; break;
+    case "m": $divisor = 60; break;
+    case "h": $divisor = 3600; break;
+    default:
+      die("function fill_chart_arrays ERROR: Unknown format: ". $format);
+  }
+
+  
+  for ($i = 0; $i < $chart_array_size; $i++){
+    
+    if (is_null($accumulator_AB[$i])) {
+      $chart_AB[$i]["y"] = null;
+    } else {
+      $chart_AB[$i]["y"] = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
+    }
+    
+    if (is_null($accumulator_BA[$i])) {
+      $chart_BA[$i]["y"] = null;
+    } else {
+      $chart_BA[$i]["y"] = (array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]))/$divisor;
+    }
+
+  }
+
+  if ($_SESSION["debug_chart_arrays"]) {
+    echo "<hr><hr>";
+    echo "function fill_chart_arrays done:<br>";
+    echo "<br>chart AB:<br>";
+    var_dump($chart_AB);
+    echo "<br><br>";
+    echo "chart BA:<br>";
+    var_dump($chart_BA);
+    echo "<br>";
   }
 }
 
@@ -823,6 +848,8 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   unset($B_macs);
   unset($B_fingerprints);
   unset($B_bd_addrs);
+  unset($accumulator_AB);
+  unset($accumulator_BA);
   $moved_total_AB = 0;
   $moved_total_BA = 0;
   $mac_glbl_blacklisted = 0;
@@ -895,8 +922,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $bt_moved = count($Movement_bd_addrs);
   
   // fill chart arrays
-  unset($accumulator_AB);
-  unset($accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_fingerprints, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
@@ -936,6 +961,8 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   if ($show_bt_mh == "1") {
     print_Movement_array("BA", "bt", $Movement_bd_addrs);
   }
+
+  // end of text output
 
   // --------------------------------------------------------------------------- debug output
 
