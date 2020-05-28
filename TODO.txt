@@ -9,7 +9,7 @@ www:
 > passages history - reformatting kodu ako v movement
 > range - reformatting kodu ako v movement
 > movement history - threshold
-> movement history - blacklist a ignorelist
+> movement history - blacklist a specific list
 
 bash:
 > node_service - výpis informácií o service v human friendly podobe
@@ -62,3 +62,4 @@ DONE:
 > movement history - osa Y - jednotky
 > movement history - spracovanie fingerprints
 > movement history - statistics table
+> movement history - timestamp limit
