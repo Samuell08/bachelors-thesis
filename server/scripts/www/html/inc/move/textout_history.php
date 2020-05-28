@@ -400,14 +400,14 @@ class Movement {
 function process_keys($type, $db_q_standard, $keys,
                       $blacklist, $threshold, $db_conn_A, $db_conn_B,
                       $timestamp_limit, $time_from, $time_to,
-                      $time_increment, &$ignored, &$moved_AB, &$moved_BA,
+                      $time_increment, &$ignored, &$moved_total_AB, &$moved_total_BA,
                       &$blacklisted) {
   
   foreach ($keys as $keys_key => $keys_value) {
     
     // new movement object for every key
     $Movement_key = new Movement();
-
+    
     // Blacklist processing
     if ($type == "wifi_local") {
       $blacklist_retval = blacklisted($type, $keys_value[0], $blacklist);
@@ -484,8 +484,8 @@ function process_keys($type, $db_q_standard, $keys,
       echo "<br><br>";
     }
 
-    $moved_AB += count($AB_movement);
-    $moved_BA += count($BA_movement);
+    $moved_total_AB += count($AB_movement);
+    $moved_total_BA += count($BA_movement);
 
     // fill Movement object and push it to output array
     $Movement_key->key = $keys_value;
@@ -599,12 +599,13 @@ function print_Movement_array($direction, $type, $Movement_array) {
   echo "<br>";
 }
 
-function print_statistics_table($direction, $show_wlan, $show_bt,
+function print_statistics_table($show_wlan, $show_bt,
+                                $moved_total_AB, $moved_total_BA,
                                 $mac_glbl_moved, $mac_glbl_ignored, $mac_glbl_blacklisted,
                                 $mac_local_moved, $mac_local_ignored, $mac_local_blacklisted,
                                 $bt_moved, $bt_ignored, $bt_blacklisted) {
   if ($show_wlan == "1") {
-    echo "<b>Wi-Fi " . $direction . "</b><br>";
+    echo "<b>Wi-Fi</b><br>";
     echo "<table class=\"textout\">";
     echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" .
                                         "</td><td>" .
@@ -623,7 +624,7 @@ function print_statistics_table($direction, $show_wlan, $show_bt,
     echo "</table>";
   }
   if ($show_bt == "1") {
-    echo "<b>Bluetooth " . $direction . "</b><br>";
+    echo "<b>Bluetooth</b><br>";
     echo "<table class=\"textout\">";
     echo "<tr class=\"textout\"><td>" . "Devices:" .
                                         "</td><td>" .
@@ -632,7 +633,16 @@ function print_statistics_table($direction, $show_wlan, $show_bt,
                                         $bt_blacklisted . " = " .
                                         "<b>" . ($bt_moved-$bt_ignored-$bt_blacklisted) .
                                         "</b></td></tr>";
-    echo "</table><br>";
+    echo "</table>";
+    
+    echo "<br><b>Legend:</b> <i>moved - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
+
+    $moved_total = $moved_total_AB + $moved_total_BA;
+    echo "<b>Total number of processed movements A->B: </b>" . $moved_total_AB . "<br>";
+    echo "<b>Total number of processed movements B->A: </b>" . $moved_total_BA . "<br>";
+    echo "<b>Total number of processed movements combined: </b>" . $moved_total . "<br><br>";
+
+
   }
 }
 
@@ -807,6 +817,19 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
       }
     }
   }
+
+  // prepare variables
+  unset($A_macs);
+  unset($A_fingerprints);
+  unset($A_bd_addrs);
+  unset($B_macs);
+  unset($B_fingerprints);
+  unset($B_bd_addrs);
+  $moved_total_AB = 0;
+  $moved_total_BA = 0;
+  $mac_glbl_blacklisted = 0;
+  $mac_local_blacklisted = 0;
+  $bt_blacklisted = 0;
   
   // prepare chart arrays
   $chart_AB_mh = prepare_chart_array($time_from_mh, $time_to_mh, $time_increment);
@@ -818,9 +841,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   // fill key arrays
   // point A
-  unset($A_macs);
-  unset($A_fingerprints);
-  unset($A_bd_addrs);
   if ($show_wlan_mh == "1") {
     // GLOBAL MAC
     // every unique global MAC in time range 
@@ -835,9 +855,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   }
 
   // point B
-  unset($B_macs);
-  unset($B_fingerprints);
-  unset($B_bd_addrs);
   if ($show_wlan_mh == "1") {
     // GLOBAL MAC
     // every unique global MAC in time range 
@@ -860,20 +877,24 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $Movement_macs = process_keys("wifi_global", $db_q_standard, $macs,
                                 $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                 $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                $time_increment, $ignored, $mac_glbl_moved_AB, $mac_glbl_moved_BA,
+                                $time_increment, $ignored, $moved_total_AB, $moved_total_BA,
                                 $mac_glbl_blacklisted);
 
   $Movement_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
                                         $blacklist_fp_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                         $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                        $time_increment, $ignored, $mac_local_moved_AB, $mac_local_moved_BA,
+                                        $time_increment, $ignored, $moved_total_AB, $moved_total_BA,
                                         $mac_local_blacklisted);
 
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
                                     $blacklist_bt_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
                                     $timestamp_limit_mh, $time_from_mh, $time_to_mh,
-                                    $time_increment, $ignored, $bt_moved_AB, $bt_moved_BA,
+                                    $time_increment, $ignored, $moved_total_AB, $moved_total_BA,
                                     $bt_blacklisted);
+
+  $mac_glbl_moved = count($Movement_macs);
+  $mac_local_moved = count($Movement_fingerprints);
+  $bt_moved = count($Movement_bd_addrs);
   
   // fill chart arrays
   unset($accumulator_AB);
@@ -884,6 +905,7 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   fill_chart_arrays("m", $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
 
   // actual text output starts here
+
   echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_mh)) . "</b>" .
         " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_mh)) . "</b>" .
         " with step of " . "<b>" . $time_step_mh . " " . strtolower($time_step_format_mh) . "(s)" . "</b>" .
@@ -893,17 +915,11 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   echo "<b>Point B:</b> " . $db_source_B_mh . "<br><br>";
 
   // statistics table
-  print_statistics_table("A->B", $show_wlan_mh, $show_bt_mh,
-                                 $mac_glbl_moved_AB, 0, $mac_glbl_blacklisted,
-                                 $mac_local_moved_AB, 0, 0,
-                                 $bt_moved_AB, 0, 0);
-
-  print_statistics_table("B->A", $show_wlan_mh, $show_bt_mh,
-                                 $mac_glbl_moved_BA, 0, $mac_glbl_blacklisted,
-                                 $mac_local_moved_BA, 0, 0,
-                                 $bt_moved_BA, 0, 0);
-
-  echo "<b>Legend:</b> <i>moved - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
+  print_statistics_table($show_wlan_mh, $show_bt_mh,
+                         $moved_total_AB, $moved_total_BA,
+                         $mac_glbl_moved, 0, $mac_glbl_blacklisted,
+                         $mac_local_moved, 0, $mac_local_blacklisted,
+                         $bt_moved, 0, $bt_blacklisted);
 
   echo "<b>Movement A->B:</b><br>";
   print_Movement_array("AB", "wifi_global", $Movement_macs);
