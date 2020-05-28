@@ -885,33 +885,68 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $db_conn_A = mysqli_connect($db_server, $db_user, $db_pass, $db_source_A_mh);
   $db_conn_B = mysqli_connect($db_server, $db_user, $db_pass, $db_source_B_mh);
 
-  // fill key arrays
-  // point A
-  if ($show_wlan_mh == "1") {
-    // GLOBAL MAC
-    // every unique global MAC in time range 
-    get_macs($db_conn_A, $time_from_mh, $time_to_mh, $db_q_standard, $A_macs);
-    // LOCAL MAC
-    // every local MAC fingerprint in time range
-    get_fingerprints("all", $db_conn_A, $time_from_mh, $time_to_mh, $db_q_standard, $A_fingerprints);
-  }
-  if ($show_bt_mh == "1") {
-    // every unique BD_ADDR in time range
-    get_bd_addrs($db_conn_A, $time_from_mh, $time_to_mh, $A_bd_addrs);
-  }
+  // specific or all keys?
+  if ($specific_mac_chk_mh == "1" or $specific_fp_chk_mh == "1" or $specific_bt_chk_mh == "1") {
 
-  // point B
-  if ($show_wlan_mh == "1") {
-    // GLOBAL MAC
-    // every unique global MAC in time range 
-    get_macs($db_conn_B, $time_from_mh, $time_to_mh, $db_q_standard, $B_macs);
-    // LOCAL MAC
-    // every local MAC fingerprint in time range
-    get_fingerprints("all", $db_conn_B, $time_from_mh, $time_to_mh, $db_q_standard, $B_fingerprints);
-  }
-  if ($show_bt_mh == "1") {
-    // every unique BD_ADDR in time range
-    get_bd_addrs($db_conn_B, $time_from_mh, $time_to_mh, $B_bd_addrs);
+    // process only specific keys
+
+    if ($show_wlan_mh == "1") {
+      if ($specific_mac_chk_mh == "1") {
+        // macs array contains only specific global MAC addresses
+        foreach (explode(",", $specific_mac_mh) as $specific_key => $specific_value) {
+          $A_macs[] = $specific_value;
+          $B_macs[] = $specific_value;
+        }
+      }
+      if ($specific_fp_chk_mh == "1") {
+        // fingerprints array contains only specific ESSID combination
+        get_fingerprints("specific", $db_conn_A, $time_from_mh, $time_to_mh, $db_q_standard, $A_fingerprints);
+        get_fingerprints("specific", $db_conn_B, $time_from_mh, $time_to_mh, $db_q_standard, $B_fingerprints);
+      }
+    }
+
+    if ($show_bt_mh == "1") {
+      if ($specific_bt_chk_mh == "1") {
+        // bd_addrs array contains only specific BD_ADDR addresses
+        foreach (explode(",", $specific_bt_mh) as $specific_key => $specific_value) {
+          $A_bd_addrs[] = $specific_value;
+          $B_bd_addrs[] = $specific_value;
+        }
+      }
+    }
+
+  } else {
+
+    // process all keys
+
+    // fill key arrays
+    // point A
+    if ($show_wlan_mh == "1") {
+      // GLOBAL MAC
+      // every unique global MAC in time range 
+      get_macs($db_conn_A, $time_from_mh, $time_to_mh, $db_q_standard, $A_macs);
+      // LOCAL MAC
+      // every local MAC fingerprint in time range
+      get_fingerprints("all", $db_conn_A, $time_from_mh, $time_to_mh, $db_q_standard, $A_fingerprints);
+    }
+    if ($show_bt_mh == "1") {
+      // every unique BD_ADDR in time range
+      get_bd_addrs($db_conn_A, $time_from_mh, $time_to_mh, $A_bd_addrs);
+    }
+
+    // point B
+    if ($show_wlan_mh == "1") {
+      // GLOBAL MAC
+      // every unique global MAC in time range 
+      get_macs($db_conn_B, $time_from_mh, $time_to_mh, $db_q_standard, $B_macs);
+      // LOCAL MAC
+      // every local MAC fingerprint in time range
+      get_fingerprints("all", $db_conn_B, $time_from_mh, $time_to_mh, $db_q_standard, $B_fingerprints);
+    }
+    if ($show_bt_mh == "1") {
+      // every unique BD_ADDR in time range
+      get_bd_addrs($db_conn_B, $time_from_mh, $time_to_mh, $B_bd_addrs);
+    }
   }
 
   // keep only keys that are in both databases
