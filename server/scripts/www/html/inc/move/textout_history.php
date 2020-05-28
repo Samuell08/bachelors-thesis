@@ -634,16 +634,14 @@ function print_statistics_table($show_wlan, $show_bt,
                                         "<b>" . ($bt_moved-$bt_ignored-$bt_blacklisted) .
                                         "</b></td></tr>";
     echo "</table>";
-    
-    echo "<br><b>Legend:</b> <i>moved - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
-
-    $moved_total = $moved_total_AB + $moved_total_BA;
-    echo "<b>Total number of processed movements A->B: </b>" . $moved_total_AB . "<br>";
-    echo "<b>Total number of processed movements B->A: </b>" . $moved_total_BA . "<br>";
-    echo "<b>Total number of processed movements combined: </b>" . $moved_total . "<br><br>";
-
-
   }
+  
+  echo "<br><b>Legend:</b> <i>moved - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
+
+  $moved_total = $moved_total_AB + $moved_total_BA;
+  echo "<b>Total number of processed movements A->B: </b>" . $moved_total_AB . "<br>";
+  echo "<b>Total number of processed movements B->A: </b>" . $moved_total_BA . "<br>";
+  echo "<b>Total number of processed movements combined: </b>" . $moved_total . "<br><br>";
 }
 
 function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
@@ -922,14 +920,22 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
                          $bt_moved, 0, $bt_blacklisted);
 
   echo "<b>Movement A->B:</b><br>";
-  print_Movement_array("AB", "wifi_global", $Movement_macs);
-  print_Movement_array("AB", "wifi_local", $Movement_fingerprints);
-  print_Movement_array("AB", "bt", $Movement_bd_addrs);
+  if ($show_wlan_mh == "1") {
+    print_Movement_array("AB", "wifi_global", $Movement_macs);
+    print_Movement_array("AB", "wifi_local", $Movement_fingerprints);
+  }
+  if ($show_bt_mh == "1") {
+    print_Movement_array("AB", "bt", $Movement_bd_addrs);
+  }
 
   echo "<b>Movement B->A:</b><br>";
-  print_Movement_array("BA", "wifi_global", $Movement_macs);
-  print_Movement_array("BA", "wifi_local", $Movement_fingerprints);
-  print_Movement_array("BA", "bt", $Movement_bd_addrs);
+  if ($show_wlan_mh == "1") {
+    print_Movement_array("BA", "wifi_global", $Movement_macs);
+    print_Movement_array("BA", "wifi_local", $Movement_fingerprints);
+  }
+  if ($show_bt_mh == "1") {
+    print_Movement_array("BA", "bt", $Movement_bd_addrs);
+  }
 
   // --------------------------------------------------------------------------- debug output
 
