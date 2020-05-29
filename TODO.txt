@@ -8,7 +8,7 @@ www:
 > spolocne funkcie pre textouty v jedno subore?? (mozno radsej nie)
 > passages history - reformatting kodu ako v movement
 > range - reformatting kodu ako v movement
-> movement history - threshold
+> movement history - formatting argumentov funkcii
 
 bash:
 > node_service - výpis informácií o service v human friendly podobe
@@ -64,3 +64,4 @@ DONE:
 > movement history - timestamp limit
 > movement history - blacklist a specific list
 > movement history - power limit
+> movement history - threshold
