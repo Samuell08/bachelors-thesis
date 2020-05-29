@@ -23,6 +23,8 @@ $time_step_mh           = $_SESSION["time_step_mh"];
 $time_step_format_mh    = $_SESSION["time_step_format_mh"];
 $threshold_mh           = $_SESSION["threshold_mh"];
 $threshold_format_mh    = $_SESSION["threshold_format_mh"];
+$power_limit_chk_mh     = $_SESSION["power_limit_chk_mh"];
+$power_limit_mh         = $_SESSION["power_limit_mh"];
 $timestamp_limit_chk_mh = $_SESSION["timestamp_limit_chk_mh"];
 $timestamp_limit_mh     = $_SESSION["timestamp_limit_mh"];
 $show_wlan_mh           = $_SESSION["show_wlan_mh"];
@@ -419,7 +421,7 @@ function blacklisted($type, $key, $blacklist) {
 // probed ESSIDs fingerprints and returns array of Movement classes.
 function process_keys($type, $db_q_standard, $keys,
                       $blacklist, $threshold, $db_conn_A, $db_conn_B,
-                      $timestamp_limit, $time_from, $time_to,
+                      $db_q_power_limit, $timestamp_limit, $time_from, $time_to,
                       $time_increment, &$over_limit, &$moved_total_AB, &$moved_total_BA,
                       &$blacklisted) {
   
@@ -455,14 +457,16 @@ function process_keys($type, $db_q_standard, $keys,
       case "wifi_global":
         $db_q = "SELECT last_time_seen FROM Clients WHERE
                 (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                 AND " . $db_q_standard . " AND (station_MAC = '" . $keys_value . "');";
+                 AND " . $db_q_standard . " AND " . $db_q_power_limit .
+               " AND (station_MAC = '" . $keys_value . "');";
         break;
       case "wifi_local":
         unset($db_q);
         foreach ($keys_value as $anagram_p => $anagram_v) {
           $db_q[] = "SELECT last_time_seen FROM Clients WHERE
                     (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
-                     AND " . $db_q_standard . " AND (SUBSTRING(probed_ESSIDs,19,1000) = '" . $anagram_v . "');";
+                     AND " . $db_q_standard . " AND " . $db_q_power_limit .
+                   " AND (SUBSTRING(probed_ESSIDs,19,1000) = '" . $anagram_v . "');";
         }
         break;
       case "bt":
@@ -859,6 +863,15 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
     }
   }
 
+  // power limit
+  if ($power_limit_chk_mh == "1") {
+    // unknown signals strenghts are represented by -1
+    $db_q_power_limit = "(power >= " . $power_limit_mh . " AND power < -1)";
+  } else {
+    // dummy
+    $db_q_power_limit = "1";
+  }
+
   // prepare variables
   unset($A_macs);
   unset($A_fingerprints);
@@ -957,19 +970,19 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   // find movement for each key
   $Movement_macs = process_keys("wifi_global", $db_q_standard, $macs,
                                 $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
-                                $timestamp_limit_mh, $time_from_mh, $time_to_mh,
+                                $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                 $time_increment, $mac_glbl_over_limit, $moved_total_AB, $moved_total_BA,
                                 $mac_glbl_blacklisted);
 
   $Movement_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
                                         $blacklist_fp_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
-                                        $timestamp_limit_mh, $time_from_mh, $time_to_mh,
+                                        $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                         $time_increment, $mac_local_over_limit, $moved_total_AB, $moved_total_BA,
                                         $mac_local_blacklisted);
 
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
                                     $blacklist_bt_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
-                                    $timestamp_limit_mh, $time_from_mh, $time_to_mh,
+                                    $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                     $time_increment, $bt_over_limit, $moved_total_AB, $moved_total_BA,
                                     $bt_blacklisted);
 

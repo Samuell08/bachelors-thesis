@@ -12,6 +12,8 @@ $time_step_mh           = "";
 $time_step_format_mh    = "";
 $threshold_mh           = "";
 $threshold_format_mh    = "";
+$power_limit_chk_mh     = "";
+$power_limit_mh         = "";
 $timestamp_limit_chk_mh = "";
 $timestamp_limit_mh     = "";
 $show_wlan_mh           = "";
@@ -43,6 +45,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_step_format_mh    = $_GET["time_step_format_mh"];
   $threshold_mh           = filter_var($_GET["threshold_mh"], FILTER_VALIDATE_INT);
   $threshold_format_mh    = $_GET["threshold_format_mh"];
+  $power_limit_chk_mh     = $_GET["power_limit_chk_mh"];
+  $power_limit_mh         = filter_var($_GET["power_limit_mh"], FILTER_VALIDATE_INT);
   $timestamp_limit_chk_mh = $_GET["timestamp_limit_chk_mh"];
   $timestamp_limit_mh     = filter_var($_GET["timestamp_limit_mh"], FILTER_VALIDATE_INT);
   $show_wlan_mh           = $_GET["show_wlan_mh"];
@@ -73,6 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($time_step_format_mh == "")    { $time_step_format_mh = "HOUR"; }
   if ($threshold_mh == "")           { $threshold_mh = 10; }
   if ($threshold_format_mh == "")    { $threshold_format_mh = "MINUTE"; }
+  if ($power_limit_mh == "")         { $power_limit_mh = -70; }
   if ($timestamp_limit_mh == "")     { $timestamp_limit_mh = 100; }
   if ($blacklist_wlan_mh == "")      { $blacklist_wlan_mh = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
   if ($blacklist_mode_fp_mh == "")   { $blacklist_mode_fp_mh = "ALL"; }
@@ -92,6 +97,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_step_format_mh"]    = $time_step_format_mh;
   $_SESSION["threshold_mh"]           = $threshold_mh;
   $_SESSION["threshold_format_mh"]    = $threshold_format_mh;
+  $_SESSION["power_limit_chk_mh"]     = $power_limit_chk_mh;
+  $_SESSION["power_limit_mh"]         = $power_limit_mh;
   $_SESSION["timestamp_limit_chk_mh"] = $timestamp_limit_chk_mh;
   $_SESSION["timestamp_limit_mh"]     = $timestamp_limit_mh;
   $_SESSION["show_wlan_mh"]           = $show_wlan_mh;

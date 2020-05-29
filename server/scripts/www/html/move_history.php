@@ -142,6 +142,14 @@ if(!$db_conn){
             </div>
 
             <div class="div_subcontent">
+              <b>Power Limit</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="power_limit_chk_mh" value="1" <?php if ($power_limit_chk_mh == "1") { echo "checked";} ?>> Ignore timestamps with lower dBm </td></tr>
+                <tr><td><input type="number" name="power_limit_mh" value="<?php echo $power_limit_mh?>" min="-100" max="-10" style="width:100px;text-align:center;"></td></tr>
+              </table>
+            </div>
+
+            <div class="div_subcontent">
               <b>Timestamp Limit</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="timestamp_limit_chk_mh" value="1" <?php if ($timestamp_limit_chk_mh == "1") { echo "checked";} ?>> Ignore more than this limit </td></tr>

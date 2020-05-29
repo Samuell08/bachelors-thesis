@@ -63,3 +63,4 @@ DONE:
 > movement history - statistics table
 > movement history - timestamp limit
 > movement history - blacklist a specific list
+> movement history - power limit
