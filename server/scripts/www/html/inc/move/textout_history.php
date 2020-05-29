@@ -814,12 +814,18 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   echo "<p class=\"warning\">Time range \"From\" is later in time than \"To\".</p>";
 } elseif (strtotime($time_to_mh) > time()) {
   echo "<p class=\"warning\">Time range \"To\" is in the future.</p>";
-} elseif ($threshold_mh == NULL) {
+} elseif ($threshold_chk_mh == "1" and $threshold_mh == NULL) {
   echo "<p class=\"warning\">Invalid threshold.</p>";
-} elseif ($threshold_format_mh == NULL) {
-  echo "<p class=\"warning\">Threshold format Minute(s)/Hour(s) not selected.</p>";
+} elseif ($threshold_chk_mh == "1" and $threshold_format_mh == NULL) {
+  echo "<p class=\"warning\">Threshold format Second(s)/Minute(s)/Hour(s) not selected.</p>";
+} elseif ($time_step_format_mh == NULL) {
+  echo "<p class=\"warning\">Time step format Second(s)/Minute(s)/Hour(s) not selected.</p>";
 } elseif ($show_wlan_mh == "1" and $show_wlan_a_mh != "1" and $show_wlan_bg_mh != "1") {
   echo "<p class=\"warning\">Wi-Fi Standard not selected.</p>";
+} elseif ($power_limit_chk_mh == "1" and $power_limit_mh == NULL) {
+  echo "<p class=\"warning\">Invalid power limit.</p>";
+} elseif ($power_limit_chk_mh == "1" and $show_bt_mh == "1") {
+  echo "<p class=\"warning\">Bluetooth data cannot be processed while using power limit.</p>";
 } else {
 
   // algorithm execution start

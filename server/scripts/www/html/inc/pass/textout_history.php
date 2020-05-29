@@ -372,7 +372,9 @@ if ($db_source_ph == NULL) {
 } elseif ($threshold_ph == NULL) {
   echo "<p class=\"warning\">Invalid threshold.</p>";
 } elseif ($threshold_format_ph == NULL) {
-  echo "<p class=\"warning\">Threshold format Minute(s)/Hour(s) not selected.</p>";
+  echo "<p class=\"warning\">Threshold format Second(s)/Minute(s)/Hour(s) not selected.</p>";
+} elseif ($time_step_format_ph == NULL) {
+  echo "<p class=\"warning\">Time step format Second(s)/Minute(s)/Hour(s) not selected.</p>";
 } elseif ($show_wlan_ph == "1" and $show_wlan_a_ph != "1" and $show_wlan_bg_ph != "1") {
   echo "<p class=\"warning\">Wi-Fi Standard not selected.</p>";
 } else {
