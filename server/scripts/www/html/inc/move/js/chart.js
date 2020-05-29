@@ -104,6 +104,7 @@ function buildChart() {
       xValueType: "dateTime",
       xValueFormatString: "D.M H:mm:ss",
       yValueFormatString: "#",
+      connectNullData: true,
       dataPoints: [{"x":1000,"y":0}]
     },{
       type: "line",
@@ -112,6 +113,7 @@ function buildChart() {
       showInLegend: true,
       xValueType: "dateTime",
       yValueFormatString: "#",
+      connectNullData: true,
       dataPoints: [{"x":1000,"y":0}]
     }]
   });
