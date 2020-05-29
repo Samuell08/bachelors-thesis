@@ -134,6 +134,7 @@ if(!$db_conn){
             <div class="div_subcontent">
               <b>Threshold</b><br>
               <table class="form">
+                <tr><td><input type="checkbox" name="threshold_chk_mh" value="1" <?php if ($threshold_chk_mh == "1") { echo "checked";} ?>> Use manual threshold </td></tr>
                 <tr><td><input type="number" name="threshold_mh" value="<?php echo $threshold_mh?>" min="1" style="width:100px;text-align:center;"></td></tr>
                 <tr><td><input type="radio" name="threshold_format_mh" value="SECOND" <?php if ($threshold_format_mh == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
                 <tr><td><input type="radio" name="threshold_format_mh" value="MINUTE" <?php if ($threshold_format_mh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
@@ -210,7 +211,8 @@ if(!$db_conn){
           <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box">Blacklisted Keys and Specific Keys <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
           <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
-          <p class="info_box">Threshold specifies maximum movement time between points A and B; longer times will be ingored.</p>
+          <p class="info_box">Threshold specifies maximum movement time between points A and B - longer times will be ingored. When manual threshold is not used
+                              value is calculated as 2 times the shortest movement. Higher value set manually will result in wrong results.</p>
           <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
                                                                     <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
                                                                     (Time Period <b>must</b> be set to same time as amnesia)<br>

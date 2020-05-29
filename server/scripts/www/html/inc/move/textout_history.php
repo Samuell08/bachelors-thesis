@@ -21,6 +21,7 @@ $time_from_mh           = $_SESSION["time_from_mh"];
 $time_to_mh             = $_SESSION["time_to_mh"];
 $time_step_mh           = $_SESSION["time_step_mh"];
 $time_step_format_mh    = $_SESSION["time_step_format_mh"];
+$threshold_chk_mh       = $_SESSION["threshold_chk_mh"];
 $threshold_mh           = $_SESSION["threshold_mh"];
 $threshold_format_mh    = $_SESSION["threshold_format_mh"];
 $power_limit_chk_mh     = $_SESSION["power_limit_chk_mh"];
@@ -315,7 +316,7 @@ function timestamps_find_movement($tsA, $tsB, $threshold, &$movement){
     foreach ($tsB as $tsB_i => $tsB_v){
       if (strtotime($tsB_v) > strtotime($tsA_v)){
         $diff = (strtotime($tsB_v) - strtotime($tsA_v));
-        if ($diff <= $threshold){
+        if ($diff < $threshold){
           $movement[] = array($tsA_v, $tsB_v, $diff);
         }
         break;
@@ -328,7 +329,7 @@ function timestamps_find_movement($tsA, $tsB, $threshold, &$movement){
 // and threshold and returns 2D array of movement as:
 // first | second | diff
 // first | second | diff
-function process_timestamps($tsA, $tsB, $threshold, &$AB_movement,  &$BA_movement){
+function process_timestamps($tsA, $tsB, $threshold, $threshold_chk, &$AB_movement,  &$BA_movement){
     // local copies of fingerprints that will be modified
     $AB_tsA = $tsA;
     $AB_tsB = $tsB;
@@ -337,6 +338,10 @@ function process_timestamps($tsA, $tsB, $threshold, &$AB_movement,  &$BA_movemen
     $AB_min = timestamps_find_minimum($tsA, $tsB);
     $BA_min = timestamps_find_minimum($tsB, $tsA);
     $total_min = min($AB_min, $BA_min);
+
+    if ($threshold_chk != "1") {
+      $threshold = $total_min*2;
+    }
 
     if($_SESSION["debug_process_timestamps_output"]) {
       echo "<br>AB_min: ".$AB_min."<br>";
@@ -420,10 +425,12 @@ function blacklisted($type, $key, $blacklist) {
 // Function accepts list of MAC/BD_ADDR addresses or 2D array of
 // probed ESSIDs fingerprints and returns array of Movement classes.
 function process_keys($type, $db_q_standard, $keys,
-                      $blacklist, $threshold, $db_conn_A, $db_conn_B,
+                      $blacklist, $threshold, $threshold_chk, $db_conn_A, $db_conn_B,
                       $db_q_power_limit, $timestamp_limit, $time_from, $time_to,
                       $time_increment, &$over_limit, &$moved_total_AB, &$moved_total_BA,
                       &$blacklisted) {
+
+  echo "<br><br>threshold: " . $threshold . "<br><br>";
   
   foreach ($keys as $keys_key => $keys_value) {
     
@@ -505,7 +512,7 @@ function process_keys($type, $db_q_standard, $keys,
         continue; // foreach keys
     }
 
-    process_timestamps($timestampsA, $timestampsB, $threshold, $AB_movement, $BA_movement);
+    process_timestamps($timestampsA, $timestampsB, $threshold, $threshold_chk, $AB_movement, $BA_movement);
 
     if($_SESSION["debug_process_timestamps_output"]) {
       echo "<br> timestampsA:<br>";
@@ -969,19 +976,19 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   // find movement for each key
   $Movement_macs = process_keys("wifi_global", $db_q_standard, $macs,
-                                $blacklist_wlan_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                $blacklist_wlan_mh, $threshold_seconds, $threshold_chk_mh, $db_conn_A, $db_conn_B,
                                 $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                 $time_increment, $mac_glbl_over_limit, $moved_total_AB, $moved_total_BA,
                                 $mac_glbl_blacklisted);
 
   $Movement_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
-                                        $blacklist_fp_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                        $blacklist_fp_mh, $threshold_seconds, $threshold_chk_mh, $db_conn_A, $db_conn_B,
                                         $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                         $time_increment, $mac_local_over_limit, $moved_total_AB, $moved_total_BA,
                                         $mac_local_blacklisted);
 
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
-                                    $blacklist_bt_mh, $threshold_seconds, $db_conn_A, $db_conn_B,
+                                    $blacklist_bt_mh, $threshold_seconds, $threshold_chk_mh, $db_conn_A, $db_conn_B,
                                     $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                     $time_increment, $bt_over_limit, $moved_total_AB, $moved_total_BA,
                                     $bt_blacklisted);

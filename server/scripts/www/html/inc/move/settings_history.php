@@ -10,6 +10,7 @@ $time_from_mh           = "";
 $time_to_mh             = "";
 $time_step_mh           = "";
 $time_step_format_mh    = "";
+$threshold_chk_mh       = "";
 $threshold_mh           = "";
 $threshold_format_mh    = "";
 $power_limit_chk_mh     = "";
@@ -43,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_to_mh             = filter_var($_GET["time_to_mh"], FILTER_SANITIZE_STRING);
   $time_step_mh           = filter_var($_GET["time_step_mh"], FILTER_VALIDATE_INT);
   $time_step_format_mh    = $_GET["time_step_format_mh"];
+  $threshold_chk_mh       = $_GET["threshold_chk_mh"];
   $threshold_mh           = filter_var($_GET["threshold_mh"], FILTER_VALIDATE_INT);
   $threshold_format_mh    = $_GET["threshold_format_mh"];
   $power_limit_chk_mh     = $_GET["power_limit_chk_mh"];
@@ -95,6 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_to_mh"]             = $time_to_mh;
   $_SESSION["time_step_mh"]           = $time_step_mh;
   $_SESSION["time_step_format_mh"]    = $time_step_format_mh;
+  $_SESSION["threshold_chk_mh"]       = $threshold_chk_mh;
   $_SESSION["threshold_mh"]           = $threshold_mh;
   $_SESSION["threshold_format_mh"]    = $threshold_format_mh;
   $_SESSION["power_limit_chk_mh"]     = $power_limit_chk_mh;
