@@ -430,8 +430,6 @@ function process_keys($type, $db_q_standard, $keys,
                       $time_increment, &$over_limit, &$moved_total_AB, &$moved_total_BA,
                       &$blacklisted) {
 
-  echo "<br><br>threshold: " . $threshold . "<br><br>";
-  
   foreach ($keys as $keys_key => $keys_value) {
     
     // new movement object for every key
@@ -694,8 +692,8 @@ function print_statistics_table($show_wlan, $show_bt,
 }
 
 // Function takes time parameters from Settings form and
-// accumulates values from Movement class array into two arrays
-// (one for each direction).
+// accumulates values from Movement class array into two arrays of
+// time difference arrays (one for each direction).
 function accumulate_chart_arrays($time_from, $time_to, $time_increment, 
                                  $Movement_array, &$accumulator_AB, &$accumulator_BA) {
 
@@ -755,8 +753,7 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
 }
 
 // Functions accepts accumulated arrays for both directions and fills pre-build chart arrays.
-// Input "format" specifies time scale.
-function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
+function fill_chart_arrays($units, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
   
   $chart_AB_size = count($chart_AB);
   $chart_BA_size = count($chart_BA);
@@ -766,12 +763,12 @@ function fill_chart_arrays($format, $accumulator_AB, $accumulator_BA, &$chart_AB
     $chart_array_size = $chart_AB_size;
   }
   
-  switch($format) {
+  switch($units) {
     case "s": $divisor = 1; break;
     case "m": $divisor = 60; break;
     case "h": $divisor = 3600; break;
     default:
-      die("function fill_chart_arrays ERROR: Unknown format: ". $format);
+      die("function fill_chart_arrays ERROR: Unknown units: ". $units);
   }
 
   
