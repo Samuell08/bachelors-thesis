@@ -633,7 +633,7 @@ if ($db_source_ph == NULL) {
                                         "</b></td></tr>";
     echo "</table>";
   }
-  echo "<br>" . "<b>Legend:</b> <i>passed - over limit - blacklisted = <b>processed</b></i>" . "<br><br>";
+  echo "<br>" . "<b>Legend:</b> <i>passed - over timestamp limit - blacklisted = <b>processed</b></i>" . "<br><br>";
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
