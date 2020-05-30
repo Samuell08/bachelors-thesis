@@ -542,9 +542,31 @@ function process_keys($type, $db_q_standard, $keys,
     
 }
 
+function flag_movement_over_limit($time_from, $time_to, $time_increment, $end_time, $diff, $upper_limits) {
+  $i = 0;
+  $time_actual = $time_from;
+  while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
+    // calculate next time value
+    $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+    // movement in current time step?
+    if ((strtotime($end_time) > strtotime($time_actual)) && (strtotime($end_time) <= strtotime($time_next))){
+        // is the time difference over limit for given time step?
+        if ($diff > $upper_limits[$i]) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+      // moving to next time step
+      // increment counters
+      $i += 1;
+      $time_actual = $time_next;
+    }
+}
+
 // Function accepts array of Movement objects and prints it to HTML based on
 // direction and type parameters.
-function print_Movement_array($direction, $type, $Movement_array) {
+function print_Movement_array($direction, $type, $Movement_array, $time_from, $time_to, $time_increment, $upper_limits) {
 
   switch($type){
     case "wifi_global":
@@ -611,6 +633,9 @@ function print_Movement_array($direction, $type, $Movement_array) {
                          round($AB_array_v[2]/3600, 2) . " hod" .
                        ")</b>" .
                      "</tt></td>";
+                if (flag_movement_over_limit($time_from, $time_to, $time_increment, $AB_array_v[1], $AB_array_v[2], $upper_limits)) {
+                  echo "<td style=\"color:orangered\"><tt> - over limit </tt></td>";
+                }      
                 echo "</tr>";
               }
             }
@@ -632,6 +657,9 @@ function print_Movement_array($direction, $type, $Movement_array) {
                          round($BA_array_v[2]/3600, 2) . " hod" .
                        ")</b>" .
                      "</tt></td>";
+                if (flag_movement_over_limit($time_from, $time_to, $time_increment, $BA_array_v[1], $BA_array_v[2], $upper_limits)) {
+                  echo "<td style=\"color:orangered\"><tt> - over limit </tt></td>";
+                }      
                 echo "</tr>";
               }
             }
@@ -755,16 +783,7 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
   }
 }
 
-// Function filters accumulated time difference array based on global variables by
-// multiplied average of X shortest times.
-function filter_accumulator_array($threshold_num, $threshold_mult, &$accumulator) {
-  // calculate average of X shortest times
-  $local_copy = $accumulator;
-  sort($local_copy, SORT_NUMERIC);
-  $shortest = array_slice($local_copy, 0, $threshold_num);
-  $shortest_avg = array_sum($shortest)/count($shortest);
-  // filter array based on upper limit
-  $upper_limit = $shortest_avg*$threshold_mult;
+function filter_accumulator_array($upper_limit, &$accumulator) {
   foreach ($accumulator as $accumulator_p => $accumulator_v) {
     if ($accumulator_v > $upper_limit) {
       unset($accumulator[$accumulator_p]);
@@ -772,8 +791,19 @@ function filter_accumulator_array($threshold_num, $threshold_mult, &$accumulator
   }
 }
 
+function find_movement_limits ($threshold_num, $threshold_mult, $array_size, $accumulator) {
+  for ($i = 0; $i < $array_size; $i++) {
+    sort($accumulator[$i], SORT_NUMERIC);
+    $shortest = array_slice($accumulator[$i], 0, $threshold_num);
+    $shortest_avg = array_sum($shortest)/count($shortest);
+    // filter array based on upper limit
+    $upper_limits[$i] = $shortest_avg*$threshold_mult;
+  }
+  return $upper_limits;
+}
+
 // Functions accepts accumulated arrays for both directions and fills pre-build chart arrays.
-function fill_chart_arrays($units, $threshold_num, $threshold_mult, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
+function fill_chart_arrays($units, $upper_limits_AB, $upper_limits_BA, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
   
   $chart_AB_size = count($chart_AB);
   $chart_BA_size = count($chart_BA);
@@ -791,20 +821,19 @@ function fill_chart_arrays($units, $threshold_num, $threshold_mult, $accumulator
       die("function fill_chart_arrays ERROR: Unknown units: ". $units);
   }
 
-  
   for ($i = 0; $i < $chart_array_size; $i++){
     
     if (is_null($accumulator_AB[$i])) {
       $chart_AB[$i]["y"] = null;
     } else {
-      filter_accumulator_array($threshold_num, $threshold_mult, $accumulator_AB[$i]);
+      filter_accumulator_array($upper_limits_AB[$i], $accumulator_AB[$i]);
       $chart_AB[$i]["y"] = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
     }
     
     if (is_null($accumulator_BA[$i])) {
       $chart_BA[$i]["y"] = null;
     } else {
-      filter_accumulator_array($threshold_num, $threshold_mult, $accumulator_BA[$i]);
+      filter_accumulator_array($upper_limits_BA[$i], $accumulator_BA[$i]);
       $chart_BA[$i]["y"] = (array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]))/$divisor;
     }
 
@@ -1011,7 +1040,12 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_fingerprints, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
-  fill_chart_arrays("m", $threshold_num_mh, $threshold_mult_mh, $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
+
+  // calculate upper limits for movement time for every time step
+  $upper_limits_AB = find_movement_limits($threshold_num_mh, $threshold_mult_mh, count($chart_AB_mh), $accumulator_AB);
+  $upper_limits_BA = find_movement_limits($threshold_num_mh, $threshold_mult_mh, count($chart_BA_mh), $accumulator_BA);
+
+  fill_chart_arrays("m", $upper_limits_AB, $upper_limits_BA, $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
 
   // actual text output starts here
 
@@ -1032,20 +1066,20 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   echo "<b>Movement A->B:</b><br>";
   if ($show_wlan_mh == "1") {
-    print_Movement_array("AB", "wifi_global", $Movement_macs);
-    print_Movement_array("AB", "wifi_local", $Movement_fingerprints);
+    print_Movement_array("AB", "wifi_global", $Movement_macs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB);
+    print_Movement_array("AB", "wifi_local", $Movement_fingerprints, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB);
   }
   if ($show_bt_mh == "1") {
-    print_Movement_array("AB", "bt", $Movement_bd_addrs);
+    print_Movement_array("AB", "bt", $Movement_bd_addrs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB);
   }
 
   echo "<b>Movement B->A:</b><br>";
   if ($show_wlan_mh == "1") {
-    print_Movement_array("BA", "wifi_global", $Movement_macs);
-    print_Movement_array("BA", "wifi_local", $Movement_fingerprints);
+    print_Movement_array("BA", "wifi_global", $Movement_macs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA);
+    print_Movement_array("BA", "wifi_local", $Movement_fingerprints, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA);
   }
   if ($show_bt_mh == "1") {
-    print_Movement_array("BA", "bt", $Movement_bd_addrs);
+    print_Movement_array("BA", "bt", $Movement_bd_addrs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA);
   }
 
   // end of text output
