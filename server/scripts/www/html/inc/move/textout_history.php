@@ -21,9 +21,8 @@ $time_from_mh           = $_SESSION["time_from_mh"];
 $time_to_mh             = $_SESSION["time_to_mh"];
 $time_step_mh           = $_SESSION["time_step_mh"];
 $time_step_format_mh    = $_SESSION["time_step_format_mh"];
-$threshold_chk_mh       = $_SESSION["threshold_chk_mh"];
-$threshold_mh           = $_SESSION["threshold_mh"];
-$threshold_format_mh    = $_SESSION["threshold_format_mh"];
+$threshold_num_mh       = $_SESSION["threshold_num_mh"];
+$threshold_mult_mh      = $_SESSION["threshold_mult_mh"];
 $power_limit_chk_mh     = $_SESSION["power_limit_chk_mh"];
 $power_limit_mh         = $_SESSION["power_limit_mh"];
 $timestamp_limit_chk_mh = $_SESSION["timestamp_limit_chk_mh"];
@@ -335,7 +334,7 @@ function timestamps_find_movement($tsA, $tsB, $threshold, &$movement){
 // and threshold and returns 2D array of movement as:
 // first | second | diff
 // first | second | diff
-function process_timestamps($tsA, $tsB, $threshold, $threshold_chk, &$AB_movement,  &$BA_movement){
+function process_timestamps($tsA, $tsB, &$AB_movement,  &$BA_movement){
     // local copies of fingerprints that will be modified
     $AB_tsA = $tsA;
     $AB_tsB = $tsB;
@@ -345,9 +344,7 @@ function process_timestamps($tsA, $tsB, $threshold, $threshold_chk, &$AB_movemen
     $BA_min = timestamps_find_minimum($tsB, $tsA);
     $total_min = min($AB_min, $BA_min);
 
-    if ($threshold_chk != "1") {
-      $threshold = $total_min*2;
-    }
+    $threshold = $total_min*2;
 
     if($_SESSION["debug_process_timestamps_output"]) {
       echo "<br>AB_min: ".$AB_min."<br>";
@@ -431,7 +428,7 @@ function blacklisted($type, $key, $blacklist) {
 // Function accepts list of MAC/BD_ADDR addresses or 2D array of
 // probed ESSIDs fingerprints and returns array of Movement classes.
 function process_keys($type, $db_q_standard, $keys,
-                      $blacklist, $threshold, $threshold_chk, $db_conn_A, $db_conn_B,
+                      $blacklist, $db_conn_A, $db_conn_B,
                       $db_q_power_limit, $timestamp_limit, $time_from, $time_to,
                       $time_increment, &$over_limit, &$moved_total_AB, &$moved_total_BA,
                       &$blacklisted) {
@@ -516,7 +513,7 @@ function process_keys($type, $db_q_standard, $keys,
         continue; // foreach keys
     }
 
-    process_timestamps($timestampsA, $timestampsB, $threshold, $threshold_chk, $AB_movement, $BA_movement);
+    process_timestamps($timestampsA, $timestampsB, $AB_movement, $BA_movement);
 
     if($_SESSION["debug_process_timestamps_output"]) {
       echo "<br> timestampsA:<br>";
@@ -760,14 +757,14 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
 
 // Function filters accumulated time difference array based on global variables by
 // multiplied average of X shortest times.
-function filter_accumulator_array(&$accumulator) {
+function filter_accumulator_array($threshold_num, $threshold_mult, &$accumulator) {
   // calculate average of X shortest times
   $local_copy = $accumulator;
   sort($local_copy, SORT_NUMERIC);
-  $shortest = array_slice($local_copy, 0, $GLOBALS["movement_filter_num"]);
+  $shortest = array_slice($local_copy, 0, $threshold_num);
   $shortest_avg = array_sum($shortest)/count($shortest);
   // filter array based on upper limit
-  $upper_limit = $shortest_avg*$GLOBALS["movement_filter_mult"];
+  $upper_limit = $shortest_avg*$threshold_mult;
   foreach ($accumulator as $accumulator_p => $accumulator_v) {
     if ($accumulator_v > $upper_limit) {
       unset($accumulator[$accumulator_p]);
@@ -776,7 +773,7 @@ function filter_accumulator_array(&$accumulator) {
 }
 
 // Functions accepts accumulated arrays for both directions and fills pre-build chart arrays.
-function fill_chart_arrays($units, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
+function fill_chart_arrays($units, $threshold_num, $threshold_mult, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
   
   $chart_AB_size = count($chart_AB);
   $chart_BA_size = count($chart_BA);
@@ -800,13 +797,14 @@ function fill_chart_arrays($units, $accumulator_AB, $accumulator_BA, &$chart_AB,
     if (is_null($accumulator_AB[$i])) {
       $chart_AB[$i]["y"] = null;
     } else {
-      filter_accumulator_array($accumulator_AB[$i]);
+      filter_accumulator_array($threshold_num, $threshold_mult, $accumulator_AB[$i]);
       $chart_AB[$i]["y"] = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
     }
     
     if (is_null($accumulator_BA[$i])) {
       $chart_BA[$i]["y"] = null;
     } else {
+      filter_accumulator_array($threshold_num, $threshold_mult, $accumulator_BA[$i]);
       $chart_BA[$i]["y"] = (array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]))/$divisor;
     }
 
@@ -835,10 +833,8 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   echo "<p class=\"warning\">Time range \"From\" is later in time than \"To\".</p>";
 } elseif (strtotime($time_to_mh) > time()) {
   echo "<p class=\"warning\">Time range \"To\" is in the future.</p>";
-} elseif ($threshold_chk_mh == "1" and $threshold_mh == NULL) {
+} elseif ($threshold_num_mh == NULL or $threshold_mult_mh == NULL) {
   echo "<p class=\"warning\">Invalid threshold.</p>";
-} elseif ($threshold_chk_mh == "1" and $threshold_format_mh == NULL) {
-  echo "<p class=\"warning\">Threshold format Second(s)/Minute(s)/Hour(s) not selected.</p>";
 } elseif ($time_step_format_mh == NULL) {
   echo "<p class=\"warning\">Time step format Second(s)/Minute(s)/Hour(s) not selected.</p>";
 } elseif ($show_wlan_mh == "1" and $show_wlan_a_mh != "1" and $show_wlan_bg_mh != "1") {
@@ -862,19 +858,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
     break;
   case "HOUR":
     $time_increment = $time_step_mh*3600;
-    break;
-  }
-
-  // calculate threshold seconds
-  switch ($threshold_format_mh) {
-  case "SECOND":
-    $threshold_seconds = $threshold_mh;
-    break;
-  case "MINUTE":
-    $threshold_seconds = $threshold_mh*60;
-    break;
-  case "HOUR":
-    $threshold_seconds = $threshold_mh*3600;
     break;
   }
 
@@ -1003,19 +986,19 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   // find movement for each key
   $Movement_macs = process_keys("wifi_global", $db_q_standard, $macs,
-                                $blacklist_wlan_mh, $threshold_seconds, $threshold_chk_mh, $db_conn_A, $db_conn_B,
+                                $blacklist_wlan_mh, $db_conn_A, $db_conn_B,
                                 $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                 $time_increment, $mac_glbl_over_limit, $moved_total_AB, $moved_total_BA,
                                 $mac_glbl_blacklisted);
 
   $Movement_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
-                                        $blacklist_fp_mh, $threshold_seconds, $threshold_chk_mh, $db_conn_A, $db_conn_B,
+                                        $blacklist_fp_mh, $db_conn_A, $db_conn_B,
                                         $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                         $time_increment, $mac_local_over_limit, $moved_total_AB, $moved_total_BA,
                                         $mac_local_blacklisted);
 
   $Movement_bd_addrs = process_keys("bt", $db_q_standard, $bd_addrs,
-                                    $blacklist_bt_mh, $threshold_seconds, $threshold_chk_mh, $db_conn_A, $db_conn_B,
+                                    $blacklist_bt_mh, $db_conn_A, $db_conn_B,
                                     $db_q_power_limit, $timestamp_limit_mh, $time_from_mh, $time_to_mh,
                                     $time_increment, $bt_over_limit, $moved_total_AB, $moved_total_BA,
                                     $bt_blacklisted);
@@ -1028,7 +1011,7 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_macs, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_fingerprints, $accumulator_AB, $accumulator_BA);
   accumulate_chart_arrays($time_from_mh, $time_to_mh, $time_increment, $Movement_bd_addrs, $accumulator_AB, $accumulator_BA);
-  fill_chart_arrays("m", $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
+  fill_chart_arrays("m", $threshold_num_mh, $threshold_mult_mh, $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
 
   // actual text output starts here
 

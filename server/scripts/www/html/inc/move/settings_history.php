@@ -10,9 +10,8 @@ $time_from_mh           = "";
 $time_to_mh             = "";
 $time_step_mh           = "";
 $time_step_format_mh    = "";
-$threshold_chk_mh       = "";
-$threshold_mh           = "";
-$threshold_format_mh    = "";
+$threshold_num_mh       = "";
+$threshold_mult_mh      = "";
 $power_limit_chk_mh     = "";
 $power_limit_mh         = "";
 $timestamp_limit_chk_mh = "";
@@ -44,9 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_to_mh             = filter_var($_GET["time_to_mh"], FILTER_SANITIZE_STRING);
   $time_step_mh           = filter_var($_GET["time_step_mh"], FILTER_VALIDATE_INT);
   $time_step_format_mh    = $_GET["time_step_format_mh"];
-  $threshold_chk_mh       = $_GET["threshold_chk_mh"];
-  $threshold_mh           = filter_var($_GET["threshold_mh"], FILTER_VALIDATE_INT);
-  $threshold_format_mh    = $_GET["threshold_format_mh"];
+  $threshold_num_mh       = filter_var($_GET["threshold_num_mh"], FILTER_VALIDATE_INT);
+  $threshold_mult_mh      = filter_var($_GET["threshold_mult_mh"], FILTER_VALIDATE_FLOAT);
   $power_limit_chk_mh     = $_GET["power_limit_chk_mh"];
   $power_limit_mh         = filter_var($_GET["power_limit_mh"], FILTER_VALIDATE_INT);
   $timestamp_limit_chk_mh = $_GET["timestamp_limit_chk_mh"];
@@ -77,8 +75,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   if ($time_to_mh == "")             { $time_to_mh = "$today" . " $now"; }
   if ($time_step_mh == "")           { $time_step_mh = 1; }
   if ($time_step_format_mh == "")    { $time_step_format_mh = "HOUR"; }
-  if ($threshold_mh == "")           { $threshold_mh = 10; }
-  if ($threshold_format_mh == "")    { $threshold_format_mh = "MINUTE"; }
+  if ($threshold_num_mh == "")       { $threshold_num_mh = 3; }
+  if ($threshold_mult_mh == "")      { $threshold_mult_mh = "1.3"; }
   if ($power_limit_mh == "")         { $power_limit_mh = -70; }
   if ($timestamp_limit_mh == "")     { $timestamp_limit_mh = 100; }
   if ($blacklist_wlan_mh == "")      { $blacklist_wlan_mh = "AA:AA:AA:AA:AA:AA,BB:BB:BB:BB:BB:BB,CC:CC:CC:CC:CC:CC"; }
@@ -97,9 +95,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_to_mh"]             = $time_to_mh;
   $_SESSION["time_step_mh"]           = $time_step_mh;
   $_SESSION["time_step_format_mh"]    = $time_step_format_mh;
-  $_SESSION["threshold_chk_mh"]       = $threshold_chk_mh;
-  $_SESSION["threshold_mh"]           = $threshold_mh;
-  $_SESSION["threshold_format_mh"]    = $threshold_format_mh;
+  $_SESSION["threshold_num_mh"]       = $threshold_num_mh;
+  $_SESSION["threshold_mult_mh"]      = $threshold_mult_mh;
   $_SESSION["power_limit_chk_mh"]     = $power_limit_chk_mh;
   $_SESSION["power_limit_mh"]         = $power_limit_mh;
   $_SESSION["timestamp_limit_chk_mh"] = $timestamp_limit_chk_mh;

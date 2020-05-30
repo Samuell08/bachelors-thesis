@@ -134,18 +134,17 @@ if(!$db_conn){
             <div class="div_subcontent">
               <b>Threshold</b><br>
               <table class="form">
-                <tr><td><input type="checkbox" name="threshold_chk_mh" value="1" <?php if ($threshold_chk_mh == "1") { echo "checked";} ?>> Use manual threshold </td></tr>
-                <tr><td><input type="number" name="threshold_mh" value="<?php echo $threshold_mh?>" min="1" style="width:100px;text-align:center;"></td></tr>
-                <tr><td><input type="radio" name="threshold_format_mh" value="SECOND" <?php if ($threshold_format_mh == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
-                <tr><td><input type="radio" name="threshold_format_mh" value="MINUTE" <?php if ($threshold_format_mh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
-                <tr><td><input type="radio" name="threshold_format_mh" value="HOUR"   <?php if ($threshold_format_mh == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+                <tr><td>Number of shortest movement<br>times to average</td></tr>
+                <tr><td><input type="number" name="threshold_num_mh" value="<?php echo $threshold_num_mh?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td>Multiplier of the average</td></tr>
+                <tr><td><input type="number" name="threshold_mult_mh" value="<?php echo $threshold_mult_mh?>" min="0" step="0.01" style="width:100px;text-align:center;"></td></tr>
               </table>
             </div>
 
             <div class="div_subcontent">
               <b>Power Limit</b><br>
               <table class="form">
-                <tr><td><input type="checkbox" name="power_limit_chk_mh" value="1" <?php if ($power_limit_chk_mh == "1") { echo "checked";} ?>> Ignore timestamps with lower dBm </td></tr>
+                <tr><td><input type="checkbox" name="power_limit_chk_mh" value="1" <?php if ($power_limit_chk_mh == "1") { echo "checked";} ?>> Ignore timestamps<br>with lower dBm </td></tr>
                 <tr><td><input type="number" name="power_limit_mh" value="<?php echo $power_limit_mh?>" min="-100" max="-10" style="width:100px;text-align:center;"></td></tr>
               </table>
             </div>
@@ -153,7 +152,7 @@ if(!$db_conn){
             <div class="div_subcontent">
               <b>Timestamp Limit</b><br>
               <table class="form">
-                <tr><td><input type="checkbox" name="timestamp_limit_chk_mh" value="1" <?php if ($timestamp_limit_chk_mh == "1") { echo "checked";} ?>> Ignore more than this limit </td></tr>
+                <tr><td><input type="checkbox" name="timestamp_limit_chk_mh" value="1" <?php if ($timestamp_limit_chk_mh == "1") { echo "checked";} ?>> Ignore more than<br>this limit </td></tr>
                 <tr><td><input type="number" name="timestamp_limit_mh" value="<?php echo $timestamp_limit_mh?>" min="1" style="width:100px;text-align:center;"></td></tr>
               </table>
             </div>
