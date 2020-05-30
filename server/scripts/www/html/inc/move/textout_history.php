@@ -41,6 +41,12 @@ $specific_fp_chk_mh     = $_SESSION["specific_fp_chk_mh"];
 $specific_bt_chk_mh     = $_SESSION["specific_bt_chk_mh"];
 $specific_bt_mh         = $_SESSION["specific_bt_mh"];
 
+// This filter is applied for every time step.
+// Number of shortest times to calculate average shortest time from.
+$GLOBALS["movement_filter_num"] = 3;
+// Multiplier of average shortest time (longer times will be filtered).
+$GLOBALS["movement_filter_mult"] = 1.3;
+
 $_SESSION["debug_main"] = false;
 $_SESSION["debug_process_timestamps_output"] = false;
 $_SESSION["debug_chart_arrays"] = false;
@@ -752,6 +758,23 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
   }
 }
 
+// Function filters accumulated time difference array based on global variables by
+// multiplied average of X shortest times.
+function filter_accumulator_array(&$accumulator) {
+  // calculate average of X shortest times
+  $local_copy = $accumulator;
+  sort($local_copy, SORT_NUMERIC);
+  $shortest = array_slice($local_copy, 0, $GLOBALS["movement_filter_num"]);
+  $shortest_avg = array_sum($shortest)/count($shortest);
+  // filter array based on upper limit
+  $upper_limit = $shortest_avg*$GLOBALS["movement_filter_mult"];
+  foreach ($accumulator as $accumulator_p => $accumulator_v) {
+    if ($accumulator_v > $upper_limit) {
+      unset($accumulator[$accumulator_p]);
+    }
+  }
+}
+
 // Functions accepts accumulated arrays for both directions and fills pre-build chart arrays.
 function fill_chart_arrays($units, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
   
@@ -777,6 +800,7 @@ function fill_chart_arrays($units, $accumulator_AB, $accumulator_BA, &$chart_AB,
     if (is_null($accumulator_AB[$i])) {
       $chart_AB[$i]["y"] = null;
     } else {
+      filter_accumulator_array($accumulator_AB[$i]);
       $chart_AB[$i]["y"] = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
     }
     
