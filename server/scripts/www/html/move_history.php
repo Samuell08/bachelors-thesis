@@ -36,7 +36,6 @@ if(!$db_conn){
       function updateAll(){
         updateInfo();
         updateTextout();
-        toggleIbBtData();
         buildChart();
         customizeChart();
       }
@@ -63,10 +62,9 @@ if(!$db_conn){
       <div class="div_info">
         <h2>Information</h2>
         <div class="div_content">
-          <p class="error" style="font-size:30px;text-align:center;">WORK IN PROGRESS</p>
           <p>
             <b>Movement</b> mode displays monitoring data as device transitions from point A
-            to point B in given time range.
+            to point B (and back) in given time range.
           </p>
         </div>
         <div class="div_content" id="info">
@@ -161,7 +159,7 @@ if(!$db_conn){
               <b>Show Data</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="show_wlan_mh" value="1" <?php if ($show_wlan_mh == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-                <tr><td><input type="checkbox" name="show_bt_mh" value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_mh == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+                <tr><td><input type="checkbox" name="show_bt_mh" value="1" <?php if ($show_bt_mh == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
 
@@ -207,16 +205,16 @@ if(!$db_conn){
 
           </form>
 
-          <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
-          <p class="info_box">Blacklisted Keys and Specific Keys <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
-          <p class="info_box">Time Step setting should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
-          <p class="info_box">Threshold specifies maximum movement time between points A and B - longer times will be ingored. When manual threshold is not used
-                              value is calculated as 2 times the shortest movement. Higher value set manually will result in wrong results.</p>
-          <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
-                                                                    <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
-                                                                    (Time Period <b>must</b> be set to same time as amnesia)<br>
-                                                                    <b>&nbsp;&nbsp;&nbsp;disabled - </b>number of newly discovered devices within Time Period
-                                                                    </p>
+          <p class="info_box">Time Range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
+          <p class="info_box">Blacklisted Keys and Specific Keys settings <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
+          <p class="info_box">Time Step should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
+          <p class="info_box">Threshold specifies number of shortest times of movement to calculate average from and multiplier of this average to filter
+                              movements that take longer time. Threshold is calculated for every time step separately and affects every movement that
+                              ends within given time step.</p>
+          <p class="info_box">Bluetooth monitoring data meaning based on amnesia mode:<br>
+                                <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
+                                  (Time Period <b>must</b> be set to same time as amnesia)<br>
+                                <b>&nbsp;&nbsp;&nbsp;disabled - </b>number of newly discovered devices within Time Period</p>
 
         </div>
       </div>

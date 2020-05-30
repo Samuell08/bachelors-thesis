@@ -1,12 +1,3 @@
-// toggle infobox for Bluetooth data
-function toggleIbBtData(){
-  if (document.getElementById("chckb_bt_data").checked == true) {
-    document.getElementById("ib_bt_data").style.display = "block";
-  } else {
-    document.getElementById("ib_bt_data").style.display = "none";
-  }
-}
-
 // update Information div
 function updateInfo(){
   var xmlhttp = new XMLHttpRequest();

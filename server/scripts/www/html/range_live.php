@@ -43,7 +43,6 @@ $_SESSION["updateInterval"] = 30000;
       function updateAll(){
         updateInfo();
         updateTextout();
-        toggleIbBtData();
         buildChart();
         customizeChart();
       }
@@ -121,7 +120,7 @@ $_SESSION["updateInterval"] = 30000;
               <b>Show Data</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="show_wlan_rl" value="1" <?php if ($show_wlan_rl == "1") { echo "checked";} ?>></td><td> Wi-Fi </td></tr>
-                <tr><td><input type="checkbox" name="show_bt_rl"   value="1" id="chckb_bt_data" onclick="toggleIbBtData()" <?php if ($show_bt_rl == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
+                <tr><td><input type="checkbox" name="show_bt_rl" value="1" <?php if ($show_bt_rl == "1") { echo "checked";} ?>></td><td> Bluetooth </td></tr>
               </table>
             </div>
 
@@ -129,11 +128,10 @@ $_SESSION["updateInterval"] = 30000;
 
           </form>
 
-          <p class="info_box" id="ib_bt_data" style="display:none"> Bluetooth monitoring data meaning based on amnesia mode:<br>
-                                                                    <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
-                                                                    (Time Period <b>must</b> be set to same time as amnesia)<br>
-                                                                    <b>&nbsp;&nbsp;&nbsp;disabled - </b>number of newly discovered devices within Time Period
-                                                                    </p>
+          <p class="info_box">Bluetooth monitoring data meaning based on amnesia mode:<br>
+                                <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
+                                  (Time Period <b>must</b> be set to same time as amnesia)<br>
+                                <b>&nbsp;&nbsp;&nbsp;disabled - </b>number of newly discovered devices within Time Period</p>
 
         </div>
       </div>
