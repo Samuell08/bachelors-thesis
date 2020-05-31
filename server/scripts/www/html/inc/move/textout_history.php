@@ -40,12 +40,6 @@ $specific_fp_chk_mh     = $_SESSION["specific_fp_chk_mh"];
 $specific_bt_chk_mh     = $_SESSION["specific_bt_chk_mh"];
 $specific_bt_mh         = $_SESSION["specific_bt_mh"];
 
-// This filter is applied for every time step.
-// Number of shortest times to calculate average shortest time from.
-$GLOBALS["movement_filter_num"] = 3;
-// Multiplier of average shortest time (longer times will be filtered).
-$GLOBALS["movement_filter_mult"] = 1.3;
-
 $_SESSION["debug_main"] = false;
 $_SESSION["debug_process_timestamps_output"] = false;
 $_SESSION["debug_chart_arrays"] = false;
