@@ -213,14 +213,14 @@ if(!$db_conn){
 
         <div class="div_content">
           <br><button onclick="updateChart()">Update Charts</button><br>
-          <p class="info_box">Charts need to be updated manually <b>after</b> Text output is loaded.</p>
+          <p class="info_box">Charts need to be updated manually <b>after</b> Text Output is loaded.</p>
         </div>
 
       </div>
 
       <!-- TEXT OUTPUT -->
       <div class="div_text">
-        <h2>Text output</h2>
+        <h2>Text Output</h2>
         <div class="div_content" id="textout">
           Loading... This might take a while... \_(ツ)_/
         </div>

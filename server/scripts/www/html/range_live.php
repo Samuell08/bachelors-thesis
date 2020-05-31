@@ -147,7 +147,7 @@ $_SESSION["updateInterval"] = 30000;
 
       <!-- TEXT OUTPUT -->
       <div class="div_text">
-        <h2>Text output</h2>
+        <h2>Text Output</h2>
         <div class="div_content" id="textout">
           Loading...
         </div>
