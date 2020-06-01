@@ -211,10 +211,6 @@ if(!$db_conn){
           <p class="info_box">Threshold specifies number of shortest times of movement to calculate average from and multiplier of this average to filter
                               movements that take longer time. Threshold is calculated for every time step separately and affects every movement that
                               ends within given time step.</p>
-          <p class="info_box">Bluetooth monitoring data meaning based on amnesia mode:<br>
-                                <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
-                                  (Time Period <b>must</b> be set to same time as amnesia)<br>
-                                <b>&nbsp;&nbsp;&nbsp;disabled - </b>number of newly discovered devices within Time Period</p>
 
         </div>
       </div>
