@@ -99,6 +99,7 @@ do
       then
         echo "ERROR: missing argument for option $1"
         print_usage
+	exit 1
         break
       fi
 
@@ -111,6 +112,7 @@ do
         *)
           echo "ERROR: argument unknown or missing!"
           print_usage
+	  exit 1
           break
           ;;
       esac
@@ -125,6 +127,7 @@ do
     *)
       echo "ERROR: option $1 unknown!"
       print_usage
+      exit 1
       break
       ;;
   esac

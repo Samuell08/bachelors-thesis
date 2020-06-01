@@ -1007,6 +1007,7 @@ case $1 in
   *)
     echo "ERROR: option $1 unknown!"
     print_usage
+    exit 1
     break
     ;;
 esac

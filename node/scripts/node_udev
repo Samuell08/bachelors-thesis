@@ -198,6 +198,7 @@ do
             echo ""
             echo "ERROR: not enough aguments for option $1"
             print_usage
+	    exit 1
 	    break
           else
             append $UDEV_PERSISTENT_NET $3 $4
@@ -225,6 +226,7 @@ do
 	*)
           echo "ERROR: invalid argument for option $1"
 	  print_usage
+	  exit 1
 	  break
           ;;
       esac
@@ -242,6 +244,7 @@ do
 	*)
           echo "ERROR: invalid argument for option $1"
 	  print_usage
+	  exit 1
 	  break
           ;;
       esac
@@ -251,6 +254,7 @@ do
     *)
       echo "ERROR: option $1 unknown!"
       print_usage
+      exit 1
       break
       ;;
   esac

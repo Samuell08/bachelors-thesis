@@ -350,6 +350,7 @@ do
       then
         echo "ERROR: invalid argument '${2}' for option ${1}!"
         print_usage
+	exit 1
         break
       fi
 
@@ -369,6 +370,7 @@ do
       then
         echo "ERROR: invalid argument '${2}' for option ${1}!"
         print_usage
+	exit 1
         break
       fi
       
@@ -377,6 +379,7 @@ do
       then
         echo "ERROR: invalid argument '${3}' for option ${1}!"
         print_usage
+	exit 1
         break
       fi
       
@@ -436,6 +439,7 @@ do
       then
         echo "ERROR: invalid argument '${2}' for option ${1}!"
         print_usage
+	exit 1
         break
       fi
       
@@ -444,6 +448,7 @@ do
       then
         echo "ERROR: invalid argument '${3}' for option ${1}!"
         print_usage
+	exit 1
         break
       fi
       
@@ -502,6 +507,7 @@ do
       then
         echo "ERROR: invalid argument '${2}' for option ${1}!"
         print_usage
+	exit 1
         break
       fi
       
@@ -550,6 +556,7 @@ do
     *)
       echo "ERROR: option $1 unknown!"
       print_usage
+      exit 1
       break
       ;;
   esac
