@@ -87,8 +87,8 @@ if(!$db_conn){
                 $settingsok="0";
                 include 'inc/pass/settings_history.php';
                 // variables for common settings PHP script
-                $_SESSION["common_settings_input_name"] = "db_source_ph[]";
-                $_SESSION["common_settings_input_type"] = "checkbox";
+                $_SESSION["common_settings_input_name"] = "db_source_ph";
+                $_SESSION["common_settings_input_type"] = "radio";
                 $_SESSION["common_settings_db_source"] = json_encode($_SESSION["db_source_ph"]);
                 echo "<b>Source Database(s)</b><br>";
                 include 'inc/common/settings.php';

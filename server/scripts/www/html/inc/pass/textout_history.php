@@ -41,7 +41,7 @@ class Passenger {
   public $key = NULL; // MAC, fingerprint or BD_ADDR
   public $blacklisted = 0; // if 1, key is blacklisted
   public $over_timestamp_limit = 0; // if 1, numer of timestamps is over limit
-  public $passages; // 2D array timestamp | passage?
+  public $passages = NULL; // 2D array timestamp | passage?
 }
 
 function is_anagram($string1, $string2) {
@@ -384,15 +384,17 @@ function process_keys($type, $db_q_standard, $keys,
     while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
       // calculate next time value
       $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-      // passage in current time step?
       foreach ($key_passages as $pass_key => $pass_value){
-        if ((strtotime($pass_value[0]) > strtotime($time_actual)) && (strtotime($pass_value[0]) <= strtotime($time_next))){
-          $chart_total[$i]["y"] += 1;
-          if ($unique) {
-            $chart_unique[$i]["y"] += 1;
-            $unique = 0;
-          }
-        } 
+        if ($pass_value[1] == 1) {
+          // passage in current time step?
+          if ((strtotime($pass_value[0]) > strtotime($time_actual)) && (strtotime($pass_value[0]) <= strtotime($time_next))){
+            $chart_total[$i]["y"] += 1;
+            if ($unique) {
+              $chart_unique[$i]["y"] += 1;
+              $unique = 0;
+            }
+          }  
+        }
       }
       // moving to next time step
       $unique = 1;
@@ -460,21 +462,21 @@ function print_Passenger_array($type, $Passenger_array, $time_from, $time_to, $t
 
       } else {
 
-            if ($Passenger_key->passages == NULL) {
-              echo "<tt style=\"color:orangered\">" . 
-                     "None" . 
-                   "</tt>";
+        if ($Passenger_key->passages == NULL) {
+          echo "<tt style=\"color:orangered\">" . 
+                 "None" . 
+               "</tt>";
+        } else {
+          echo "<tt>";
+          foreach ($Passenger_key->passages as $passages_p => $passages_v) {
+            if ($passages_v[1] == 1) {
+              echo "<b>" . $passages_v[0] . " | " . "</b>";
             } else {
-              echo "<tt>";
-              foreach ($Passenger_key->passages as $passages_p => $passages_v) {
-                if ($passages_v[1] == 1) {
-                  echo "<b>" . $passages_v[0] . " | " . "</b>";
-                } else {
-                  echo $passages_v[0] . " | ";
-                }
-              }
-              echo "</tt>";
+              echo $passages_v[0] . " | ";
             }
+          }
+          echo "</tt>";
+        }
       }
     echo "<td>";
     echo "</tr>";
@@ -593,71 +595,73 @@ if ($db_source_ph == NULL) {
       }
     }
   }
-  
+
+  // prepare variables
+  unset($macs);
+  unset($fingerprints);
+  unset($bd_addrs);
+  $mac_glbl_passed = 0;
+  $mac_local_passed = 0;
+  $bt_passed = 0;
+  $mac_glbl_over_timestamp_limit = 0;
+  $mac_local_over_timestamp_limit = 0;
+  $bt_over_timestamp_limit = 0;
+  $mac_glbl_blacklisted = 0;
+  $mac_local_blacklisted = 0;
+  $bt_blacklisted = 0;
+
   // prepare chart arrays
   $chart_wifi_unique_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
   $chart_wifi_total_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
   $chart_bt_unique_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
   $chart_bt_total_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
 
-  // fill key arrays
-  $mac_glbl_passed = 0;
-  $mac_local_passed = 0;
-  $bt_passed = 0;
+  $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_ph);
 
-  unset($macs);
-  unset($fingerprints);
-  unset($bd_addrs);
+  // specific or all keys?
+  if ($specific_mac_chk_ph == "1" or $specific_fp_chk_ph == "1" or $specific_bt_chk_ph == "1") {
 
-  foreach ($db_source_ph as $key => $value) {
+    // process only specific keys
 
-    $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
-
-    // specific or all keys?
-    if ($specific_mac_chk_ph == "1" or $specific_fp_chk_ph == "1" or $specific_bt_chk_ph == "1") {
-
-      // process only specific keys
-
-      if ($show_wlan_ph == "1") {
-        if ($specific_mac_chk_ph == "1") {
-          // macs array contains only specific global MAC addresses
-          foreach (explode(",", $specific_mac_ph) as $specific_key => $specific_value) {
-            $macs[] = $specific_value;
-          }
-        }
-        if ($specific_fp_chk_ph == "1") {
-          // fingerprints array contains only specific ESSID combination
-          get_fingerprints("specific", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
+    if ($show_wlan_ph == "1") {
+      if ($specific_mac_chk_ph == "1") {
+        // macs array contains only specific global MAC addresses
+        foreach (explode(",", $specific_mac_ph) as $specific_key => $specific_value) {
+          $macs[] = $specific_value;
         }
       }
-
-      if ($show_bt_ph == "1") {
-        if ($specific_bt_chk_ph == "1") {
-          // bd_addrs array contains only specific BD_ADDR addresses
-          foreach (explode(",", $specific_bt_ph) as $specific_key => $specific_value) {
-            $bd_addrs[] = $specific_value;
-          }
-        }
-      }
-
-    } else {
-
-      // process all keys
-
-      if ($show_wlan_ph == "1") {
-        // GLOBAL MAC
-        // every unique global MAC in time range 
-        get_macs($db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $macs);
-        // LOCAL MAC
-        // every local MAC fingerprint
-        get_fingerprints("all", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
-      }
-      if ($show_bt_ph == "1") {
-        // every unique BD_ADDR in time range
-        get_bd_addrs($db_conn_s, $time_from_ph, $time_to_ph, $bd_addrs);
+      if ($specific_fp_chk_ph == "1") {
+        // fingerprints array contains only specific ESSID combination
+        get_fingerprints("specific", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
       }
     }
-  } // end of foreach DB
+
+    if ($show_bt_ph == "1") {
+      if ($specific_bt_chk_ph == "1") {
+        // bd_addrs array contains only specific BD_ADDR addresses
+        foreach (explode(",", $specific_bt_ph) as $specific_key => $specific_value) {
+          $bd_addrs[] = $specific_value;
+        }
+      }
+    }
+
+  } else {
+
+    // process all keys
+
+    if ($show_wlan_ph == "1") {
+      // GLOBAL MAC
+      // every unique global MAC in time range 
+      get_macs($db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $macs);
+      // LOCAL MAC
+      // every local MAC fingerprint
+      get_fingerprints("all", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
+    }
+    if ($show_bt_ph == "1") {
+      // every unique BD_ADDR in time range
+      get_bd_addrs($db_conn_s, $time_from_ph, $time_to_ph, $bd_addrs);
+    }
+  }
   
   // delete duplicit keys (can happen when multiple databases are sourced)
   unset_duplicit_keys($macs);
@@ -668,43 +672,32 @@ if ($db_source_ph == NULL) {
   $bt_passed = count($bd_addrs);
   $passed_total = $mac_glbl_passed + $mac_local_passed + $bt_passed;
 
-  // ignored due to exceeding timestamp limit
-  $mac_glbl_over_timestamp_limit  = 0;
-  $mac_local_over_timestamp_limit = 0;
-  $bt_over_timestamp_limit        = 0;
-  // ignored due to being blacklisted
-  $mac_glbl_blacklisted  = 0;
-  $mac_local_blacklisted = 0;
-  $bt_blacklisted        = 0;
-
   // find passages
   if ($passed_total > 0) {
-    foreach ($db_source_ph as $db_source_p => $db_source_v) {
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_v);
-      if ($show_wlan_ph == "1") {
-        if ($mac_glbl_passed > 0) {
-          $Passages_macs = process_keys("wifi_global", $db_q_standard, $macs,
-                                        $blacklist_wlan_ph, $db_conn_s, $threshold_seconds,
-                                        $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                                        $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                                        $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted);
-        }
-          if ($mac_local_passed > 0) {
-          $Passages_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
-                                                $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
-                                                $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                                                $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                                                $mac_local_over_timestamp_limit, $mac_local_blacklisted);
-        }
+    $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_ph);
+    if ($show_wlan_ph == "1") {
+      if ($mac_glbl_passed > 0) {
+        $Passenger_macs = process_keys("wifi_global", $db_q_standard, $macs,
+                                       $blacklist_wlan_ph, $db_conn_s, $threshold_seconds,
+                                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                                       $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted);
       }
-      if ($show_bt_ph == "1") {
-        if ($bt_passed > 0) {
-          $Passages_bd_addrs = process_keys("bt", "1", $bd_addrs,
-                                            $blacklist_bt_ph, $db_conn_s, $threshold_seconds,
-                                            $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                                            $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph,
-                                            $bt_over_timestamp_limit, $bt_blacklisted);
-        }
+        if ($mac_local_passed > 0) {
+        $Passenger_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
+                                               $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
+                                               $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                               $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                                               $mac_local_over_timestamp_limit, $mac_local_blacklisted);
+      }
+    }
+    if ($show_bt_ph == "1") {
+      if ($bt_passed > 0) {
+        $Passenger_bd_addrs = process_keys("bt", "1", $bd_addrs,
+                                           $blacklist_bt_ph, $db_conn_s, $threshold_seconds,
+                                           $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                           $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph,
+                                           $bt_over_timestamp_limit, $bt_blacklisted);
       }
     }
   }
@@ -722,11 +715,17 @@ if ($db_source_ph == NULL) {
                          $bt_passed, $bt_over_timestamp_limit, $bt_blacklisted);
 
   if ($show_wlan_ph == "1") {
-    print_Passenger_array("wifi_global", $Passages_macs, $time_from_ph, $time_to_ph, $time_increment);
-    print_Passenger_array("wifi_local", $Passages_fingerprints, $time_from_ph, $time_to_ph, $time_increment);
+    if ($mac_glbl_passed > 0) {
+      print_Passenger_array("wifi_global", $Passenger_macs, $time_from_ph, $time_to_ph, $time_increment);
+    }
+    if ($mac_local_passed > 0) {
+      print_Passenger_array("wifi_local", $Passenger_fingerprints, $time_from_ph, $time_to_ph, $time_increment);
+    }
   }
   if ($show_bt_ph == "1") {
-    print_Passenger_array("bt", $Passages_bd_addrs, $time_from_ph, $time_to_ph, $time_increment);
+    if ($bt_passed > 0) {
+      print_Passenger_array("bt", $Passenger_bd_addrs, $time_from_ph, $time_to_ph, $time_increment);
+    }
   }
 
   // write completed chart arrays to json files
