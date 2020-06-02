@@ -37,7 +37,7 @@ $specific_fp_chk_ph     = $_SESSION["specific_fp_chk_ph"];
 $specific_bt_chk_ph     = $_SESSION["specific_bt_chk_ph"];
 $specific_bt_ph         = $_SESSION["specific_bt_ph"];
 
-class Passanger {
+class Passenger {
   public $key = NULL; // MAC, fingerprint or BD_ADDR
   public $blacklisted = 0; // if 1, key is blacklisted
   public $over_timestamp_limit = 0; // if 1, numer of timestamps is over limit
@@ -304,6 +304,10 @@ function process_keys($type, $db_q_standard, $keys,
   echo "<table style=\"border-collapse:collapse\">";
 
   foreach ($keys as $keys_key => $keys_value) {
+
+    // new Passenger
+    $Passenger_key = new Passenger();
+
     // output keys with timestamps table
     echo "<tr class=\"info\">";
     if ($type == "wifi_local") {
@@ -327,6 +331,9 @@ function process_keys($type, $db_q_standard, $keys,
         echo "Blacklisted";
         echo "</b></tt></td>";
         echo "</tr>";
+        $Passenger_key->key = $keys_value;
+        $Passenger_key->blacklisted = 1;
+        $Passenger_array[] = $Passenger_key;
         $blacklisted++;
         continue 2; // foreach keys
         break;
@@ -334,7 +341,7 @@ function process_keys($type, $db_q_standard, $keys,
         exit("function process_keys ERROR: error while processing blacklist");
     }
 
-    // process MySQL query result
+    // get timestamps
     unset($key_timestamps);
     if ($type == "wifi_local") {
       // append all anagram timestamps to single array

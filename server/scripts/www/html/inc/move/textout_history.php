@@ -500,7 +500,7 @@ function process_keys($type, $db_q_standard, $keys,
     $timestampsB = get_timestamps($db_conn_B, $db_q);
 
     // number of timestamps over limit?
-    if ((count($timestampsA) > $timestamp_limit) or (count($timestampsA) > $timestamp_limit)) {
+    if ((count($timestampsA) + count($timestampsB)) > $timestamp_limit) {
         // over limit - end processing of key and go to next
         // fill Movement object and push it to output array
         $Movement_key->key = $keys_value;
