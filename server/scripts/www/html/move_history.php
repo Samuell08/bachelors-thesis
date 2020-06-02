@@ -140,6 +140,17 @@ if(!$db_conn){
             </div>
 
             <div class="div_subcontent">
+              <b>Absolute Maximum Threshold</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="threshold_max_chk_mh" value="1" <?php if ($threshold_max_chk_mh == "1") { echo "checked";} ?>> Use absolute maximum<br>threshold </td></tr>
+                <tr><td><input type="number" name="threshold_max_mh" value="<?php echo $threshold_max_mh?>" min="1" step="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="threshold_max_format_mh" value="SECOND" <?php if ($threshold_max_format_mh == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
+                <tr><td><input type="radio" name="threshold_max_format_mh" value="MINUTE" <?php if ($threshold_max_format_mh == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+                <tr><td><input type="radio" name="threshold_max_format_mh" value="HOUR" <?php if ($threshold_max_format_mh == "HOUR") {echo "checked";} ?>> Hour(s) </td></tr>
+              </table>
+            </div>
+
+            <div class="div_subcontent">
               <b>Power Limit</b><br>
               <table class="form">
                 <tr><td><input type="checkbox" name="power_limit_chk_mh" value="1" <?php if ($power_limit_chk_mh == "1") { echo "checked";} ?>> Ignore timestamps<br>with lower dBm </td></tr>

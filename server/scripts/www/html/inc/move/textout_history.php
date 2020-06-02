@@ -17,28 +17,31 @@ $db_pass        = $_SESSION["db_pass"];
 $db_source_A_mh = $_SESSION["db_source_A_mh"];
 $db_source_B_mh = $_SESSION["db_source_B_mh"];
 // settings
-$time_from_mh           = $_SESSION["time_from_mh"];
-$time_to_mh             = $_SESSION["time_to_mh"];
-$time_step_mh           = $_SESSION["time_step_mh"];
-$time_step_format_mh    = $_SESSION["time_step_format_mh"];
-$threshold_num_mh       = $_SESSION["threshold_num_mh"];
-$threshold_mult_mh      = $_SESSION["threshold_mult_mh"];
-$power_limit_chk_mh     = $_SESSION["power_limit_chk_mh"];
-$power_limit_mh         = $_SESSION["power_limit_mh"];
-$timestamp_limit_chk_mh = $_SESSION["timestamp_limit_chk_mh"];
-$timestamp_limit_mh     = $_SESSION["timestamp_limit_mh"];
-$show_wlan_mh           = $_SESSION["show_wlan_mh"];
-$show_bt_mh             = $_SESSION["show_bt_mh"];
-$show_wlan_a_mh         = $_SESSION["show_wlan_a_mh"];
-$show_wlan_bg_mh        = $_SESSION["show_wlan_bg_mh"];
-$blacklist_wlan_mh      = $_SESSION["blacklist_wlan_mh"];
-$blacklist_fp_mh        = $_SESSION["blacklist_fp_mh"];
-$blacklist_bt_mh        = $_SESSION["blacklist_bt_mh"];
-$specific_mac_chk_mh    = $_SESSION["specific_mac_chk_mh"];
-$specific_mac_mh        = $_SESSION["specific_mac_mh"];
-$specific_fp_chk_mh     = $_SESSION["specific_fp_chk_mh"];
-$specific_bt_chk_mh     = $_SESSION["specific_bt_chk_mh"];
-$specific_bt_mh         = $_SESSION["specific_bt_mh"];
+$time_from_mh            = $_SESSION["time_from_mh"];
+$time_to_mh              = $_SESSION["time_to_mh"];
+$time_step_mh            = $_SESSION["time_step_mh"];
+$time_step_format_mh     = $_SESSION["time_step_format_mh"];
+$threshold_max_chk_mh    = $_SESSION["threshold_max_chk_mh"];
+$threshold_max_mh        = $_SESSION["threshold_max_mh"];
+$threshold_max_format_mh = $_SESSION["threshold_max_format_mh"];
+$threshold_num_mh        = $_SESSION["threshold_num_mh"];
+$threshold_mult_mh       = $_SESSION["threshold_mult_mh"];
+$power_limit_chk_mh      = $_SESSION["power_limit_chk_mh"];
+$power_limit_mh          = $_SESSION["power_limit_mh"];
+$timestamp_limit_chk_mh  = $_SESSION["timestamp_limit_chk_mh"];
+$timestamp_limit_mh      = $_SESSION["timestamp_limit_mh"];
+$show_wlan_mh            = $_SESSION["show_wlan_mh"];
+$show_bt_mh              = $_SESSION["show_bt_mh"];
+$show_wlan_a_mh          = $_SESSION["show_wlan_a_mh"];
+$show_wlan_bg_mh         = $_SESSION["show_wlan_bg_mh"];
+$blacklist_wlan_mh       = $_SESSION["blacklist_wlan_mh"];
+$blacklist_fp_mh         = $_SESSION["blacklist_fp_mh"];
+$blacklist_bt_mh         = $_SESSION["blacklist_bt_mh"];
+$specific_mac_chk_mh     = $_SESSION["specific_mac_chk_mh"];
+$specific_mac_mh         = $_SESSION["specific_mac_mh"];
+$specific_fp_chk_mh      = $_SESSION["specific_fp_chk_mh"];
+$specific_bt_chk_mh      = $_SESSION["specific_bt_chk_mh"];
+$specific_bt_mh          = $_SESSION["specific_bt_mh"];
 
 $_SESSION["debug_main"] = false;
 $_SESSION["debug_process_timestamps_output"] = false;
@@ -536,7 +539,7 @@ function process_keys($type, $db_q_standard, $keys,
     
 }
 
-function flag_movement_over_limit($time_from, $time_to, $time_increment, $end_time, $diff, $upper_limits) {
+function flag_movement_over_limit($time_from, $time_to, $time_increment, $end_time, $diff, $upper_limits, $threshold_max) {
   $i = 0;
   $time_actual = $time_from;
   while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
@@ -545,7 +548,7 @@ function flag_movement_over_limit($time_from, $time_to, $time_increment, $end_ti
     // movement in current time step?
     if ((strtotime($end_time) > strtotime($time_actual)) && (strtotime($end_time) <= strtotime($time_next))){
         // is the time difference over limit for given time step?
-        if ($diff > $upper_limits[$i]) {
+        if (($diff > $upper_limits[$i]) or ($diff > $threshold_max)) {
           return 1;
         } else {
           return 0;
@@ -560,7 +563,7 @@ function flag_movement_over_limit($time_from, $time_to, $time_increment, $end_ti
 
 // Function accepts array of Movement objects and prints it to HTML based on
 // direction and type parameters.
-function print_Movement_array($direction, $type, $Movement_array, $time_from, $time_to, $time_increment, $upper_limits) {
+function print_Movement_array($direction, $type, $Movement_array, $time_from, $time_to, $time_increment, $upper_limits, $threshold_max) {
 
   switch($type){
     case "wifi_global":
@@ -627,7 +630,7 @@ function print_Movement_array($direction, $type, $Movement_array, $time_from, $t
                          round($AB_array_v[2]/3600, 2) . " hod" .
                        ")</b>" .
                      "</tt></td>";
-                if (flag_movement_over_limit($time_from, $time_to, $time_increment, $AB_array_v[1], $AB_array_v[2], $upper_limits)) {
+                if (flag_movement_over_limit($time_from, $time_to, $time_increment, $AB_array_v[1], $AB_array_v[2], $upper_limits, $threshold_max)) {
                   echo "<td style=\"color:orangered\"><tt> - over limit </tt></td>";
                 }      
                 echo "</tr>";
@@ -651,7 +654,7 @@ function print_Movement_array($direction, $type, $Movement_array, $time_from, $t
                          round($BA_array_v[2]/3600, 2) . " hod" .
                        ")</b>" .
                      "</tt></td>";
-                if (flag_movement_over_limit($time_from, $time_to, $time_increment, $BA_array_v[1], $BA_array_v[2], $upper_limits)) {
+                if (flag_movement_over_limit($time_from, $time_to, $time_increment, $BA_array_v[1], $BA_array_v[2], $upper_limits, $threshold_max)) {
                   echo "<td style=\"color:orangered\"><tt> - over limit </tt></td>";
                 }      
                 echo "</tr>";
@@ -777,9 +780,9 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
   }
 }
 
-function filter_accumulator_array($upper_limit, &$accumulator) {
+function filter_accumulator_array($upper_limit, $threshold_max, &$accumulator) {
   foreach ($accumulator as $accumulator_p => $accumulator_v) {
-    if ($accumulator_v > $upper_limit) {
+    if (($accumulator_v > $upper_limit) or ($accumulator_v > $threshold_max)) {
       unset($accumulator[$accumulator_p]);
     }
   }
@@ -797,7 +800,7 @@ function find_movement_limits ($threshold_num, $threshold_mult, $array_size, $ac
 }
 
 // Functions accepts accumulated arrays for both directions and fills pre-build chart arrays.
-function fill_chart_arrays($units, $upper_limits_AB, $upper_limits_BA, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
+function fill_chart_arrays($units, $upper_limits_AB, $upper_limits_BA, $threshold_max, $accumulator_AB, $accumulator_BA, &$chart_AB, &$chart_BA){
   
   $chart_AB_size = count($chart_AB);
   $chart_BA_size = count($chart_BA);
@@ -820,15 +823,25 @@ function fill_chart_arrays($units, $upper_limits_AB, $upper_limits_BA, $accumula
     if (is_null($accumulator_AB[$i])) {
       $chart_AB[$i]["y"] = null;
     } else {
-      filter_accumulator_array($upper_limits_AB[$i], $accumulator_AB[$i]);
-      $chart_AB[$i]["y"] = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
+      filter_accumulator_array($upper_limits_AB[$i], $threshold_max, $accumulator_AB[$i]);
+      $datapoint = (array_sum($accumulator_AB[$i])/count($accumulator_AB[$i]))/$divisor;
+      if (is_nan($datapoint)) {
+        $chart_AB[$i]["y"] = null;
+      } else {
+        $chart_AB[$i]["y"] = $datapoint;
+      }
     }
     
     if (is_null($accumulator_BA[$i])) {
       $chart_BA[$i]["y"] = null;
     } else {
-      filter_accumulator_array($upper_limits_BA[$i], $accumulator_BA[$i]);
-      $chart_BA[$i]["y"] = (array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]))/$divisor;
+      filter_accumulator_array($upper_limits_BA[$i], $threshold_max, $accumulator_BA[$i]);
+      $datapoint = (array_sum($accumulator_BA[$i])/count($accumulator_BA[$i]))/$divisor;
+      if (is_nan($datapoint)) {
+        $chart_BA[$i]["y"] = null;
+      } else {
+        $chart_BA[$i]["y"] = $datapoint;
+      }
     }
 
   }
@@ -884,6 +897,23 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
     break;
   }
 
+  // calculate absolute max threshold seconds
+  if ($threshold_max_chk_mh == "1"){
+    switch ($threshold_max_format_mh) {
+    case "SECOND":
+      $threshold_max = $threshold_max_mh;
+      break;
+    case "MINUTE":
+      $threshold_max = $threshold_max_mh*60;
+      break;
+    case "HOUR":
+      $threshold_max = $threshold_max_mh*3600;
+      break;
+    }
+  } else {
+    $threshold_max = PHP_INT_MAX;
+  }
+ 
   // "disable" limit
   if ($timestamp_limit_chk_mh != "1"){
     $timestamp_limit_mh = PHP_INT_MAX;
@@ -1039,7 +1069,7 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   $upper_limits_AB = find_movement_limits($threshold_num_mh, $threshold_mult_mh, count($chart_AB_mh), $accumulator_AB);
   $upper_limits_BA = find_movement_limits($threshold_num_mh, $threshold_mult_mh, count($chart_BA_mh), $accumulator_BA);
 
-  fill_chart_arrays("m", $upper_limits_AB, $upper_limits_BA, $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
+  fill_chart_arrays("m", $upper_limits_AB, $upper_limits_BA, $threshold_max, $accumulator_AB, $accumulator_BA, $chart_AB_mh, $chart_BA_mh);
 
   // actual text output starts here
 
@@ -1060,20 +1090,20 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
 
   echo "<b>Movement A->B:</b><br>";
   if ($show_wlan_mh == "1") {
-    print_Movement_array("AB", "wifi_global", $Movement_macs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB);
-    print_Movement_array("AB", "wifi_local", $Movement_fingerprints, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB);
+    print_Movement_array("AB", "wifi_global", $Movement_macs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB, $threshold_max);
+    print_Movement_array("AB", "wifi_local", $Movement_fingerprints, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB, $threshold_max);
   }
   if ($show_bt_mh == "1") {
-    print_Movement_array("AB", "bt", $Movement_bd_addrs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB);
+    print_Movement_array("AB", "bt", $Movement_bd_addrs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_AB, $threshold_max);
   }
 
   echo "<b>Movement B->A:</b><br>";
   if ($show_wlan_mh == "1") {
-    print_Movement_array("BA", "wifi_global", $Movement_macs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA);
-    print_Movement_array("BA", "wifi_local", $Movement_fingerprints, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA);
+    print_Movement_array("BA", "wifi_global", $Movement_macs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA, $threshold_max);
+    print_Movement_array("BA", "wifi_local", $Movement_fingerprints, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA, $threshold_max);
   }
   if ($show_bt_mh == "1") {
-    print_Movement_array("BA", "bt", $Movement_bd_addrs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA);
+    print_Movement_array("BA", "bt", $Movement_bd_addrs, $time_from_mh, $time_to_mh, $time_increment, $upper_limits_BA, $threshold_max);
   }
 
   // end of text output
