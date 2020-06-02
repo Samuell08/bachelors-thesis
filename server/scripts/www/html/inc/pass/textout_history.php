@@ -37,22 +37,6 @@ $specific_fp_chk_ph     = $_SESSION["specific_fp_chk_ph"];
 $specific_bt_chk_ph     = $_SESSION["specific_bt_chk_ph"];
 $specific_bt_ph         = $_SESSION["specific_bt_ph"];
 
-// Function accepts time parameters from Settings form and builds
-// array that will be accepted by charts.
-// axis x - time
-// axis y - values (default = 0)
-function prepare_chart_array($time_from, $time_to, $time_increment) {
-  $i = 0;
-  $time_actual = date('Y-m-d H:i:s', (strtotime($time_from) + $time_increment));
-  while (strtotime($time_actual) <= strtotime($time_to)) {
-    $chart_array[$i]["x"] = strtotime($time_actual)*1000;
-    $chart_array[$i]["y"] = 0;
-    $i += 1;
-    $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-  }
-  return $chart_array;
-}
-
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
     return 1;
@@ -72,6 +56,41 @@ function unset_duplicit_keys(&$keys) {
   }
 }
 
+// Function accepts time parameters from Settings form and builds
+// array that will be accepted by charts.
+// axis x - time
+// axis y - values (default = 0)
+function prepare_chart_array($time_from, $time_to, $time_increment) {
+  $i = 0;
+  $time_actual = date('Y-m-d H:i:s', (strtotime($time_from) + $time_increment));
+  while (strtotime($time_actual) <= strtotime($time_to)) {
+    $chart_array[$i]["x"] = strtotime($time_actual)*1000;
+    $chart_array[$i]["y"] = 0;
+    $i += 1;
+    $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+  }
+  return $chart_array;
+}
+
+// Function accepts time parameters and wlan standard from Settings form and 
+// returns all GLOBAL MAC addresses within given time range.
+function get_macs($db_conn, $time_from, $time_to, $db_q_standard, &$macs) {
+  $db_q = "SELECT station_MAC FROM Clients WHERE
+          (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "') AND
+          (station_MAC LIKE '_0:__:__:__:__:__' OR
+           station_MAC LIKE '_4:__:__:__:__:__' OR
+           station_MAC LIKE '_8:__:__:__:__:__' OR
+           station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
+          "GROUP BY station_MAC;";
+  $db_result = mysqli_query($db_conn, $db_q);
+  // append result to macs
+  if (mysqli_num_rows($db_result) > 0) {
+    while ($db_row = mysqli_fetch_assoc($db_result)) {
+      $macs[] = $db_row["station_MAC"];
+    }
+  }
+  mysqli_free_result($db_result);
+}
 
 // function finds every probed ESSIDs fingerprint and returns
 // 2D array (2nd dimension containing found anagrams)
@@ -468,6 +487,7 @@ if ($db_source_ph == NULL) {
 
     $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
+    // specific or all keys?
     if ($specific_mac_chk_ph == "1" or $specific_fp_chk_ph == "1" or $specific_bt_chk_ph == "1") {
 
       // process only specific keys
@@ -496,28 +516,12 @@ if ($db_source_ph == NULL) {
 
     } else {
 
-      // process everything
+      // process all keys
 
       if ($show_wlan_ph == "1") {
-
         // GLOBAL MAC
         // every unique global MAC in time range 
-        $db_q = "SELECT station_MAC FROM Clients WHERE
-                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "') AND
-                (station_MAC LIKE '_0:__:__:__:__:__' OR
-                 station_MAC LIKE '_4:__:__:__:__:__' OR
-                 station_MAC LIKE '_8:__:__:__:__:__' OR
-                 station_MAC LIKE '_C:__:__:__:__:__') AND " . $db_q_standard .
-                "GROUP BY station_MAC;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-        // append result to macs
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $macs[] = $db_row["station_MAC"];
-          }
-        }
-        mysqli_free_result($db_result);
-
+        get_macs($db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $macs);
         // LOCAL MAC
         // every local MAC fingerprint
         get_fingerprints("all", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
