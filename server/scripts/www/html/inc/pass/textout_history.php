@@ -37,6 +37,13 @@ $specific_fp_chk_ph     = $_SESSION["specific_fp_chk_ph"];
 $specific_bt_chk_ph     = $_SESSION["specific_bt_chk_ph"];
 $specific_bt_ph         = $_SESSION["specific_bt_ph"];
 
+class Passanger {
+  public $key = NULL; // MAC, fingerprint or BD_ADDR
+  public $blacklisted = 0; // if 1, key is blacklisted
+  public $over_timestamp_limit = 0; // if 1, numer of timestamps is over limit
+  public $passages; // 2D array timestamp | ok
+}
+
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
     return 1;
@@ -552,13 +559,13 @@ if ($db_source_ph == NULL) {
   // delete duplicit keys (can happen when multiple databases are sourced)
   unset_duplicit_keys($macs);
   unset_duplicit_keys($bd_addrs);
+
   $mac_glbl_passed = count($macs);
   $mac_local_passed = count($fingerprints);
   $bt_passed = count($bd_addrs);
+  $total_passed = $mac_glbl_passed + $mac_local_passed + $bt_passed;
 
   echo "<b>Statistics table is located at the bottom of the page</b>" . "<br><br>";
-
-  $total_passed = $mac_glbl_passed + $mac_local_passed + $bt_passed;
 
   // ignored due to exceeding timestamp limit
   $mac_glbl_ignored  = 0;
@@ -569,11 +576,11 @@ if ($db_source_ph == NULL) {
   $mac_local_blacklisted = 0;
   $bt_blacklisted        = 0;
 
-  // keys processing
+  // find passages
   if ($total_passed > 0) {
-    foreach ($db_source_ph as $key => $value) {
-      echo "<b>Database: " . $value . "</b><br>";
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+    foreach ($db_source_ph as $db_source_p => $db_source_v) {
+      echo "<b>Database: " . $db_source_v . "</b><br>";
+      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_v);
       if ($show_wlan_ph == "1") {
         if ($mac_glbl_passed > 0) {
           echo "Wi-Fi devices with global MAC address:<br>";
