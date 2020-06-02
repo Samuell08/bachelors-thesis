@@ -454,7 +454,7 @@ function process_keys($type, $db_q_standard, $keys,
         continue 2; // foreach keys
         break;
       default:
-        exit("function process_keys ERROR: error while processing blacklist");
+        die("function process_keys ERROR: error while processing blacklist");
     }
 
     // customize algorithm to specific keys type

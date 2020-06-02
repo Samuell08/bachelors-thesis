@@ -140,11 +140,11 @@ function get_fingerprints($mode, $db_conn_s, $time_from_ph, $time_to_ph, $db_q_s
               }
               break;
             default:
-              exit("function get_fingerprints ERROR: Unknown specific ESSID mode: " . $specific_mode_fp_ph);
+              die("function get_fingerprints ERROR: Unknown specific ESSID mode: " . $specific_mode_fp_ph);
           }
           break;
         default:
-          exit("function get_fingerprints ERROR: Unknown mode: " . $mode);
+          die("function get_fingerprints ERROR: Unknown mode: " . $mode);
       }
     }
     mysqli_free_result($db_result);
@@ -244,7 +244,7 @@ function blacklisted($type, $key, $blacklist) {
             if ($essids_blacklisted > 0) { return 1; }
             break;
           default:
-            exit("function blacklisted ERROR: Unknown local MAC mode: " . $blacklist_mode_fp_ph);
+            die("function blacklisted ERROR: Unknown local MAC mode: " . $blacklist_mode_fp_ph);
         }
       }
       break;
@@ -299,7 +299,7 @@ function process_keys($type, $db_q_standard, $keys,
       mysqli_stmt_bind_param($stmt, "s", $keys_value);
       break;
     default:
-      exit("function process_keys ERROR: Unknown type: " . $type);
+      die("function process_keys ERROR: Unknown type: " . $type);
   }
   
   foreach ($keys as $keys_key => $keys_value) {
@@ -326,7 +326,7 @@ function process_keys($type, $db_q_standard, $keys,
         continue 2; // foreach keys
         break;
       default:
-        exit("function process_keys ERROR: error while processing blacklist");
+        die("function process_keys ERROR: error while processing blacklist");
     }
 
     // get timestamps
