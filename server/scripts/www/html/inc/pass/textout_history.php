@@ -418,6 +418,48 @@ function process_keys($type, $db_q_standard, $keys,
   return 0;
 }
 
+// Function accepts statistics data and prints it to HTML
+function print_statistics_table($show_wlan, $show_bt, $passed_total,
+                                $mac_glbl_passed, $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted,
+                                $mac_local_passed, $mac_local_over_timestamp_limit, $mac_local_blacklisted,
+                                $bt_passed, $bt_over_timestamp_limit, $bt_blacklisted) {
+  if ($show_wlan == "1") {
+    echo "<b>Wi-Fi</b><br>";
+    echo "<table class=\"textout\">";
+    echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" .
+                                        "</td><td>" .
+                                        $mac_glbl_passed . " - " .
+                                        $mac_glbl_over_timestamp_limit . " - " .
+                                        $mac_glbl_blacklisted . " = " .
+                                        "<b>" . ($mac_glbl_passed-$mac_glbl_over_timestamp_limit-$mac_glbl_blacklisted) .
+                                        "</b></td></tr>";
+    echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" .
+                                        "</td><td>" .
+                                        $mac_local_passed . " - " .
+                                        $mac_local_over_timestamp_limit . " - " .
+                                        $mac_local_blacklisted . " = " .
+                                        "<b>" . ($mac_local_passed-$mac_local_over_timestamp_limit-$mac_local_blacklisted) .
+                                        "</b></td></tr>";
+    echo "</table>";
+  }
+  if ($show_bt == "1") {
+    echo "<b>Bluetooth</b><br>";
+    echo "<table class=\"textout\">";
+    echo "<tr class=\"textout\"><td>" . "Devices:" .
+                                        "</td><td>" .
+                                        $bt_passed . " - " .
+                                        $bt_over_timestamp_limit . " - " .
+                                        $bt_blacklisted . " = " .
+                                        "<b>" . ($bt_passed-$bt_over_timestamp_limit-$bt_blacklisted) .
+                                        "</b></td></tr>";
+    echo "</table>";
+  }
+
+  echo "<br>" . "<b>Legend:</b> <i>passed - over timestamp limit - blacklisted = <b>processed</b></i>" . "<br><br>";
+  
+  echo "<b>Total number of devices passed: </b>" . $passed_total . "<br><br>";
+}
+
 // check if user input is correct
 if ($db_source_ph == NULL) {
   echo "<p class=\"warning\">Source database(s) not selected.</p>";
@@ -563,21 +605,21 @@ if ($db_source_ph == NULL) {
   $mac_glbl_passed = count($macs);
   $mac_local_passed = count($fingerprints);
   $bt_passed = count($bd_addrs);
-  $total_passed = $mac_glbl_passed + $mac_local_passed + $bt_passed;
+  $passed_total = $mac_glbl_passed + $mac_local_passed + $bt_passed;
 
   echo "<b>Statistics table is located at the bottom of the page</b>" . "<br><br>";
 
   // ignored due to exceeding timestamp limit
-  $mac_glbl_ignored  = 0;
-  $mac_local_ignored = 0;
-  $bt_ignored        = 0;
+  $mac_glbl_over_timestamp_limit  = 0;
+  $mac_local_over_timestamp_limit = 0;
+  $bt_over_timestamp_limit        = 0;
   // ignored due to being blacklisted
   $mac_glbl_blacklisted  = 0;
   $mac_local_blacklisted = 0;
   $bt_blacklisted        = 0;
 
   // find passages
-  if ($total_passed > 0) {
+  if ($passed_total > 0) {
     foreach ($db_source_ph as $db_source_p => $db_source_v) {
       echo "<b>Database: " . $db_source_v . "</b><br>";
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_v);
@@ -588,7 +630,7 @@ if ($db_source_ph == NULL) {
                        $blacklist_wlan_ph, $db_conn_s, $threshold_seconds,
                        $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                        $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                       $mac_glbl_ignored, $mac_glbl_blacklisted);
+                       $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted);
         }
           if ($mac_local_passed > 0) {
           echo "Wi-Fi devices with local MAC address:<br>";
@@ -596,7 +638,7 @@ if ($db_source_ph == NULL) {
                        $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
                        $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                        $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                       $mac_local_ignored, $mac_local_blacklisted);
+                       $mac_local_over_timestamp_limit, $mac_local_blacklisted);
         }
       }
       if ($show_bt_ph == "1") {
@@ -606,45 +648,17 @@ if ($db_source_ph == NULL) {
                        $blacklist_bt_ph, $db_conn_s, $threshold_seconds,
                        $timestamp_limit_ph, $time_from_ph, $time_to_ph,
                        $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph,
-                       $bt_ignored, $bt_blacklisted);
+                       $bt_over_timestamp_limit, $bt_blacklisted);
         }
       }
     }
   }
   
   // statistics table
-  if ($show_wlan_ph == "1") {
-    echo "<b>Wi-Fi</b><br>";
-    echo "<table class=\"textout\">";
-    echo "<tr class=\"textout\"><td>" . "Devices with global MAC address:" .
-                                        "</td><td>" .
-                                        $mac_glbl_passed . " - " .
-                                        $mac_glbl_ignored . " - " .
-                                        $mac_glbl_blacklisted . " = " .
-                                        "<b>" . ($mac_glbl_passed-$mac_glbl_ignored-$mac_glbl_blacklisted) .
-                                        "</b></td></tr>";
-    echo "<tr class=\"textout\"><td>" . "Devices with local MAC address:" .
-                                        "</td><td>" .
-                                        $mac_local_passed . " - " .
-                                        $mac_local_ignored . " - " .
-                                        $mac_local_blacklisted . " = " .
-                                        "<b>" . ($mac_local_passed-$mac_local_ignored-$mac_local_blacklisted) .
-                                        "</b></td></tr>";
-    echo "</table>";
-  }
-  if ($show_bt_ph == "1") {
-    echo "<b>Bluetooth</b><br>";
-    echo "<table class=\"textout\">";
-    echo "<tr class=\"textout\"><td>" . "Devices:" .
-                                        "</td><td>" .
-                                        $bt_passed . " - " .
-                                        $bt_ignored . " - " .
-                                        $bt_blacklisted . " = " .
-                                        "<b>" . ($bt_passed-$bt_ignored-$bt_blacklisted) .
-                                        "</b></td></tr>";
-    echo "</table>";
-  }
-  echo "<br>" . "<b>Legend:</b> <i>passed - over timestamp limit - blacklisted = <b>processed</b></i>" . "<br><br>";
+  print_statistics_table($show_wlan_ph, $show_bt_ph, $passed_total,
+                         $mac_glbl_passed, $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted,
+                         $mac_local_passed, $mac_local_over_timestamp_limit, $mac_local_blacklisted,
+                         $bt_passed, $bt_over_timestamp_limit, $bt_blacklisted);
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
