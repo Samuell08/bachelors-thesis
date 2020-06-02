@@ -376,6 +376,18 @@ function process_keys($type, $db_q_standard, $keys,
 
     $key_passages = find_passages($key_timestamps, $threshold);
 
+    // fill Passenger object and push it to output array
+    $Passenger_key->passages = $key_passages;
+    $Passenger_array[] = $Passenger_key;
+
+  } // end foreach keys
+
+  return $Passenger_array;
+
+}
+
+function fill_chart_arrays($time_from, $time_to, $time_increment, $Passenger_array, &$chart_total, &$chart_unique) {
+  foreach ($Passenger_array as $Passenger_key) {
     // fill chart arrays based on passages subarray
     $unique = 1;
     // reset counters
@@ -384,7 +396,7 @@ function process_keys($type, $db_q_standard, $keys,
     while (strtotime($time_actual) <= (strtotime($time_to) - $time_increment)) {
       // calculate next time value
       $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-      foreach ($key_passages as $pass_key => $pass_value){
+      foreach ($Passenger_key->passages as $pass_key => $pass_value){
         if ($pass_value[1] == 1) {
           // passage in current time step?
           if ((strtotime($pass_value[0]) > strtotime($time_actual)) && (strtotime($pass_value[0]) <= strtotime($time_next))){
@@ -402,15 +414,7 @@ function process_keys($type, $db_q_standard, $keys,
       $i += 1;
       $time_actual = $time_next;
     }
-
-    // fill Passenger object and push it to output array
-    $Passenger_key->passages = $key_passages;
-    $Passenger_array[] = $Passenger_key;
-
-  } // end foreach keys
-
-  return $Passenger_array;
-
+  }
 }
 
 // Function accepts array of Passenger objects and prints it to HTML.
@@ -484,8 +488,6 @@ function print_Passenger_array($type, $Passenger_array, $time_from, $time_to, $t
   echo "</table>";
   echo "<br>";
 }
-
-
 
 // Function accepts statistics data and prints it to HTML
 function print_statistics_table($show_wlan, $show_bt, $passed_total,
@@ -701,6 +703,10 @@ if ($db_source_ph == NULL) {
       }
     }
   }
+
+  fill_chart_arrays($time_from_ph, $time_to_ph, $time_increment, $Passenger_macs, $chart_wifi_total_ph, $chart_wifi_unique_ph);
+  fill_chart_arrays($time_from_ph, $time_to_ph, $time_increment, $Passenger_fingerprints, $chart_wifi_total_ph, $chart_wifi_unique_ph);
+  fill_chart_arrays($time_from_ph, $time_to_ph, $time_increment, $Passenger_bd_addrs, $chart_bt_total_ph, $chart_bt_unique_ph);
 
   // actual text output starts here
   
