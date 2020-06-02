@@ -37,6 +37,22 @@ $specific_fp_chk_ph     = $_SESSION["specific_fp_chk_ph"];
 $specific_bt_chk_ph     = $_SESSION["specific_bt_chk_ph"];
 $specific_bt_ph         = $_SESSION["specific_bt_ph"];
 
+// Function accepts time parameters from Settings form and builds
+// array that will be accepted by charts.
+// axis x - time
+// axis y - values (default = 0)
+function prepare_chart_array($time_from, $time_to, $time_increment) {
+  $i = 0;
+  $time_actual = date('Y-m-d H:i:s', (strtotime($time_from) + $time_increment));
+  while (strtotime($time_actual) <= strtotime($time_to)) {
+    $chart_array[$i]["x"] = strtotime($time_actual)*1000;
+    $chart_array[$i]["y"] = 0;
+    $i += 1;
+    $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
+  }
+  return $chart_array;
+}
+
 function is_anagram($string1, $string2) {
   if (count_chars($string1, 1) == count_chars($string2, 1))
     return 1;
@@ -434,30 +450,10 @@ if ($db_source_ph == NULL) {
         "<br><br>";
 
   // prepare chart arrays
-  if ($show_wlan_ph == "1") {
-    $i = 0;
-    $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
-    while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-      $chart_wifi_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_wifi_unique_ph[$i]["y"] = 0;
-      $chart_wifi_total_ph[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_wifi_total_ph[$i]["y"] = 0;
-      $i += 1;
-      $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-    }
-  }
-  if ($show_bt_ph == "1") { 
-    $i = 0;
-    $time_actual = date('Y-m-d H:i:s', (strtotime($time_from_ph) + $time_increment));
-    while (strtotime($time_actual) <= strtotime($time_to_ph)) {
-      $chart_bt_unique_ph[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_bt_unique_ph[$i]["y"] = 0;
-      $chart_bt_total_ph[$i]["x"] = strtotime($time_actual)*1000;
-      $chart_bt_total_ph[$i]["y"] = 0;
-      $i += 1;
-      $time_actual = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
-    }
-  }
+  $chart_wifi_unique_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
+  $chart_wifi_total_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
+  $chart_bt_unique_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
+  $chart_bt_total_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
 
   // fill key arrays
   $mac_glbl_passed = 0;
