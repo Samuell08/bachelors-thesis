@@ -51,18 +51,6 @@ function is_anagram($string1, $string2) {
     return 0;
 }
 
-function unset_duplicit_keys(&$keys) {
-  foreach ($keys as $master_key => &$master_value) {
-    foreach ($keys as $search_key => &$search_value) {
-      if ($master_key != $search_key){
-        if(is_anagram($master_value, $search_value)){
-          unset($keys[$search_key]);
-        }
-      }
-    }
-  }
-}
-
 // Function accepts time parameters from Settings form and builds
 // array that will be accepted by charts.
 // axis x - time
@@ -665,10 +653,6 @@ if ($db_source_ph == NULL) {
     }
   }
   
-  // delete duplicit keys (can happen when multiple databases are sourced)
-  unset_duplicit_keys($macs);
-  unset_duplicit_keys($bd_addrs);
-
   $mac_glbl_passed = count($macs);
   $mac_local_passed = count($fingerprints);
   $bt_passed = count($bd_addrs);
