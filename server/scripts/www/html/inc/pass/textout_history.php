@@ -41,7 +41,7 @@ class Passenger {
   public $key = NULL; // MAC, fingerprint or BD_ADDR
   public $blacklisted = 0; // if 1, key is blacklisted
   public $over_timestamp_limit = 0; // if 1, numer of timestamps is over limit
-  public $passages; // 2D array timestamp | ok
+  public $passages; // 2D array timestamp | passage?
 }
 
 function is_anagram($string1, $string2) {
@@ -197,6 +197,19 @@ function get_bd_addrs($db_conn, $time_from, $time_to, &$bd_addrs) {
   mysqli_free_result($db_result);
 }
 
+function find_passages($timestamps, $threshold) {
+  $passages[0] = array($timestamps[0], 1);
+  for ($i = 1; $i < count($timestamps); $i++){
+    if ((strtotime($timestamps[$i]) - strtotime($timestamps[$i-1]) > $threshold)) {
+      // timestamp is a passage
+      $passages[] = array($timestamps[$i], 1);
+    } else {
+      $passages[] = array($timestamps[$i], 0);
+    }
+  }
+  return $passages;
+}
+
 // function accepts list of keys (eg. MAC addresses) and compares
 // it to blacklist (echoing 'Blacklisted' instead of timestamps)
 // returns:  0 - key not blacklisted
@@ -271,7 +284,7 @@ function process_keys($type, $db_q_standard, $keys,
                       $blacklist, $db_conn_s, $threshold,
                       $timestamp_limit, $time_from, $time_to,
                       $time_increment, &$chart_unique, &$chart_total,
-                      &$ignored, &$blacklisted) {
+                      &$over_timestamp_limit, &$blacklisted) {
   
   $stmt = mysqli_stmt_init($db_conn_s);
   // customize algorithm to specific keys type
@@ -301,21 +314,12 @@ function process_keys($type, $db_q_standard, $keys,
       exit("function process_keys ERROR: Unknown type: " . $type);
   }
   
-  echo "<table style=\"border-collapse:collapse\">";
-
   foreach ($keys as $keys_key => $keys_value) {
 
     // new Passenger
     $Passenger_key = new Passenger();
+    $Passenger_key->key = $keys_value;
 
-    // output keys with timestamps table
-    echo "<tr class=\"info\">";
-    if ($type == "wifi_local") {
-      echo "<td><tt>" . $keys_value[0] . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
-    } else {
-      echo "<td><tt>" . $keys_value . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
-    }
-    
     // Blacklist processing
     if ($type == "wifi_local") {
       $blacklist_retval = blacklisted($type, $keys_value[0], $blacklist);
@@ -327,11 +331,7 @@ function process_keys($type, $db_q_standard, $keys,
         break;
       case 1:
         // blacklisted - end processing of key and go to next
-        echo "<td><tt style=\"color:orangered;\"><b>";
-        echo "Blacklisted";
-        echo "</b></tt></td>";
-        echo "</tr>";
-        $Passenger_key->key = $keys_value;
+        // fill Passenger object and push it to output array
         $Passenger_key->blacklisted = 1;
         $Passenger_array[] = $Passenger_key;
         $blacklisted++;
@@ -362,37 +362,19 @@ function process_keys($type, $db_q_standard, $keys,
     
     }
     mysqli_free_result($db_result);
+
+    // number of timestamps over limit?
     if (count($key_timestamps) > $timestamp_limit) {
-      // end processing of key - go to next
-      echo "<td><tt style=\"color:orangered;\"><b>";
-      echo "Number of timestamps over limit";
-      echo "</b></tt></td>";
-      echo "</tr>";
-      $ignored++;
+      // over limit - end processing of key and go to next
+      // fill Passenger object and push it to output array
+      $Passenger_key->over_timestamp_limit = 1;
+      $Passenger_array[] = $Passenger_key;
+      $over_timestamp_limit++;
       continue; // foreach keys
     }
     sort($key_timestamps);
 
-    // build passages subarray based on key timestamps
-    // open timestamps <td>
-    echo "<td><tt>";
-    // first is always bold
-    echo "<b>" . $key_timestamps[0] . "</b> | ";
-    $key_passages[0] = $key_timestamps[0];
-    // loop every timestamp for current key
-    for ($i = 1; $i < count($key_timestamps); $i++){
-      if ((strtotime($key_timestamps[$i]) - strtotime($key_timestamps[$i-1]) > $threshold)) {
-        // output bold timestamp
-        echo "<b>" . $key_timestamps[$i] . "</b> | ";
-        $key_passages[] = $key_timestamps[$i];
-      } else {
-        // output normal timestamp
-        echo $key_timestamps[$i] . " | ";
-      }
-    }
-    // close timestamps <td>
-    echo "</tt></td>";
-    echo "</tr>";
+    $key_passages = find_passages($key_timestamps, $threshold);
 
     // fill chart arrays based on passages subarray
     $unique = 1;
@@ -404,13 +386,13 @@ function process_keys($type, $db_q_standard, $keys,
       $time_next = date('Y-m-d H:i:s', (strtotime($time_actual) + $time_increment));
       // passage in current time step?
       foreach ($key_passages as $pass_key => $pass_value){
-        if ((strtotime($pass_value) > strtotime($time_actual)) && (strtotime($pass_value) <= strtotime($time_next))){
+        if ((strtotime($pass_value[0]) > strtotime($time_actual)) && (strtotime($pass_value[0]) <= strtotime($time_next))){
           $chart_total[$i]["y"] += 1;
           if ($unique) {
             $chart_unique[$i]["y"] += 1;
             $unique = 0;
           }
-        }
+        } 
       }
       // moving to next time step
       $unique = 1;
@@ -418,12 +400,90 @@ function process_keys($type, $db_q_standard, $keys,
       $i += 1;
       $time_actual = $time_next;
     }
-    // moving to next key
-    unset($key_passages);
+
+    // fill Passenger object and push it to output array
+    $Passenger_key->passages = $key_passages;
+    $Passenger_array[] = $Passenger_key;
+
   } // end foreach keys
-  echo "</table><br>";
-  return 0;
+
+  return $Passenger_array;
+
 }
+
+// Function accepts array of Passenger objects and prints it to HTML.
+function print_Passenger_array($type, $Passenger_array, $time_from, $time_to, $time_increment) {
+
+  switch($type){
+    case "wifi_global":
+      echo "Wi-Fi devices with global MAC address:<br>";
+      break;
+    case "wifi_local":
+      echo "Wi-Fi devices with local MAC address:<br>";
+      break;
+    case "bt":
+      echo "Bluetooth devices:<br>";
+      break;
+    default:
+      die("function print_Passenger_array ERROR: Unknown type: " . $type);
+  }
+
+  echo "<table style=\"border-collapse:collapse\">";
+  foreach ($Passenger_array as $Passenger_key) {
+
+    switch($type){
+      case "wifi_global":
+      case "bt":
+        $key = $Passenger_key->key;
+        break;
+      case "wifi_local":
+        $key = $Passenger_key->key[0];
+        break;
+      default:
+        die("function print_Passenger_array ERROR: Unknown type: " . $type);
+    }
+
+    echo "<tr class=\"info\">";
+    echo "<td><tt>" . $key . "&nbsp&nbsp&nbsp&nbsp&nbsp</tt></td>";
+    echo "<td>";
+      if ($Passenger_key->blacklisted == 1) {
+
+        echo "<tt style=\"color:orangered\">" . 
+               "Blacklisted" . 
+             "</tt>";
+
+      } elseif ($Passenger_key->over_timestamp_limit == 1) {
+        
+        echo "<tt style=\"color:orangered\">" . 
+               "Number of timestamps over limit" . 
+             "</tt>";
+
+      } else {
+
+            if ($Passenger_key->passages == NULL) {
+              echo "<tt style=\"color:orangered\">" . 
+                     "None" . 
+                   "</tt>";
+            } else {
+              echo "<tt>";
+              foreach ($Passenger_key->passages as $passages_p => $passages_v) {
+                if ($passages_v[1] == 1) {
+                  echo "<b>" . $passages_v[0] . " | " . "</b>";
+                } else {
+                  echo $passages_v[0] . " | ";
+                }
+              }
+              echo "</tt>";
+            }
+      }
+    echo "<td>";
+    echo "</tr>";
+  }
+  echo "</table>";
+  echo "<br>";
+}
+
+
 
 // Function accepts statistics data and prints it to HTML
 function print_statistics_table($show_wlan, $show_bt, $passed_total,
@@ -534,12 +594,6 @@ if ($db_source_ph == NULL) {
     }
   }
   
-  // text output
-  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_ph)) . "</b>" .
-        " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
-        " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" .
-        "<br><br>";
-
   // prepare chart arrays
   $chart_wifi_unique_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
   $chart_wifi_total_ph = prepare_chart_array($time_from_ph, $time_to_ph, $time_increment);
@@ -614,8 +668,6 @@ if ($db_source_ph == NULL) {
   $bt_passed = count($bd_addrs);
   $passed_total = $mac_glbl_passed + $mac_local_passed + $bt_passed;
 
-  echo "<b>Statistics table is located at the bottom of the page</b>" . "<br><br>";
-
   // ignored due to exceeding timestamp limit
   $mac_glbl_over_timestamp_limit  = 0;
   $mac_local_over_timestamp_limit = 0;
@@ -628,44 +680,54 @@ if ($db_source_ph == NULL) {
   // find passages
   if ($passed_total > 0) {
     foreach ($db_source_ph as $db_source_p => $db_source_v) {
-      echo "<b>Database: " . $db_source_v . "</b><br>";
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $db_source_v);
       if ($show_wlan_ph == "1") {
         if ($mac_glbl_passed > 0) {
-          echo "Wi-Fi devices with global MAC address:<br>";
-          process_keys("wifi_global", $db_q_standard, $macs,
-                       $blacklist_wlan_ph, $db_conn_s, $threshold_seconds,
-                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                       $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted);
+          $Passages_macs = process_keys("wifi_global", $db_q_standard, $macs,
+                                        $blacklist_wlan_ph, $db_conn_s, $threshold_seconds,
+                                        $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                        $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                                        $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted);
         }
           if ($mac_local_passed > 0) {
-          echo "Wi-Fi devices with local MAC address:<br>";
-          process_keys("wifi_local", $db_q_standard, $fingerprints,
-                       $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
-                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                       $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
-                       $mac_local_over_timestamp_limit, $mac_local_blacklisted);
+          $Passages_fingerprints = process_keys("wifi_local", $db_q_standard, $fingerprints,
+                                                $blacklist_fp_ph, $db_conn_s, $threshold_seconds,
+                                                $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                                $time_increment, $chart_wifi_unique_ph, $chart_wifi_total_ph,
+                                                $mac_local_over_timestamp_limit, $mac_local_blacklisted);
         }
       }
       if ($show_bt_ph == "1") {
         if ($bt_passed > 0) {
-          echo "Bluetooth devices:<br>";        
-          process_keys("bt", "1", $bd_addrs,
-                       $blacklist_bt_ph, $db_conn_s, $threshold_seconds,
-                       $timestamp_limit_ph, $time_from_ph, $time_to_ph,
-                       $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph,
-                       $bt_over_timestamp_limit, $bt_blacklisted);
+          $Passages_bd_addrs = process_keys("bt", "1", $bd_addrs,
+                                            $blacklist_bt_ph, $db_conn_s, $threshold_seconds,
+                                            $timestamp_limit_ph, $time_from_ph, $time_to_ph,
+                                            $time_increment, $chart_bt_unique_ph, $chart_bt_total_ph,
+                                            $bt_over_timestamp_limit, $bt_blacklisted);
         }
       }
     }
   }
+
+  // actual text output starts here
   
-  // statistics table
+  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_ph)) . "</b>" .
+        " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_ph)) . "</b>" .
+        " with step of " . "<b>" . $time_step_ph . " " . strtolower($time_step_format_ph) . "(s)" . "</b>" .
+        "<br><br>";
+
   print_statistics_table($show_wlan_ph, $show_bt_ph, $passed_total,
                          $mac_glbl_passed, $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted,
                          $mac_local_passed, $mac_local_over_timestamp_limit, $mac_local_blacklisted,
                          $bt_passed, $bt_over_timestamp_limit, $bt_blacklisted);
+
+  if ($show_wlan_ph == "1") {
+    print_Passenger_array("wifi_global", $Passages_macs, $time_from_ph, $time_to_ph, $time_increment);
+    print_Passenger_array("wifi_local", $Passages_fingerprints, $time_from_ph, $time_to_ph, $time_increment);
+  }
+  if ($show_bt_ph == "1") {
+    print_Passenger_array("bt", $Passages_bd_addrs, $time_from_ph, $time_to_ph, $time_increment);
+  }
 
   // write completed chart arrays to json files
   $json_dir = "../../json";

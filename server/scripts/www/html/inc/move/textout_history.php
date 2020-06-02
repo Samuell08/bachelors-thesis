@@ -434,6 +434,7 @@ function process_keys($type, $db_q_standard, $keys,
     
     // new movement object for every key
     $Movement_key = new Movement();
+    $Movement_key->key = $keys_value;
     
     // Blacklist processing
     if ($type == "wifi_local") {
@@ -447,7 +448,6 @@ function process_keys($type, $db_q_standard, $keys,
       case 1:
         // blacklisted - end processing of key and go to next
         // fill Movement object and push it to output array
-        $Movement_key->key = $keys_value;
         $Movement_key->blacklisted = 1;
         $Movement_array[] = $Movement_key;
         $blacklisted++;
@@ -503,7 +503,6 @@ function process_keys($type, $db_q_standard, $keys,
     if ((count($timestampsA) + count($timestampsB)) > $timestamp_limit) {
         // over limit - end processing of key and go to next
         // fill Movement object and push it to output array
-        $Movement_key->key = $keys_value;
         $Movement_key->over_timestamp_limit = 1;
         $Movement_array[] = $Movement_key;
         $over_timestamp_limit++;
@@ -528,7 +527,6 @@ function process_keys($type, $db_q_standard, $keys,
     $moved_total_BA += count($BA_movement);
 
     // fill Movement object and push it to output array
-    $Movement_key->key = $keys_value;
     $Movement_key->AB = $AB_movement;
     $Movement_key->BA = $BA_movement;
     $Movement_array[] = $Movement_key;
@@ -1081,7 +1079,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   echo "<b>Point A:</b> " . $db_source_A_mh . "<br>";
   echo "<b>Point B:</b> " . $db_source_B_mh . "<br><br>";
 
-  // statistics table
   print_statistics_table($show_wlan_mh, $show_bt_mh,
                          $moved_total_AB, $moved_total_BA,
                          $mac_glbl_moved, $mac_glbl_over_timestamp_limit, $mac_glbl_blacklisted,
