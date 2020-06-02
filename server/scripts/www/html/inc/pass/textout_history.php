@@ -174,6 +174,22 @@ function get_fingerprints($mode, $db_conn_s, $time_from_ph, $time_to_ph, $db_q_s
   }
 }
 
+// Function accepts time parameters from Settings form and
+// returns all BD_ADDR addresses within given time range.
+function get_bd_addrs($db_conn, $time_from, $time_to, &$bd_addrs) {
+  $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
+          (last_time_seen BETWEEN '" . $time_from . "' AND '" . $time_to . "')
+           GROUP BY BD_ADDR;";
+  $db_result = mysqli_query($db_conn, $db_q);
+  // append result to bd_addrs
+  if (mysqli_num_rows($db_result) > 0) {
+    while ($db_row = mysqli_fetch_assoc($db_result)) {
+      $bd_addrs[] = $db_row["BD_ADDR"];
+    }
+  }
+  mysqli_free_result($db_result);
+}
+
 // function accepts list of keys (eg. MAC addresses) and compares
 // it to blacklist (echoing 'Blacklisted' instead of timestamps)
 // returns:  0 - key not blacklisted
@@ -525,24 +541,12 @@ if ($db_source_ph == NULL) {
         // LOCAL MAC
         // every local MAC fingerprint
         get_fingerprints("all", $db_conn_s, $time_from_ph, $time_to_ph, $db_q_standard, $fingerprints);
-      } // end of show_wlan_ph
-
+      }
       if ($show_bt_ph == "1") {
-
         // every unique BD_ADDR in time range
-        $db_q = "SELECT BD_ADDR FROM Bluetooth WHERE
-                (last_time_seen BETWEEN '" . $time_from_ph . "' AND '" . $time_to_ph . "')
-                 GROUP BY BD_ADDR;";
-        $db_result = mysqli_query($db_conn_s, $db_q);
-        // append result to bd_addrs
-        if (mysqli_num_rows($db_result) > 0) {
-          while ($db_row = mysqli_fetch_assoc($db_result)) {
-            $bd_addrs[] = $db_row["BD_ADDR"];
-          }
-        }
-        mysqli_free_result($db_result);
-      } // end of show_bt_ph
-    } // end of else clause of specific keys
+        get_bd_addrs($db_conn_s, $time_from_ph, $time_to_ph, $bd_addrs);
+      }
+    }
   } // end of foreach DB
   
   // delete duplicit keys (can happen when multiple databases are sourced)
