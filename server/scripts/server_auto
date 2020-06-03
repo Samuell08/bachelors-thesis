@@ -264,7 +264,6 @@ function write_service {
   cat << EOF > "${DIR_SYSTEMD_SERVICE}/${SERVICE_SERVER_AUTO}_${IMPORT_SOURCE}.service"
 [Unit]
 Description=Monitoring server automatic import of logs to database service
-Requires=networking.service
 
 [Service]
 Type=forking
