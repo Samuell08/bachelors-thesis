@@ -20,6 +20,8 @@ $time_period_rl         = $_SESSION["time_period_rl"];
 $time_period_format_rl  = $_SESSION["time_period_format_rl"];
 $show_wlan_rl           = $_SESSION["show_wlan_rl"];
 $show_bt_rl             = $_SESSION["show_bt_rl"];
+$show_wlan_a_rl         = $_SESSION["show_wlan_a_rl"];
+$show_wlan_bg_rl        = $_SESSION["show_wlan_bg_rl"];
 // chart arrays
 $chart_wifi_bot_rl = $_SESSION["chart_wifi_bot_rl"];
 $chart_wifi_top_rl = $_SESSION["chart_wifi_top_rl"];
@@ -50,7 +52,22 @@ if ($db_source_rl == NULL) {
   $mac_local = 0;
   $bt_total = 0;
   $fingerprints_count = 0;
+  $db_q_standard = "1";
   
+  if ($show_wlan_rl == "1") {
+    // standard
+    if ($show_wlan_a_rl == "1" and $show_wlan_bg_rl == "1") {
+      $db_q_standard = "(standard = 'a' OR standard = 'bg')";
+    } else {
+      if ($show_wlan_a_rl == "1") {
+        $db_q_standard = "(standard = 'a')";
+      }
+      if ($show_wlan_bg_rl == "1") {
+        $db_q_standard = "(standard = 'bg')";
+      }
+    }
+  }
+
   // connect to all specified databases
   foreach ($db_source_rl as $db_source_p => $db_source_v) {
     $db_conn_array[] = mysqli_connect($db_server, $db_user, $db_pass, $db_source_v);
@@ -68,8 +85,8 @@ if ($db_source_rl == NULL) {
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                    station_MAC LIKE '_C:__:__:__:__:__')
-                    GROUP BY station_MAC;";
+                    station_MAC LIKE '_C:__:__:__:__:__') AND " .  $db_q_standard .
+                  "GROUP BY station_MAC;";
       $db_result = mysqli_query($db_conn_v, $db_q);
       $mac_glbl  += mysqli_num_rows($db_result);
 
@@ -79,8 +96,8 @@ if ($db_source_rl == NULL) {
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                    station_MAC LIKE '_C:__:__:__:__:__')
-                    GROUP BY station_MAC;";
+                    station_MAC LIKE '_C:__:__:__:__:__') AND " .  $db_q_standard .
+                  "GROUP BY station_MAC;";
       $db_result = mysqli_query($db_conn_v, $db_q);
       $mac_local += mysqli_num_rows($db_result);
 
@@ -91,8 +108,8 @@ if ($db_source_rl == NULL) {
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
-                    station_MAC LIKE '_C:__:__:__:__:__')
-                    GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
+                    station_MAC LIKE '_C:__:__:__:__:__') AND " .  $db_q_standard .
+                   "GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
       $db_result = mysqli_query($db_conn_v, $db_q);
 
       // fill (append to) fingerprints array

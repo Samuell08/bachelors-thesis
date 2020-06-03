@@ -9,6 +9,8 @@ $time_period_rl         = "";
 $time_period_format_rl  = "";
 $show_wlan_rl           = "";
 $show_bt_rl             = "";
+$show_wlan_a_rl         = "";
+$show_wlan_bg_rl        = "";
 
 // RECEIVE SETTINGS FORM
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -17,6 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $time_period_format_rl  = $_GET["time_period_format_rl"];
   $show_wlan_rl           = $_GET["show_wlan_rl"];
   $show_bt_rl             = $_GET["show_bt_rl"];
+  $show_wlan_a_rl         = $_GET["show_wlan_a_rl"];
+  $show_wlan_bg_rl        = $_GET["show_wlan_bg_rl"];
   
   // default values
   if ($time_period_rl == "")        { $time_period_rl = 15; }
@@ -28,5 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   $_SESSION["time_period_format_rl"]  = $time_period_format_rl;
   $_SESSION["show_wlan_rl"]           = $show_wlan_rl;
   $_SESSION["show_bt_rl"]             = $show_bt_rl;
+  $_SESSION["show_wlan_a_rl"]         = $show_wlan_a_rl;
+  $_SESSION["show_wlan_bg_rl"]        = $show_wlan_bg_rl;
 }
 ?>

@@ -124,6 +124,14 @@ $_SESSION["updateInterval"] = 30000;
               </table>
             </div>
 
+            <div class="div_subcontent">
+              <b>Wi-Fi Standards</b><br>
+              <table class="form">
+                <tr><td><input type="checkbox" name="show_wlan_a_rl" value="1" <?php if ($show_wlan_a_rl == "1") { echo "checked";} ?>></td><td> 5GHz (802.11a) </td></tr>
+                <tr><td><input type="checkbox" name="show_wlan_bg_rl" value="1" <?php if ($show_wlan_bg_rl == "1") { echo "checked";} ?>></td><td> 2.4GHz (802.11b/g) </td></tr>
+              </table>
+            </div>
+
             <br><button type="submit">Submit</button>
 
           </form>
