@@ -50,11 +50,6 @@ if ($db_source_rl == NULL) {
   $bt_total = 0;
   $fingerprints_count = 0;
   
-  // text output
-  echo date('G:i:s (j.n.Y)') . "<br>";
-  echo "Showing results of last " . $time_period_rl . " " . strtolower($time_period_format_rl) . "(s) ";
-  echo "updated every " . $_SESSION["updateInterval"]/1000 . " seconds" . "<br><br>"; 
-
   // ---------------------------------------------------------------------- WIFI
   if ($show_wlan_rl == "1") {
   
@@ -120,15 +115,6 @@ if ($db_source_rl == NULL) {
     $fingerprints_count = count($fingerprints);
     $est_total_wifi = $mac_glbl + $fingerprints_count;
 
-    // text output
-    echo "<b>Wi-Fi</b><br>";
-    echo "<table class=\"textout\">";
-      echo "<tr class=\"textout\"><td>" . "Number of devices with global (unique) MAC address:" . "</td><td>" . $mac_glbl . "</td></tr>";
-      echo "<tr class=\"textout\"><td>" . "Number of identified local MAC address fingerprints:" . "</td><td>" . $fingerprints_count . "</td></tr>";
-      echo "<tr class=\"textout\" style=\"border-bottom:3px double black\"><td>" . "Estimated total number of devices within reach:" . "</td><td>" . $est_total_wifi . "</td></tr>";
-      // extra
-      echo "<tr class=\"textout_extra\"><td>" . "Number of detected local (randomized) MAC addresses:" . "</td><td>" . $mac_local . "</td></tr>";
-    echo "</table>";
   }
 
   // ----------------------------------------------------------------- Bluetooth
@@ -147,13 +133,33 @@ if ($db_source_rl == NULL) {
       $db_result = mysqli_query($db_conn_s, $db_q);
       $bt_total  += mysqli_num_rows($db_result);
     }
+  }
 
-    // text output
+  // actual text output starts here
+ 
+  echo date('G:i:s (j.n.Y)') . "<br>";
+  echo "Showing results of last " . $time_period_rl . " " . strtolower($time_period_format_rl) . "(s) ";
+  echo "updated every " . $_SESSION["updateInterval"]/1000 . " seconds" . "<br><br>"; 
+
+  if ($show_wlan_rl == "1") {
+    echo "<b>Wi-Fi</b><br>";
+    echo "<table class=\"textout\">";
+      echo "<tr class=\"textout\"><td>" . "Number of devices with global (unique) MAC address:" . "</td><td>" . $mac_glbl . "</td></tr>";
+      echo "<tr class=\"textout\"><td>" . "Number of identified local MAC address fingerprints:" . "</td><td>" . $fingerprints_count . "</td></tr>";
+      echo "<tr class=\"textout\" style=\"border-bottom:3px double black\"><td>" . "Estimated total number of devices within reach:" . "</td><td>" . $est_total_wifi . "</td></tr>";
+      // extra
+      echo "<tr class=\"textout_extra\"><td>" . "Number of detected local (randomized) MAC addresses:" . "</td><td>" . $mac_local . "</td></tr>";
+    echo "</table>";
+  }
+
+  if ($show_bt_rl == "1") {
     echo "<b>Bluetooth</b><br>";
     echo "<table class=\"textout\">";
       echo "<tr class=\"textout\"><td>" . "Number of devices discovered:" . "</td><td>" . $bt_total . "</td></tr>";
     echo "</table>";
   }
+
+  // end of text output
 
   // -------------------------------------------------------------- chart arrays
   // push new data into chart arrays
@@ -180,5 +186,4 @@ if ($db_source_rl == NULL) {
   $_SESSION["chart_wifi_top_rl"] = $chart_wifi_top_rl;
   $_SESSION["chart_bt_rl"] = $chart_bt_rl;
 }
-
 ?>
