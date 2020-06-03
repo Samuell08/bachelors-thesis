@@ -44,6 +44,8 @@ if ($db_source_rl == NULL) {
   echo "<p class=\"warning\">Invalid time period.</p>";
 } elseif ((!($show_wlan_rl == "1")) and (!($show_bt_rl == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
+} elseif ($show_wlan_rl == "1" and $show_wlan_a_rl != "1" and $show_wlan_bg_rl != "1") {
+  echo "<p class=\"warning\">Wi-Fi Standard not selected.</p>";
 } else {
 
   // prepare variables
