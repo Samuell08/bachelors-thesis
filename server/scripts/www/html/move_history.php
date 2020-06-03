@@ -218,7 +218,7 @@ if(!$db_conn){
 
           <p class="info_box">Time Range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box">Blacklisted Keys and Specific Keys settings <b>must</b> be entered as comma (,) separated list and values <b>cannot</b> repeat.</p>
-          <p class="info_box">Time Step should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
+          <p class="info_box">Time Step should <b>not</b> be smaller than server import period and Bluelog amnesia mode (when enabled) to display meaningful results.</p>
           <p class="info_box">Threshold specifies number of shortest times of movement to calculate average from and multiplier of this average to filter
                               movements that take longer time. Threshold is calculated for every time step separately and affects every movement that
                               ends within given time step.</p>

@@ -128,6 +128,7 @@ $_SESSION["updateInterval"] = 30000;
 
           </form>
 
+          <p class="info_box">Time Period should <b>not</b> be smaller than Bluetooth amnesia mode (when enabled) to display meaningful results.</p>
           <p class="info_box">Bluetooth monitoring data meaning based on amnesia mode:<br>
                                 <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
                                   (Time Period <b>must</b> be set to same time as amnesia)<br>

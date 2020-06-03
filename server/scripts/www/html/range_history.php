@@ -158,8 +158,9 @@ if(!$db_conn){
 
           </form>
 
-          <p class="info_box">Time range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
+          <p class="info_box">Time Range <b>must</b> be entered in this exact format: <b>YYYY-MM-DD HH:MM:SS</b> (eg. 2020-03-20 10:30:00).</p>
           <p class="info_box">Time Step should <b>not</b> be smaller than server import period for given source to display meaningful results.</p>
+          <p class="info_box">Time Step and Time Period should <b>not</b> be smaller than Bluetooth amnesia mode (when enabled) to display meaningful results.</p>
           <p class="info_box">Bluetooth monitoring data meaning based on amnesia mode:<br>
                                 <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
                                   (Time Period <b>must</b> be set to same time as amnesia)<br>
