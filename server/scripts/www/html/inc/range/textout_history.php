@@ -57,7 +57,7 @@ if ($db_source_rh == NULL) {
   // algorithm execution start
   $alg_start = time();
 
-  // reset variables before queries
+  // prepare variables
   $mac_glbl   = 0;
   $mac_local  = 0;
   $bt_total   = 0;
@@ -90,27 +90,23 @@ if ($db_source_rh == NULL) {
       }
     }
   }
-  
-  // text output
-  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_rh)) . "</b>" .
-    " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_rh)) . "</b>" .
-    " with period of " . "<b>" . $time_period_rh . " " . strtolower($time_period_format_rh) . "(s)" . "</b>" . "<br><br>";
 
+  // connect to all specified databases
+  foreach ($db_source_rh as $db_source_p => $db_source_v) {
+    $db_conn_array[] = mysqli_connect($db_server, $db_user, $db_pass, $db_source_v);
+  }
+  
   if ($specific_addr_chk_rh == 1) {
    
     // look only for specific MAC/BD_ADDR address
-    
-    echo "Looked only for this MAC/BD_ADDR address: " . $specific_addr_rh . "<br><br>";
 
-    foreach ($db_source_rh as $key => $value) {
-
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+    foreach ($db_conn_array as $db_conn_p => $db_conn_v) {
 
       // ---------------------------------------------------------------------- WIFI
       if ($show_wlan_rh == "1") {
 
         // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
+        $stmt = mysqli_stmt_init($db_conn_v);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
                                    (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND
                                    (station_MAC = '" . $specific_addr_rh . "') AND " . $db_q_standard . ";");
@@ -144,7 +140,7 @@ if ($db_source_rh == NULL) {
       if ($show_bt_rh == "1") {
           
         // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
+        $stmt = mysqli_stmt_init($db_conn_v);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT BD_ADDR) AS TotalRows FROM Bluetooth WHERE
                                    (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND
                                    (BD_ADDR = '" . $specific_addr_rh . "');");
@@ -183,9 +179,7 @@ if ($db_source_rh == NULL) {
 
     // look for any MAC/BD_ADDR address
     
-    foreach ($db_source_rh as $key => $value) {
-
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+    foreach ($db_conn_array as $db_conn_p => $db_conn_v) {
 
       // ---------------------------------------------------------------------- WIFI
       if ($show_wlan_rh == "1") {
@@ -193,7 +187,7 @@ if ($db_source_rh == NULL) {
         // GLOBAL MAC LOOP
         
         // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
+        $stmt = mysqli_stmt_init($db_conn_v);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT station_MAC) AS TotalRows FROM Clients WHERE
                                    (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND
                                    (station_MAC LIKE '_0:__:__:__:__:__' OR
@@ -228,7 +222,7 @@ if ($db_source_rh == NULL) {
         // LOCAL MAC LOOP
         
         // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
+        $stmt = mysqli_stmt_init($db_conn_v);
         mysqli_stmt_prepare($stmt, "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE
                                    (LENGTH(probed_ESSIDs) > 18) AND
                                    (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?) AND NOT
@@ -287,7 +281,7 @@ if ($db_source_rh == NULL) {
       if ($show_bt_rh == "1") {
           
         // prepare MySQL statement
-        $stmt = mysqli_stmt_init($db_conn_s);
+        $stmt = mysqli_stmt_init($db_conn_v);
         mysqli_stmt_prepare($stmt, "SELECT COUNT(DISTINCT BD_ADDR) AS TotalRows FROM Bluetooth WHERE
                                    (last_time_seen BETWEEN (DATE_SUB(?, INTERVAL " . $time_period_rh . " " . $time_period_format_rh . ")) AND ?);");
         mysqli_stmt_bind_param($stmt, "ss", $time_actual, $time_actual);
@@ -317,6 +311,18 @@ if ($db_source_rh == NULL) {
       } // end of show_bt_rh
     } // end of foreach DB
   } // end of if specific_addr
+
+  // actual text output starts here
+
+  echo  "Showing results from " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_from_rh)) . "</b>" .
+    " to " . "<b>" . date('G:i:s (j.n.Y)', strtotime($time_to_rh)) . "</b>" .
+    " with period of " . "<b>" . $time_period_rh . " " . strtolower($time_period_format_rh) . "(s)" . "</b>" . "<br><br>";
+
+  if ($specific_addr_chk_rh == 1) {  
+    echo "Looked only for this MAC/BD_ADDR address: " . $specific_addr_rh . "<br><br>";
+  }
+
+  // end of text output
 
   // write completed chart arrays to json files
   $json_dir = "../../json";
