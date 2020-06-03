@@ -64,7 +64,7 @@ if(!$db_conn){
         <div class="div_content">
           <p>
             <b>Passages</b> mode displays monitoring data as number of unique and total passages
-            of devices in range of selected source device(s) for every time step.
+            of devices in range of selected source device for every time step.
           </p>
         </div>
         <div class="div_content" id="info">
