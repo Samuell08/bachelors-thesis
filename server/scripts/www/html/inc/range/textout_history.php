@@ -58,6 +58,7 @@ if ($db_source_rh == NULL) {
   $alg_start = time();
 
   // prepare variables
+  unset($db_conn_array);
   $mac_glbl   = 0;
   $mac_local  = 0;
   $bt_total   = 0;

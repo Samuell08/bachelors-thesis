@@ -45,18 +45,22 @@ if ($db_source_rl == NULL) {
 } else {
 
   // prepare variables
+  unset($db_conn_array);
   $mac_glbl = 0;
   $mac_local = 0;
   $bt_total = 0;
   $fingerprints_count = 0;
   
+  // connect to all specified databases
+  foreach ($db_source_rl as $db_source_p => $db_source_v) {
+    $db_conn_array[] = mysqli_connect($db_server, $db_user, $db_pass, $db_source_v);
+  }
+  
   // ---------------------------------------------------------------------- WIFI
   if ($show_wlan_rl == "1") {
   
     // loop every source DB
-    foreach ($db_source_rl as $key => $value) {
-
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+    foreach ($db_conn_array as $db_conn_p => $db_conn_v) {
 
       // global MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
@@ -66,7 +70,7 @@ if ($db_source_rl == NULL) {
                     station_MAC LIKE '_8:__:__:__:__:__' OR
                     station_MAC LIKE '_C:__:__:__:__:__')
                     GROUP BY station_MAC;";
-      $db_result = mysqli_query($db_conn_s, $db_q);
+      $db_result = mysqli_query($db_conn_v, $db_q);
       $mac_glbl  += mysqli_num_rows($db_result);
 
       // local MAC within last $time_period_rl
@@ -77,7 +81,7 @@ if ($db_source_rl == NULL) {
                     station_MAC LIKE '_8:__:__:__:__:__' OR
                     station_MAC LIKE '_C:__:__:__:__:__')
                     GROUP BY station_MAC;";
-      $db_result = mysqli_query($db_conn_s, $db_q);
+      $db_result = mysqli_query($db_conn_v, $db_q);
       $mac_local += mysqli_num_rows($db_result);
 
       // local MAC unique probe request fingerprints assoc array within last $time_period_rl time
@@ -89,7 +93,7 @@ if ($db_source_rl == NULL) {
                     station_MAC LIKE '_8:__:__:__:__:__' OR
                     station_MAC LIKE '_C:__:__:__:__:__')
                     GROUP BY SUBSTRING(probed_ESSIDs,19,1000);";
-      $db_result = mysqli_query($db_conn_s, $db_q);
+      $db_result = mysqli_query($db_conn_v, $db_q);
 
       // fill (append to) fingerprints array
       if (mysqli_num_rows($db_result) > 0) {
@@ -121,16 +125,14 @@ if ($db_source_rl == NULL) {
   if ($show_bt_rl == "1") {
 
     // loop every source DB
-    foreach ($db_source_rl as $key => $value) {
-
-      $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
+    foreach ($db_conn_array as $db_conn_p => $db_conn_v) {
 
       // Bluetooth within last $time_period_rl time
       $db_q      = "SELECT BD_ADDR FROM Bluetooth
                     WHERE last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
                     GROUP BY BD_ADDR;";
 
-      $db_result = mysqli_query($db_conn_s, $db_q);
+      $db_result = mysqli_query($db_conn_v, $db_q);
       $bt_total  += mysqli_num_rows($db_result);
     }
   }
