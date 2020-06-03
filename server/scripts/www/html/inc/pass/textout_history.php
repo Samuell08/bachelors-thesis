@@ -718,6 +718,8 @@ if ($db_source_ph == NULL) {
     }
   }
 
+  // end of text output
+
   // write completed chart arrays to json files
   $json_dir = "../../json";
   if (!file_exists($json_dir)){ mkdir($json_dir); }

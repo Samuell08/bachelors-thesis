@@ -177,7 +177,7 @@ if ($db_source_rh == NULL) {
 
 
 
-    // look for any MAC/BD_ADDR address
+    // look for any MAC/BD_ADDR address or local MAC fingerprint
     
     foreach ($db_conn_array as $db_conn_p => $db_conn_v) {
 

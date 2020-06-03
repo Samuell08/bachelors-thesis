@@ -44,10 +44,10 @@ if ($db_source_rl == NULL) {
   echo "<p class=\"warning\">No data selected to show.</p>";
 } else {
 
-  // reset variables before queries
-  $mac_glbl   = 0;
-  $mac_local  = 0;
-  $bt_total   = 0;
+  // prepare variables
+  $mac_glbl = 0;
+  $mac_local = 0;
+  $bt_total = 0;
   $fingerprints_count = 0;
   
   // text output
@@ -56,13 +56,11 @@ if ($db_source_rl == NULL) {
   echo "updated every " . $_SESSION["updateInterval"]/1000 . " seconds" . "<br><br>"; 
 
   // ---------------------------------------------------------------------- WIFI
-  // check if user selected to show wlan
   if ($show_wlan_rl == "1") {
   
     // loop every source DB
     foreach ($db_source_rl as $key => $value) {
 
-      // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
       // global MAC within last $time_period_rl
@@ -134,13 +132,11 @@ if ($db_source_rl == NULL) {
   }
 
   // ----------------------------------------------------------------- Bluetooth
-  // check if user selected to show bt
   if ($show_bt_rl == "1") {
 
     // loop every source DB
     foreach ($db_source_rl as $key => $value) {
 
-      // DB conn with specified source
       $db_conn_s = mysqli_connect($db_server, $db_user, $db_pass, $value);
 
       // Bluetooth within last $time_period_rl time
