@@ -94,7 +94,7 @@ function clone_db() {
   printf "\n"
 
   echo "Dumping remote MySQL database..."
-  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S mysqldump -u root --password=${i_remote_mysql_root_secret} --fields-terminated-by='|~|' --tab=/tmp ${DATABASE}"
+  ssh pi@${ADDRESS} "echo $i_remote_pi_secret | sudo -S mysqldump -u root --password=${i_remote_mysql_root_secret} --skip-tz-utc --fields-terminated-by='|~|' --tab=/tmp ${DATABASE}"
 
   echo "Copying dump files from remote device to local device..."
   scp pi@${ADDRESS}:/tmp/AccessPoints.txt /tmp/
