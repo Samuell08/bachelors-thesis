@@ -48,6 +48,10 @@ if ($db_source_rl == NULL) {
   echo "<p class=\"warning\">Wi-Fi Standard not selected.</p>";
 } else {
 
+  // time of algorithm start - used in db queries and chart arrays
+  $alg_start = time();
+  $alg_start_string = date('Y-m-d H:i:s', $alg_start);
+
   // prepare variables
   unset($db_conn_array);
   $mac_glbl = 0;
@@ -83,7 +87,7 @@ if ($db_source_rl == NULL) {
 
       // global MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND
+                   (last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -94,7 +98,7 @@ if ($db_source_rl == NULL) {
 
       // local MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
+                   (last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -106,7 +110,7 @@ if ($db_source_rl == NULL) {
       // local MAC unique probe request fingerprints assoc array within last $time_period_rl time
       $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
                    (LENGTH(probed_ESSIDs) > 18) AND
-                   (last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
+                   (last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -148,7 +152,7 @@ if ($db_source_rl == NULL) {
 
       // Bluetooth within last $time_period_rl time
       $db_q      = "SELECT BD_ADDR FROM Bluetooth
-                    WHERE last_time_seen >= (DATE_SUB(CURRENT_TIMESTAMP, INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
+                    WHERE last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
                     GROUP BY BD_ADDR;";
 
       $db_result = mysqli_query($db_conn_v, $db_q);
@@ -183,11 +187,11 @@ if ($db_source_rl == NULL) {
   // end of text output
 
   // -------------------------------------------------------------- chart arrays
+  $alg_start_ms = $alg_start*1000;
   // push new data into chart arrays
-  $current_time = time()*1000;
-  array_push($chart_wifi_bot_rl, array("x" => $current_time, "y" => $mac_glbl));
-  array_push($chart_wifi_top_rl, array("x" => $current_time, "y" => $fingerprints_count));
-  array_push($chart_bt_rl, array("x" => $current_time, "y" => $bt_total));
+  array_push($chart_wifi_bot_rl, array("x" => $alg_start_ms, "y" => $mac_glbl));
+  array_push($chart_wifi_top_rl, array("x" => $alg_start_ms, "y" => $fingerprints_count));
+  array_push($chart_bt_rl, array("x" => $alg_start_ms, "y" => $bt_total));
 
   // write updated chart arrays to json files
   $json_dir = "../../json";
