@@ -8,8 +8,6 @@ $session_id = session_id();
 
 // infinite execution time
 set_time_limit(0);
-// live results delay (must be longer than server import period)
-$alg_delay = 30;
 
 // get session variables
 // database connection
@@ -18,6 +16,8 @@ $db_user      = $_SESSION["db_user"];
 $db_pass      = $_SESSION["db_pass"];
 $db_source_rl = $_SESSION["db_source_rl"];
 // settings
+$time_delay_rl          = $_SESSION["time_delay_rl"];
+$time_delay_format_rl   = $_SESSION["time_delay_format_rl"];
 $time_period_rl         = $_SESSION["time_period_rl"];
 $time_period_format_rl  = $_SESSION["time_period_format_rl"];
 $show_wlan_rl           = $_SESSION["show_wlan_rl"];
@@ -40,18 +40,35 @@ function is_anagram($string1, $string2) {
 // check if user input is correct
 if ($db_source_rl == NULL) {
   echo "<p class=\"warning\">Source database(s) not selected.</p>";
+} elseif ($time_delay_format_rl == NULL) {
+  echo "<p class=\"warning\">Delay format Second(s)/Minute(s)/Hour(s) not selected.</p>";
+} elseif ($time_delay_rl == NULL) {
+  echo "<p class=\"warning\">Invalid Delay.</p>";
 } elseif ($time_period_format_rl == NULL) {
-  echo "<p class=\"warning\">Time Period format Minute(s)/Hour(s) not selected.</p>";
+  echo "<p class=\"warning\">Time Period format Second(s)/Minute(s)/Hour(s) not selected.</p>";
 } elseif ($time_period_rl == NULL) {
-  echo "<p class=\"warning\">Invalid time period.</p>";
+  echo "<p class=\"warning\">Invalid Time Period.</p>";
 } elseif ((!($show_wlan_rl == "1")) and (!($show_bt_rl == "1"))) {
   echo "<p class=\"warning\">No data selected to show.</p>";
 } elseif ($show_wlan_rl == "1" and $show_wlan_a_rl != "1" and $show_wlan_bg_rl != "1") {
   echo "<p class=\"warning\">Wi-Fi Standard not selected.</p>";
 } else {
 
+  // calculate delay seconds
+  switch ($time_delay_format_rl) {
+  case "SECOND":
+    $alg_delay = $time_delay_rl;
+    break;
+  case "MINUTE":
+    $alg_delay = $time_delay_rl*60;
+    break;
+  case "HOUR":
+    $alg_delay = $time_delay_rl*3600;
+    break;
+  }
+
   // time of algorithm start - used in db queries and chart arrays
-  $alg_start = time()-$alg_delay;
+  $alg_start = time() - $alg_delay;
   $alg_start_string = date('Y-m-d H:i:s', $alg_start);
 
   // prepare variables
@@ -89,7 +106,8 @@ if ($db_source_rl == NULL) {
 
       // global MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string') AND
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) 
+                    AND '$alg_start_string') AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -100,7 +118,8 @@ if ($db_source_rl == NULL) {
 
       // local MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string') AND
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
+                    AND '$alg_start_string') AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -112,7 +131,8 @@ if ($db_source_rl == NULL) {
       // local MAC unique probe request fingerprints assoc array within last $time_period_rl time
       $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
                    (LENGTH(probed_ESSIDs) > 18) AND
-                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string') AND
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
+                    AND '$alg_start_string') AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -154,7 +174,8 @@ if ($db_source_rl == NULL) {
 
       // Bluetooth within last $time_period_rl time
       $db_q      = "SELECT BD_ADDR FROM Bluetooth WHERE
-                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string')
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
+                    AND '$alg_start_string')
                     GROUP BY BD_ADDR;";
 
       $db_result = mysqli_query($db_conn_v, $db_q);

@@ -105,6 +105,17 @@ $_SESSION["updateInterval"] = 30000;
                 }
               ?>
             </div>
+            
+            <div class="div_subcontent">
+              <b>Delay</b><br>
+              <table class="form">
+                <tr><td><input type="number" name="time_delay_rl" value="<?php echo $time_delay_rl?>" min="1" style="width:100px;text-align:center;"></td></tr>
+                <tr><td><input type="radio" name="time_delay_format_rl" value="SECOND" <?php if ($time_delay_format_rl == "SECOND") {echo "checked";} ?>> Second(s) </td></tr>
+                <tr><td><input type="radio" name="time_delay_format_rl" value="MINUTE" <?php if ($time_delay_format_rl == "MINUTE") {echo "checked";} ?>> Minute(s) </td></tr>
+                <tr><td><input type="radio" name="time_delay_format_rl" value="HOUR"   <?php if ($time_delay_format_rl == "HOUR")   {echo "checked";} ?>> Hour(s) </td></tr>
+              </table>
+            </div>
+
 	  
             <div class="div_subcontent">
               <b>Time Period</b><br>
@@ -136,6 +147,7 @@ $_SESSION["updateInterval"] = 30000;
 
           </form>
 
+          <p class="info_box">Delay <b>must</b> be higher than server import period to display meaningful results.</p>
           <p class="info_box">Time Period should <b>not</b> be smaller than Bluetooth amnesia mode (when enabled) to display meaningful results.</p>
           <p class="info_box">Bluetooth monitoring data meaning based on amnesia mode:<br>
                                 <b>&nbsp;&nbsp;&nbsp;enabled - </b>total number of devices in range within Time Period
