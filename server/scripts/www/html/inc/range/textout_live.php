@@ -8,6 +8,8 @@ $session_id = session_id();
 
 // infinite execution time
 set_time_limit(0);
+// live results delay (must be longer than server import period)
+$alg_delay = 30;
 
 // get session variables
 // database connection
@@ -49,7 +51,7 @@ if ($db_source_rl == NULL) {
 } else {
 
   // time of algorithm start - used in db queries and chart arrays
-  $alg_start = time();
+  $alg_start = time()-$alg_delay;
   $alg_start_string = date('Y-m-d H:i:s', $alg_start);
 
   // prepare variables
@@ -87,7 +89,7 @@ if ($db_source_rl == NULL) {
 
       // global MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string') AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -98,7 +100,7 @@ if ($db_source_rl == NULL) {
 
       // local MAC within last $time_period_rl
       $db_q      = "SELECT station_MAC FROM Clients WHERE 
-                   (last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string') AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -110,7 +112,7 @@ if ($db_source_rl == NULL) {
       // local MAC unique probe request fingerprints assoc array within last $time_period_rl time
       $db_q      = "SELECT SUBSTRING(probed_ESSIDs,19,1000) FROM Clients WHERE 
                    (LENGTH(probed_ESSIDs) > 18) AND
-                   (last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))) AND NOT
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string') AND
                    (station_MAC LIKE '_0:__:__:__:__:__' OR
                     station_MAC LIKE '_4:__:__:__:__:__' OR
                     station_MAC LIKE '_8:__:__:__:__:__' OR
@@ -151,8 +153,8 @@ if ($db_source_rl == NULL) {
     foreach ($db_conn_array as $db_conn_p => $db_conn_v) {
 
       // Bluetooth within last $time_period_rl time
-      $db_q      = "SELECT BD_ADDR FROM Bluetooth
-                    WHERE last_time_seen >= (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . "))
+      $db_q      = "SELECT BD_ADDR FROM Bluetooth WHERE
+                   (last_time_seen BETWEEN (DATE_SUB('" . $alg_start_string . "', INTERVAL " . $time_period_rl . " " . $time_period_format_rl . ")) AND '$alg_start_string')
                     GROUP BY BD_ADDR;";
 
       $db_result = mysqli_query($db_conn_v, $db_q);
@@ -164,7 +166,8 @@ if ($db_source_rl == NULL) {
  
   echo date('G:i:s (j.n.Y)') . "<br>";
   echo "Showing results of last " . $time_period_rl . " " . strtolower($time_period_format_rl) . "(s) ";
-  echo "updated every " . $_SESSION["updateInterval"]/1000 . " seconds" . "<br><br>"; 
+  echo "updated every " . $_SESSION["updateInterval"]/1000 . " second(s) "; 
+  echo "delayed by " . $alg_delay . " second(s)" . "<br><br>"; 
 
   if ($show_wlan_rl == "1") {
     echo "<b>Wi-Fi</b><br>";
