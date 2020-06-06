@@ -505,6 +505,10 @@ function process_keys($type, $db_q_standard, $keys,
     
 }
 
+// Function accepts parameters of chart arrays, end time and difference time of single movement, upper limits array for
+// whole time range and absolute maximum threshold to determine whether the movement is within limits of given time step.
+// returns:  0 - movement is under limit
+//           1 - movement is over limit
 function flag_movement_over_limit($time_from, $time_to, $time_increment, $end_time, $diff, $upper_limits, $threshold_max) {
   $i = 0;
   $time_actual = $time_from;
@@ -718,6 +722,8 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
   }
 }
 
+// Function unsets movement times from accumulator array for current step based on
+// absolute maximum threshold and upper limit for given step.
 function filter_accumulator_array($upper_limit, $threshold_max, &$accumulator) {
   foreach ($accumulator as $accumulator_p => $accumulator_v) {
     if (($accumulator_v > $upper_limit) or ($accumulator_v > $threshold_max)) {
@@ -726,6 +732,9 @@ function filter_accumulator_array($upper_limit, $threshold_max, &$accumulator) {
   }
 }
 
+
+// Function calculates upper limits for movement time for every time step based on Threshold setting.
+// For every time step it takes number of shortest movement times and multiplies it by multiplier.
 function find_movement_limits ($threshold_num, $threshold_mult, $array_size, $accumulator) {
   for ($i = 0; $i < $array_size; $i++) {
     sort($accumulator[$i], SORT_NUMERIC);
