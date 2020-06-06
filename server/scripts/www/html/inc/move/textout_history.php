@@ -43,10 +43,6 @@ $specific_fp_chk_mh      = $_SESSION["specific_fp_chk_mh"];
 $specific_bt_chk_mh      = $_SESSION["specific_bt_chk_mh"];
 $specific_bt_mh          = $_SESSION["specific_bt_mh"];
 
-$_SESSION["debug_main"] = false;
-$_SESSION["debug_process_timestamps_output"] = false;
-$_SESSION["debug_chart_arrays"] = false;
-
 class Movement {
   public $key = NULL; // MAC, fingerprint or BD_ADDR
   public $blacklisted = 0; // if 1, key is blacklisted
@@ -340,14 +336,7 @@ function process_timestamps($tsA, $tsB, &$AB_movement,  &$BA_movement){
     $AB_min = timestamps_find_minimum($tsA, $tsB);
     $BA_min = timestamps_find_minimum($tsB, $tsA);
     $total_min = min($AB_min, $BA_min);
-
     $threshold = $total_min*2;
-
-    if($_SESSION["debug_process_timestamps_output"]) {
-      echo "<br>AB_min: ".$AB_min."<br>";
-      echo "<br>BA_min: ".$BA_min."<br>";
-      echo "<br>total_min: ".$total_min."<br>";
-    }
 
     timestamps_unset_irrelevant($AB_tsA, $AB_tsB, $total_min);
     timestamps_unset_irrelevant($BA_tsB, $BA_tsA, $total_min);
@@ -486,15 +475,6 @@ function process_keys($type, $db_q_standard, $keys,
     unset($AB_movement);
     unset($BA_movement);
 
-    if($_SESSION["debug_process_timestamps_output"]) {
-      echo "<br> key:<br>";
-      if(is_scalar($keys_value)){
-        echo $keys_value . "<br>";
-      } else {
-        echo $keys_value[0] . "<br>";
-      }
-    }
-    
     // get timestamps for key from database A and B
     $timestampsA = get_timestamps($db_conn_A, $db_q);
     $timestampsB = get_timestamps($db_conn_B, $db_q);
@@ -510,18 +490,6 @@ function process_keys($type, $db_q_standard, $keys,
     }
 
     process_timestamps($timestampsA, $timestampsB, $AB_movement, $BA_movement);
-
-    if($_SESSION["debug_process_timestamps_output"]) {
-      echo "<br> timestampsA:<br>";
-      var_dump($timestampsA);
-      echo "<br> timestampsB:<br>";
-      var_dump($timestampsB);
-      echo "<br> AB_movement:<br>";
-      var_dump($AB_movement);
-      echo "<br> BA_movement:<br>";
-      var_dump($BA_movement);
-      echo "<br><br>";
-    }
 
     $moved_total_AB += count($AB_movement);
     $moved_total_BA += count($BA_movement);
@@ -723,11 +691,6 @@ function print_statistics_table($show_wlan, $show_bt,
 function accumulate_chart_arrays($time_from, $time_to, $time_increment, 
                                  $Movement_array, &$accumulator_AB, &$accumulator_BA) {
 
-  if ($_SESSION["debug_chart_arrays"]) {
-    echo "<hr>";
-    echo "function accumulate_chart_arrays start:<br>";
-  }
-
   foreach ($Movement_array as $Movement_key) {
     // reset counters
     $i = 0;
@@ -738,26 +701,12 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
       // AB movement in current time step?
       foreach ($Movement_key->AB as $AB_p => $AB_v){
         if ((strtotime($AB_v[1]) > strtotime($time_actual)) && (strtotime($AB_v[1]) <= strtotime($time_next))){
-          if ($_SESSION["debug_chart_arrays"]) {
-            if (is_scalar($Movement_key->key)) {
-              echo "AB - Key: " . $Movement_key->key . " ... Appending " . $AB_v[2] . " to timestamp " . $time_next . "<br>";
-            } else {
-              echo "AB - Key: " . $Movement_key->key[0] . " ... Appending " . $AB_v[2] . " to timestamp " . $time_next . "<br>";
-            }
-          }
           $accumulator_AB[$i][] = $AB_v[2]; // diff
         }
       }
       // BA movement in current time step?
       foreach ($Movement_key->BA as $BA_p => $BA_v){
         if ((strtotime($BA_v[1]) > strtotime($time_actual)) && (strtotime($BA_v[1]) <= strtotime($time_next))){
-          if ($_SESSION["debug_chart_arrays"]) {
-            if (is_scalar($Movement_key->key)) {
-              echo "BA - Key: " . $Movement_key->key . " ... Appending " . $BA_v[2] . " to timestamp " . $time_next . "<br>";
-            } else {
-              echo "BA - Key: " . $Movement_key->key[0] . " ... Appending " . $BA_v[2] . " to timestamp " . $time_next . "<br>";
-            }
-          }
           $accumulator_BA[$i][] = $BA_v[2]; // diff
         }
       }
@@ -766,15 +715,6 @@ function accumulate_chart_arrays($time_from, $time_to, $time_increment,
       $i += 1;
       $time_actual = $time_next;
     }
-  }
-
-  if ($_SESSION["debug_chart_arrays"]) {
-    echo "<br>function accumulate_chart_arrays done:<br>";
-    echo "acc AB:<br>";
-    var_dump($accumulator_AB);
-    echo "<br><br>";
-    echo "acc BA:<br>";
-    var_dump($accumulator_BA);
   }
 }
 
@@ -842,17 +782,6 @@ function fill_chart_arrays($units, $upper_limits_AB, $upper_limits_BA, $threshol
       }
     }
 
-  }
-
-  if ($_SESSION["debug_chart_arrays"]) {
-    echo "<hr><hr>";
-    echo "function fill_chart_arrays done:<br>";
-    echo "<br>chart AB:<br>";
-    var_dump($chart_AB);
-    echo "<br><br>";
-    echo "chart BA:<br>";
-    var_dump($chart_BA);
-    echo "<br>";
   }
 }
 
@@ -1104,45 +1033,6 @@ if ($db_source_A_mh == NULL or $db_source_B_mh == NULL) {
   }
 
   // end of text output
-
-  // --------------------------------------------------------------------------- debug output
-
-  if ($_SESSION["debug_main"]) {
-    echo "point A<br>";
-    echo "<br>macs A:<br>";
-    var_dump($A_macs);
-    echo "<br><br>fingerprints A:<br>";
-    var_dump($A_fingerprints);
-    echo "<br><br>bd_addrs A:<br>";
-    var_dump($A_bd_addrs);
-
-    echo "<br><br>point B<br>";
-    echo "<br>macs B:<br>";
-    var_dump($B_macs);
-    echo "<br><br>fingerprints B:<br>";
-    var_dump($B_fingerprints);
-    echo "<br><br>bd_addrs B:<br>";
-    var_dump($B_bd_addrs);
-
-    echo "<br><br><br>in both:<br>";
-    echo "<br>macs:<br>";
-    var_dump($macs);
-    echo "<br><br>fingerprints:<br>";
-    var_dump($fingerprints);
-    echo "<br><br>bd_addrs:<br>";
-    var_dump($bd_addrs);
-    echo "<br><br>";
-
-    echo "<br>Movement_macs:<br><br>";
-    var_dump($Movement_macs);
-    echo "<br><br>";
-
-    echo "<br>Movement_bd_addrs:<br><br>";
-    var_dump($Movement_bd_addrs);
-    echo "<br><br>";
-  }
-  
-  // --------------------------------------------------------------------------- debug end
 
   if (!(json_encode($chart_AB_mh))) {
     die ("JSON encoding of AB chart array ERROR: " . json_last_error_msg());

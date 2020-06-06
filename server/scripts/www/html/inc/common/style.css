@@ -173,19 +173,3 @@ tr.textout_extra {
   color: slategray;
 }
 
-
-/* -------------------------------- debug */
-.div_debug {
-  padding: 0px 20px 5px 20px;
-  margin: 10px;
-}
-
-/*
-table,tr,th,td {
-  border: 1px solid black;
-}
-*/
-
-div  {
-  border: 0px solid black;
-}
