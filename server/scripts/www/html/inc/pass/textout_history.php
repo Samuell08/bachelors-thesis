@@ -185,6 +185,8 @@ function get_bd_addrs($db_conn, $time_from, $time_to, &$bd_addrs) {
   mysqli_free_result($db_result);
 }
 
+// Function takes array of all timestamps for given key and Threshold setting and
+// returns array with marked timestamps as 1 - passage; 0 - stay in range
 function find_passages($timestamps, $threshold) {
   $passages[0] = array($timestamps[0], 1);
   for ($i = 1; $i < count($timestamps); $i++){
@@ -374,6 +376,8 @@ function process_keys($type, $db_q_standard, $keys,
 
 }
 
+// Function accepts chart array parameters and array of Passenger classes and fills chart arrays with unique and total
+// movement values of every key for every time step.
 function fill_chart_arrays($time_from, $time_to, $time_increment, $Passenger_array, &$chart_total, &$chart_unique) {
   foreach ($Passenger_array as $Passenger_key) {
     // fill chart arrays based on passages subarray
